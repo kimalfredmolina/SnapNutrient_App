@@ -1,50 +1,78 @@
-# Welcome to your Expo app 👋
+# SnapNutrient_V1.0
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
 
-## Get started
+---
 
-1. Install dependencies
+## 🚀 Getting Started
 
-   ```bash
-   npm install
-   ```
+### 0. Install Expo CLI (if you don't have it)
 
-2. Start the app
+```bash
+npm install -g expo-cli
+```
 
-   ```bash
-   npx expo start
-   ```
+### 1. Install project components
 
-In the output, you'll find options to open the app in a
+```bash
+npx create-expo-app@latest
+```
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+### 2. Install project dependencies
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+```bash
+npm install
+```
 
-## Get a fresh project
+### 3. Install project dependencies
 
-When you're ready, run:
+```bash
+npm install expo
+```
+
+### 4. Install Tailwind CSS (for NativeWind) [Guide](https://www.nativewind.dev/docs/getting-started/installation).
+
+```bash
+npx expo install nativewind react-native-reanimated@~3.17.4 react-native-safe-area-context@5.4.0
+npx expo install tailwindcss@^3.4.17 prettier-plugin-tailwindcss@^0.5.11 -- -D
+npx tailwindcss init
+```
+
+### 5. To remove other not neccesary files
 
 ```bash
 npm run reset-project
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+> **Note:** The `tailwind.config.js` is already set up for this project.  
+> Make sure your `content` array includes all files with NativeWind classes:
+>
+> ```js
+> content: ["./app/**/*.{js,jsx,ts,tsx}", "./components/**/*.{js,jsx,ts,tsx}"];
+> ```
 
-## Learn more
+### 6. Start the app
 
-To learn more about developing your project with Expo, look at the following resources:
+```bash
+cd frontend
+npx expo start -c
+```
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+- Scan the QR code with Expo Go (Android/iOS) or run on an emulator/simulator.
 
-## Join the community
+---
 
-Join our community of developers creating universal apps.
+## 🛠️ Project Structure
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+- `app/` — Main application code (screens, components)
+- `tailwind.config.js` — Tailwind/NativeWind configuration
+
+---
+
+## 📚 Learn More
+
+- [Expo Documentation](https://docs.expo.dev/)
+- [NativeWind Documentation](https://www.nativewind.dev/)
+- [Tailwind CSS Documentation](https://tailwindcss.com/docs/installation)
+
+---
+
