@@ -3,7 +3,7 @@ import "../global.css";
 
 export default function App() {
   return (
-    <View className="flex-1 items-center justify-center bg-red-100">
+    <View className="flex-1 items-center justify-center bg-gray-100">
       <Text className="text-xl font-bold text-blue-500">
         SnapNutrient V1.0 Application
       </Text>
