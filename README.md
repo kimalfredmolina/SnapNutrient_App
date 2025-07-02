@@ -29,6 +29,8 @@ npm install
 npm install expo
 ```
 
+## Other Installation (Already install in our project)
+
 ### 4. Install Tailwind CSS (for NativeWind) [Guide](https://www.nativewind.dev/docs/getting-started/installation).
 
 ```bash
