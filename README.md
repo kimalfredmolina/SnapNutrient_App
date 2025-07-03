@@ -29,6 +29,7 @@ npm install
 npm install expo
 ```
 
+---
 ## Other Installation (Already install in our project)
 
 ### 4. Install Tailwind CSS (for NativeWind) [Guide](https://www.nativewind.dev/docs/getting-started/installation).
@@ -52,6 +53,7 @@ npm run reset-project
 > content: ["./app/**/*.{js,jsx,ts,tsx}", "./components/**/*.{js,jsx,ts,tsx}"];
 > ```
 
+---
 ### 6. Start the app
 
 ```bash
