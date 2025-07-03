@@ -1,12 +1,30 @@
 import { Text, View } from "react-native";
+import {StyleSheet} from 'react-native';
 import "../global.css";
 
-export default function App() {
+const Flex = () => {
   return (
-    <View className="flex-1 items-center justify-center bg-gray-100">
-      <Text className="text-xl font-bold text-blue-500">
-        SnapNutrient V1.0 Application
-      </Text>
+    <View
+      style={[
+        styles.container,
+        {
+          // Trying to recreate the code in react-native-dev
+          flexDirection: 'column',
+        },
+      ]}>
+      <View style={{flex: 1, backgroundColor: 'red'}} />
+      <View style={{flex: 2, backgroundColor: 'darkorange'}} />
+      <View style={{flex: 3, backgroundColor: 'green'}} />
+      <View style={{flex: 3, backgroundColor: 'purple'}} />
     </View>
   );
-}
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 20,
+  },
+});
+
+export default Flex;

@@ -197,17 +197,17 @@ export default function RootLayout() {
         }}
       />
       
-      {/* Hide these routes from tabs */}
+      {/* This hides it from the tab bar */}
       <Tabs.Screen
         name="sitemap"
         options={{
-          href: null, // This hides it from the tab bar
+          href: null,
         }}
       />
       <Tabs.Screen
         name="+not-found"
         options={{
-          href: null, // This hides it from the tab bar
+          href: null, 
         }}
       />
     </Tabs>
