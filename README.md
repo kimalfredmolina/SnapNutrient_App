@@ -11,7 +11,7 @@
 npm install -g expo-cli
 ```
 
-### 1. Install project components
+### 1. Install project components (dont need to install)
 
 ```bash
 npx create-expo-app@latest
