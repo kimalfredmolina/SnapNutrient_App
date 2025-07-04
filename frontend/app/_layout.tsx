@@ -1,54 +1,52 @@
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
-import { View, TouchableOpacity, Text, Dimensions } from "react-native";
+import { View, TouchableOpacity, Text } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import "../global.css";
 
-const { width: screenWidth } = Dimensions.get('window');
-
 function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
-  // Filter out unwanted routes
-  const filteredRoutes = state.routes.filter(route => 
-    !['sitemap', '+not-found', '_sitemap', 'not-found'].includes(route.name)
+  const filteredRoutes = state.routes.filter(
+    (route) =>
+      !["sitemap", "+not-found", "_sitemap", "not-found"].includes(route.name)
   );
-  
-  const tabWidth = screenWidth / filteredRoutes.length;
-  
+  const centerIndex = 2; // Scan tab
+
   return (
-    <View style={{ position: 'relative', height: 80 }}>
-      {/* Base tab bar background */}
-      <View style={{
-        position: 'absolute',
-        bottom: 0,
+    <SafeAreaView
+      edges={["bottom"]}
+      className="bg-white"
+      style={{
+        position: "absolute",
         left: 0,
         right: 0,
-        backgroundColor: '#1a1a1a',
-        height: 80,
-      }} />
-
-      {/* Tab buttons */}
-      <View style={{
-        flexDirection: 'row',
-        height: 80,
-        alignItems: 'center',
-        paddingBottom: 10,
-        paddingTop: 10,
-        position: 'relative',
-        zIndex: 10,
-      }}>
+        bottom: 0,
+        paddingBottom: 0,
+        backgroundColor: "white",
+      }}
+    >
+      <View
+        className="flex-row items-center justify-between w-full bg-white"
+        style={{
+          borderTopLeftRadius: 24,
+          borderTopRightRadius: 24,
+          height: 70,
+        }}
+      >
         {filteredRoutes.map((route, index) => {
           const { options } = descriptors[route.key];
-          const label = options.tabBarLabel !== undefined 
-            ? options.tabBarLabel 
-            : options.title !== undefined 
-            ? options.title 
-            : route.name;
+          const label =
+            options.tabBarLabel !== undefined
+              ? options.tabBarLabel
+              : options.title !== undefined
+                ? options.title
+                : route.name;
 
-          const isFocused = state.index === state.routes.findIndex(r => r.key === route.key);
+          const isFocused = state.index === index;
 
           const onPress = () => {
             const event = navigation.emit({
-              type: 'tabPress',
+              type: "tabPress",
               target: route.key,
               canPreventDefault: true,
             });
@@ -58,68 +56,77 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
             }
           };
 
+          // Center (Scan) tab
+          if (index === centerIndex) {
+            return (
+              <View
+                key={route.key}
+                className="flex-1 items-center"
+                style={{ alignItems: "center", justifyContent: "flex-end" }}
+              >
+                <TouchableOpacity
+                  onPress={onPress}
+                  activeOpacity={0.85}
+                  style={{
+                    backgroundColor: "#a259ff",
+                    width: 56,
+                    height: 56,
+                    borderRadius: 28,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    marginTop: -28,
+                  }}
+                >
+                  {options.tabBarIcon?.({
+                    focused: true,
+                    color: "#fff",
+                    size: 28,
+                  })}
+                </TouchableOpacity>
+                <Text
+                  className={`text-xs mt-1 ${
+                    isFocused ? "text-[#a259ff]" : "text-gray-500"
+                  } font-medium`}
+                  style={{
+                    fontWeight: "900",
+                  }}
+                >
+                  {typeof label === "string" ? label : route.name}
+                </Text>
+              </View>
+            );
+          }
+
+          // Other tabs
           return (
             <TouchableOpacity
               key={route.key}
               accessibilityRole="button"
               accessibilityState={isFocused ? { selected: true } : {}}
               onPress={onPress}
-              style={{
-                flex: 1,
-                alignItems: 'center',
-                justifyContent: 'center',
-                paddingVertical: 8,
-                position: 'relative',
-              }}
+              className="flex-1 items-center justify-center py-2"
+              activeOpacity={0.8}
             >
-              {/* Active tab with floating green circle */}
-              {isFocused ? (
-                <View style={{
-                  position: 'absolute',
-                  backgroundColor: '#4ade80',
-                  borderRadius: 35,
-                  width: 70,
-                  height: 70,
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  top: -25,
-                  shadowColor: '#000',
-                  shadowOffset: { width: 0, height: 4 },
-                  shadowOpacity: 0.3,
-                  shadowRadius: 8,
-                  elevation: 8,
-                  borderWidth: 3,
-                  borderColor: '#1a1a1a',
-                }}>
-                  {options.tabBarIcon?.({
-                    focused: isFocused,
-                    color: '#ffffff',
-                    size: 28,
-                  })}
-                </View>
-              ) : (
-                // Regular tab icon
-                options.tabBarIcon?.({
-                  focused: isFocused,
-                  color: '#888888',
-                  size: 24,
-                })
-              )}
-
-              {/* Tab label */}
-              <Text style={{
-                color: isFocused ? '#ffffff' : '#888888',
-                fontSize: 12,
-                fontWeight: '500',
-                marginTop: isFocused ? 30 : 4,
-              }}>
-                {typeof label === 'string' ? label : route.name}
+              {options.tabBarIcon?.({
+                focused: isFocused,
+                color: isFocused ? "#a259ff" : "#888",
+                size: 24,
+              })}
+              <Text
+                className={`text-xs mt-1 ${
+                  isFocused ? "text-[#a259ff]" : "text-gray-500"
+                } font-medium`}
+                style={{
+                  fontWeight: "900",
+                }}
+              >
+                {typeof label === "string" ? label : route.name}
               </Text>
             </TouchableOpacity>
           );
         })}
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -134,80 +141,46 @@ export default function RootLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: "home",
-          tabBarIcon: ({ color, size, focused }) => (
-            <Ionicons 
-              name={focused ? "home" : "home-outline"} 
-              size={size} 
-              color={color} 
-            />
+          title: "Home",
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="home-outline" size={size} color={color} />
           ),
         }}
       />
       <Tabs.Screen
         name="search"
         options={{
-          title: "search",
-          tabBarIcon: ({ color, size, focused }) => (
-            <Ionicons 
-              name={focused ? "search" : "search-outline"} 
-              size={size} 
-              color={color} 
-            />
+          title: "Search",
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="search-outline" size={size} color={color} />
           ),
         }}
       />
       <Tabs.Screen
         name="scan"
         options={{
-          title: "scan",
-          tabBarIcon: ({ color, size, focused }) => (
-            <MaterialIcons 
-              name="qr-code-scanner" 
-              size={size} 
-              color={color} 
-            />
+          title: "Scan Food",
+          tabBarIcon: ({ color, size }) => (
+            <MaterialIcons name="qr-code-scanner" size={size} color={color} />
           ),
         }}
       />
       <Tabs.Screen
         name="history"
         options={{
-          title: "history",
-          tabBarIcon: ({ color, size, focused }) => (
-            <Ionicons 
-              name={focused ? "time" : "time-outline"} 
-              size={size} 
-              color={color} 
-            />
+          title: "History",
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="time-outline" size={size} color={color} />
           ),
         }}
       />
       <Tabs.Screen
         name="account"
         options={{
-          title: "profile",
-          tabBarIcon: ({ color, size, focused }) => (
-            <Ionicons 
-              name={focused ? "person" : "person-outline"} 
-              size={size} 
-              color={color} 
-            />
+          title: "Account",
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="person-outline" size={size} color={color} />
           ),
-        }}
-      />
-      
-      {/* This hides it from the tab bar */}
-      <Tabs.Screen
-        name="sitemap"
-        options={{
-          href: null,
-        }}
-      />
-      <Tabs.Screen
-        name="+not-found"
-        options={{
-          href: null, 
         }}
       />
     </Tabs>
