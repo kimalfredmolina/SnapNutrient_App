@@ -1,16 +1,28 @@
+import { useState } from "react";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
 import { View, TouchableOpacity, Text } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import "../global.css";
+import Introduction from "./components/introduction";
+import LoginPage from "./authentication/login";
 
 function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
+  //for filtering out specific routes from the bottom navbar
   const filteredRoutes = state.routes.filter(
     (route) =>
-      !["sitemap", "+not-found", "_sitemap", "not-found"].includes(route.name)
+      ![
+        "components/introduction",
+        "authentication/login",
+        "sitemap",
+        "+not-found",
+        "_sitemap",
+        "not-found",
+        "Not Found",
+      ].includes(route.name)
   );
-  const centerIndex = 2; // Scan tab
+  const centerIndex = 2;
 
   return (
     <SafeAreaView
@@ -130,7 +142,18 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   );
 }
 
+//change this if you want to change the initial screen
 export default function RootLayout() {
+  const [step, setStep] = useState<"intro" | "login" | "main">("intro");
+
+  if (step === "intro") {
+    return <Introduction onGetStarted={() => setStep("login")} />;
+  }
+
+  if (step === "login") {
+    return <LoginPage onLogin={() => setStep("main")} />;
+  }
+
   return (
     <Tabs
       tabBar={(props) => <CustomTabBar {...props} />}
@@ -139,7 +162,7 @@ export default function RootLayout() {
       }}
     >
       <Tabs.Screen
-        name="index"
+        name="pages/index"
         options={{
           title: "Home",
           tabBarIcon: ({ color, size }) => (
@@ -148,7 +171,7 @@ export default function RootLayout() {
         }}
       />
       <Tabs.Screen
-        name="search"
+        name="pages/search"
         options={{
           title: "Search",
           tabBarIcon: ({ color, size }) => (
@@ -157,7 +180,7 @@ export default function RootLayout() {
         }}
       />
       <Tabs.Screen
-        name="scan"
+        name="pages/scan"
         options={{
           title: "Scan Food",
           tabBarIcon: ({ color, size }) => (
@@ -166,7 +189,7 @@ export default function RootLayout() {
         }}
       />
       <Tabs.Screen
-        name="history"
+        name="pages/history"
         options={{
           title: "History",
           tabBarIcon: ({ color, size }) => (
@@ -175,7 +198,7 @@ export default function RootLayout() {
         }}
       />
       <Tabs.Screen
-        name="account"
+        name="pages/account"
         options={{
           title: "Account",
           tabBarIcon: ({ color, size }) => (
