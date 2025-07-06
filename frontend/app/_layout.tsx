@@ -7,6 +7,7 @@ import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import "../global.css";
 import Introduction from "./components/introduction";
 import LoginPage from "./authentication/login";
+import SvgComponent from "./components/foodscanner";
 
 function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   //for filtering out specific routes from the bottom navbar
@@ -14,6 +15,7 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
     (route) =>
       ![
         "components/introduction",
+        "components/foodscanner",
         "authentication/login",
         "sitemap",
         "+not-found",
@@ -89,11 +91,7 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
                     marginTop: -28,
                   }}
                 >
-                  {options.tabBarIcon?.({
-                    focused: true,
-                    color: "#fff",
-                    size: 28,
-                  })}
+                  <SvgComponent size={28} color="#fff" />
                 </TouchableOpacity>
                 <Text
                   className={`text-xs mt-1 ${
