@@ -10,12 +10,12 @@ import LoginPage from "./authentication/login";
 import SvgComponent from "./components/foodscanner";
 
 function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
-  //for filtering out specific routes from the bottom navbar
+  // Filter out specific routes from the bottom navbar
   const filteredRoutes = state.routes.filter(
     (route) =>
       ![
         "components/introduction",
-        "components/foodscanner",
+        "components/foodscanner", 
         "authentication/login",
         "sitemap",
         "+not-found",
@@ -24,29 +24,16 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
         "Not Found",
       ].includes(route.name)
   );
+
   const centerIndex = 2;
 
   return (
     <SafeAreaView
       edges={["bottom"]}
-      className="bg-white"
-      style={{
-        position: "absolute",
-        left: 0,
-        right: 0,
-        bottom: 0,
-        paddingBottom: 0,
-        backgroundColor: "white",
-      }}
+      className="bg-white absolute left-0 right-0 bottom-0"
+      style={{ paddingBottom: 0 }}
     >
-      <View
-        className="flex-row items-center justify-between w-full bg-white"
-        style={{
-          borderTopLeftRadius: 24,
-          borderTopRightRadius: 24,
-          height: 70,
-        }}
-      >
+      <View className="flex-row items-center justify-between w-full bg-white rounded-t-3xl h-[70px] shadow-lg">
         {filteredRoutes.map((route, index) => {
           const { options } = descriptors[route.key];
           const label =
@@ -70,36 +57,31 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
             }
           };
 
-          // Center (Scan) tab
+          // Center (Scan) tab with elevated design
           if (index === centerIndex) {
             return (
               <View
                 key={route.key}
-                className="flex-1 items-center"
-                style={{ alignItems: "center", justifyContent: "flex-end" }}
+                className="flex-1 items-center justify-end"
               >
                 <TouchableOpacity
                   onPress={onPress}
                   activeOpacity={0.85}
+                  className="bg-[#a259ff] w-16 h-16 rounded-full items-center justify-center -mt-7"
                   style={{
-                    backgroundColor: "#a259ff",
-                    width: 56,
-                    height: 56,
-                    borderRadius: 28,
-                    alignItems: "center",
-                    justifyContent: "center",
-                    marginTop: -28,
+                    shadowColor: "#a259ff",
+                    shadowOffset: { width: 0, height: 4 },
+                    shadowOpacity: 0.3,
+                    shadowRadius: 8,
+                    elevation: 8,
                   }}
                 >
-                  <SvgComponent size={28} color="#fff" />
+                  <SvgComponent size={35} color="#fff" />
                 </TouchableOpacity>
                 <Text
-                  className={`text-xs mt-1 ${
+                  className={`text-xs mt-1 font-black ${
                     isFocused ? "text-[#a259ff]" : "text-gray-500"
-                  } font-medium`}
-                  style={{
-                    fontWeight: "900",
-                  }}
+                  }`}
                 >
                   {typeof label === "string" ? label : route.name}
                 </Text>
@@ -107,7 +89,7 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
             );
           }
 
-          // Other tabs
+          // Regular tabs
           return (
             <TouchableOpacity
               key={route.key}
@@ -123,12 +105,9 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
                 size: 24,
               })}
               <Text
-                className={`text-xs mt-1 ${
+                className={`text-xs mt-1 font-black ${
                   isFocused ? "text-[#a259ff]" : "text-gray-500"
-                } font-medium`}
-                style={{
-                  fontWeight: "900",
-                }}
+                }`}
               >
                 {typeof label === "string" ? label : route.name}
               </Text>
@@ -140,7 +119,6 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   );
 }
 
-//change this if you want to change the initial screen
 export default function RootLayout() {
   const [step, setStep] = useState<"intro" | "login" | "main">("intro");
 
