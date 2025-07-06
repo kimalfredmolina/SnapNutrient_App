@@ -6,7 +6,7 @@ export default function Account() {
   const router = useRouter();
 
   const handleSignOut = () => {
-    router.replace("/authentication/login");
+    router.replace("/authentication/signin");
   };
 
   return (

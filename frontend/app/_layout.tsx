@@ -6,7 +6,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import "../global.css";
 import Introduction from "./components/introduction";
-import LoginPage from "./authentication/login";
+import LoginPage from "./authentication/signin";
 import SvgComponent from "./components/foodscanner";
 
 function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
@@ -15,8 +15,8 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
     (route) =>
       ![
         "components/introduction",
-        "components/foodscanner", 
-        "authentication/login",
+        "components/foodscanner",
+        "authentication/signin",
         "sitemap",
         "+not-found",
         "_sitemap",
@@ -60,10 +60,7 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
           // Center (Scan) tab with elevated design
           if (index === centerIndex) {
             return (
-              <View
-                key={route.key}
-                className="flex-1 items-center justify-end"
-              >
+              <View key={route.key} className="flex-1 items-center justify-end">
                 <TouchableOpacity
                   onPress={onPress}
                   activeOpacity={0.85}
