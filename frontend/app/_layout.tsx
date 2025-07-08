@@ -4,12 +4,15 @@ import { Tabs } from "expo-router";
 import { View, TouchableOpacity, Text } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
+import { ThemeProvider, useTheme } from "./contexts/ThemeContext";
 import "../global.css";
 import Introduction from "./components/introduction";
 import LoginPage from "./authentication/signin";
 import SvgComponent from "./components/foodscanner";
 
 function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
+  const { colors, isDark } = useTheme();
+  
   // Filter out specific routes from the bottom navbar
   const filteredRoutes = state.routes.filter(
     (route) =>
@@ -17,6 +20,7 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
         "components/introduction",
         "components/foodscanner",
         "authentication/signin",
+        "contexts/ThemeContext",
         "sitemap",
         "+not-found",
         "_sitemap",
@@ -30,10 +34,30 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   return (
     <SafeAreaView
       edges={["bottom"]}
-      className="bg-white absolute left-0 right-0 bottom-0"
-      style={{ paddingBottom: 0 }}
+      style={{ 
+        position: 'absolute',
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: colors.background,
+        paddingBottom: 0
+      }}
     >
-      <View className="flex-row items-center justify-between w-full bg-white rounded-t-3xl h-[70px] shadow-lg">
+      <View style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        width: '100%',
+        backgroundColor: colors.background,
+        borderTopLeftRadius: 24,
+        borderTopRightRadius: 24,
+        height: 70,
+        shadowColor: isDark ? '#fff' : '#000',
+        shadowOffset: { width: 0, height: -2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 8,
+        elevation: 8,
+      }}>
         {filteredRoutes.map((route, index) => {
           const { options } = descriptors[route.key];
           const label =
@@ -51,7 +75,6 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
               target: route.key,
               canPreventDefault: true,
             });
-
             if (!isFocused && !event.defaultPrevented) {
               navigation.navigate(route.name);
             }
@@ -60,25 +83,34 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
           // Center (Scan) tab with elevated design
           if (index === centerIndex) {
             return (
-              <View key={route.key} className="flex-1 items-center justify-end">
+              <View key={route.key} style={{ flex: 1, alignItems: 'center', justifyContent: 'flex-end' }}>
                 <TouchableOpacity
                   onPress={onPress}
                   activeOpacity={0.85}
-                  className="bg-[#a259ff] w-16 h-16 rounded-full items-center justify-center -mt-7"
                   style={{
-                    shadowColor: "#a259ff",
+                    backgroundColor: colors.primary,
+                    width: 64,
+                    height: 64,
+                    borderRadius: 32,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginTop: -28,
+                    shadowColor: colors.primary,
                     shadowOffset: { width: 0, height: 4 },
                     shadowOpacity: 0.3,
                     shadowRadius: 8,
                     elevation: 8,
                   }}
                 >
-                  <SvgComponent size={35} color="#fff" />
+                  <SvgComponent size={35} color={isDark ? "#000" : "#fff"} />
                 </TouchableOpacity>
                 <Text
-                  className={`text-xs mt-1 font-black ${
-                    isFocused ? "text-[#a259ff]" : "text-gray-500"
-                  }`}
+                  style={{
+                    fontSize: 12,
+                    marginTop: 4,
+                    fontWeight: '800',
+                    color: isFocused ? colors.primary : colors.text + '80'
+                  }}
                 >
                   {typeof label === "string" ? label : route.name}
                 </Text>
@@ -93,18 +125,26 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
               accessibilityRole="button"
               accessibilityState={isFocused ? { selected: true } : {}}
               onPress={onPress}
-              className="flex-1 items-center justify-center py-2"
+              style={{
+                flex: 1,
+                alignItems: 'center',
+                justifyContent: 'center',
+                paddingVertical: 8
+              }}
               activeOpacity={0.8}
             >
               {options.tabBarIcon?.({
                 focused: isFocused,
-                color: isFocused ? "#a259ff" : "#888",
+                color: isFocused ? colors.primary : colors.text + '88',
                 size: 24,
               })}
               <Text
-                className={`text-xs mt-1 font-black ${
-                  isFocused ? "text-[#a259ff]" : "text-gray-500"
-                }`}
+                style={{
+                  fontSize: 12,
+                  marginTop: 4,
+                  fontWeight: '800',
+                  color: isFocused ? colors.primary : colors.text + '80'
+                }}
               >
                 {typeof label === "string" ? label : route.name}
               </Text>
@@ -116,7 +156,7 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   );
 }
 
-export default function RootLayout() {
+function TabsLayout() {
   const [step, setStep] = useState<"intro" | "login" | "main">("intro");
 
   if (step === "intro") {
@@ -180,5 +220,13 @@ export default function RootLayout() {
         }}
       />
     </Tabs>
+  );
+}
+
+export default function RootLayout() {
+  return (
+    <ThemeProvider>
+      <TabsLayout />
+    </ThemeProvider>
   );
 }
