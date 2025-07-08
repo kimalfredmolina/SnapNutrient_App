@@ -69,7 +69,7 @@ npx expo start -c
 
 - `app/` — Main application code (screens, components)
 - `tailwind.config.js` — Tailwind/NativeWind configuration
-
+- backend
 ---
 
 ## 📚 Learn More
