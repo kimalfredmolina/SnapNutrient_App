@@ -26,7 +26,7 @@ export default function LoginPage({ onLogin }: { onLogin: () => void }) {
   };
 
   return (
-    <View className="flex-1 bg-[#000000]">
+    <View className="flex-1 bg-[#04afbb]">
       <StatusBar barStyle="light-content" backgroundColor="#6C63FF" />
 
       {/* Background Header - stays behind the form */}
