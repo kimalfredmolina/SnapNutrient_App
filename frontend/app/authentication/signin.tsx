@@ -63,12 +63,6 @@ export default function LoginPage({ onLogin }: { onLogin: () => void }) {
               />
             </View>
             
-            <Text style={{ color: colors.text, fontSize: 24, fontWeight: 'bold' }}>
-              SnapNutrient
-            </Text>
-            <Text style={{ color: colors.text, opacity: 0.8, fontSize: 14, marginTop: 4 }}>
-              Food Scanner App
-            </Text>
           </View>
         </SafeAreaView>
       </View>
