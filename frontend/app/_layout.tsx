@@ -12,7 +12,7 @@ import SvgComponent from "./components/foodscanner";
 
 function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const { colors, isDark } = useTheme();
-  
+
   // Filter out specific routes from the bottom navbar
   const filteredRoutes = state.routes.filter(
     (route) =>
@@ -34,30 +34,32 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   return (
     <SafeAreaView
       edges={["bottom"]}
-      style={{ 
-        position: 'absolute',
+      style={{
+        position: "absolute",
         left: 0,
         right: 0,
         bottom: 0,
         backgroundColor: colors.background,
-        paddingBottom: 0
+        paddingBottom: 0,
       }}
     >
-      <View style={{
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        width: '100%',
-        backgroundColor: colors.background,
-        borderTopLeftRadius: 24,
-        borderTopRightRadius: 24,
-        height: 70,
-        shadowColor: isDark ? '#fff' : '#000',
-        shadowOffset: { width: 0, height: -2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 8,
-        elevation: 8,
-      }}>
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+          width: "100%",
+          backgroundColor: colors.background,
+          borderTopLeftRadius: 24,
+          borderTopRightRadius: 24,
+          height: 70,
+          shadowColor: isDark ? "#fff" : "#000",
+          shadowOffset: { width: 0, height: -2 },
+          shadowOpacity: 0.1,
+          shadowRadius: 8,
+          elevation: 8,
+        }}
+      >
         {filteredRoutes.map((route, index) => {
           const { options } = descriptors[route.key];
           const label =
@@ -83,7 +85,14 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
           // Center (Scan) tab with elevated design
           if (index === centerIndex) {
             return (
-              <View key={route.key} style={{ flex: 1, alignItems: 'center', justifyContent: 'flex-end' }}>
+              <View
+                key={route.key}
+                style={{
+                  flex: 1,
+                  alignItems: "center",
+                  justifyContent: "flex-end",
+                }}
+              >
                 <TouchableOpacity
                   onPress={onPress}
                   activeOpacity={0.85}
@@ -92,8 +101,8 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
                     width: 64,
                     height: 64,
                     borderRadius: 32,
-                    alignItems: 'center',
-                    justifyContent: 'center',
+                    alignItems: "center",
+                    justifyContent: "center",
                     marginTop: -28,
                     shadowColor: colors.primary,
                     shadowOffset: { width: 0, height: 4 },
@@ -108,8 +117,8 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
                   style={{
                     fontSize: 12,
                     marginTop: 4,
-                    fontWeight: '800',
-                    color: isFocused ? colors.primary : colors.text + '80'
+                    fontWeight: "800",
+                    color: isFocused ? colors.primary : colors.text + "80",
                   }}
                 >
                   {typeof label === "string" ? label : route.name}
@@ -127,23 +136,23 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
               onPress={onPress}
               style={{
                 flex: 1,
-                alignItems: 'center',
-                justifyContent: 'center',
-                paddingVertical: 8
+                alignItems: "center",
+                justifyContent: "center",
+                paddingVertical: 8,
               }}
               activeOpacity={0.8}
             >
               {options.tabBarIcon?.({
                 focused: isFocused,
-                color: isFocused ? colors.primary : colors.text + '88',
+                color: isFocused ? colors.primary : colors.text + "88",
                 size: 24,
               })}
               <Text
                 style={{
                   fontSize: 12,
                   marginTop: 4,
-                  fontWeight: '800',
-                  color: isFocused ? colors.primary : colors.text + '80'
+                  fontWeight: "800",
+                  color: isFocused ? colors.primary : colors.text + "80",
                 }}
               >
                 {typeof label === "string" ? label : route.name}
