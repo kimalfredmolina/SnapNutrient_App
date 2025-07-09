@@ -1,5 +1,12 @@
 # SnapNutrient_V1.0
 
+In today’s fast-paced world, it has become more and more difficult to eat a balanced and nutritious diet. Most people find it difficult to accurately determine the nutritional value of their food and consequently end up with unintentional dietary imbalances that impact general health and well-being. The increasing prevalence of lifestyle diseases like obesity, diabetes, and cardiovascular diseases further highlights the necessity for user-friendly tools that can help make effective dietary choices.
+
+SnapNutrient is an intelligent mobile application developed to address this growing need by providing users with real-time dietary analysis and macronutrient estimation. Based on YOLOv8, an advanced object detection algorithm, the application lets users instantly analyze meals by scanning food with their phone's camera. With the ability to detect individual foods and approximate their macronutrient content in real time, SnapNutrient fills the gap between sophisticated machine learning and common nutrition aids. This technology equips consumers with higher levels of nutritional knowledge, bringing healthy eating more within reach for everyone.
+
+The application not only provides accurate data on macronutrients like proteins, carbohydrates, and fats but also integrates seamlessly with health trackers to offer personalized recommendations. Although tailored mainly for Filipino foods, SnapNutrient also accommodates international dishes, hence proving to be versatile for individuals with different dietary cultures and preferences.
+
+This study highlights the development and implementation of SnapNutrient, focusing on the integration of YOLOv8 for food recognition, the design of its user-friendly interface, and its potential impact on promoting healthier dietary habits. By leveraging artificial intelligence, the project aims to contribute to global health efforts, enabling individuals to take proactive control of their nutritional intake and overall well-being.
 
 ---
 
