@@ -161,16 +161,6 @@ export default function Introduction({ onGetStarted }: IntroductionProps) {
           <View
             style={{
               marginBottom: 32,
-              backgroundColor: isDark 
-                ? 'rgba(255, 255, 255, 0.1)' 
-                : 'rgba(255, 255, 255, 0.9)',
-              padding: 16,
-              borderRadius: 12,
-              shadowColor: isDark ? '#fff' : '#000',
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: isDark ? 0.2 : 0.1,
-              shadowRadius: 4,
-              elevation: 4,
             }}
           >
             <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
