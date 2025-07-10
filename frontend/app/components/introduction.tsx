@@ -128,7 +128,7 @@ export default function Introduction({ onGetStarted }: IntroductionProps) {
           </View>
 
           {/* Feature Highlights */}
-          <View className="mb-8 space-y-3">
+          <View className="mb-3 space-y-3">
             {[
               "Instant food recognition",
               "Detailed nutrition analysis",
@@ -145,7 +145,7 @@ export default function Introduction({ onGetStarted }: IntroductionProps) {
         </View>
 
         {/* Bottom Section */}
-        <View className="px-8 pb-12">
+        <View className="px-8 pt-12 pb-12">
           <TouchableOpacity
             className="bg-[#a259ff] rounded-2xl px-8 py-4 shadow-lg active:scale-95"
             onPress={onGetStarted}
@@ -156,7 +156,7 @@ export default function Introduction({ onGetStarted }: IntroductionProps) {
             </Text>
           </TouchableOpacity>
 
-          <Text className="text-gray-500 text-sm text-center mt-4">
+          <Text className="text-gray-500 text-sm text-center mt-4 pb-10">
             2025 copyright SnapNutrient
           </Text>
         </View>
