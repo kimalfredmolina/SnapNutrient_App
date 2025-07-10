@@ -28,41 +28,46 @@ export default function LoginPage({ onLogin }: { onLogin: () => void }) {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.primary }}>
-      <StatusBar 
-        barStyle={isDark ? "light-content" : "dark-content"} 
-        backgroundColor={colors.primary} 
+      <StatusBar
+        barStyle={isDark ? "light-content" : "dark-content"}
+        backgroundColor={colors.primary}
       />
-      
+
       {/* Background Header */}
-      <View style={{
-        position: 'absolute',
-        top: 40,
-        left: 0,
-        right: 0,
-        zIndex: 0
-      }}>
+      <View
+        style={{
+          position: "absolute",
+          top: 40,
+          left: 0,
+          right: 0,
+          zIndex: 0,
+        }}
+      >
         <SafeAreaView>
-          <View style={{ alignItems: 'center', paddingTop: 32, paddingBottom: 80 }}>
+          <View
+            style={{ alignItems: "center", paddingTop: 32, paddingBottom: 80 }}
+          >
             {/* Logo Container */}
-            <View style={{
-              backgroundColor: 'transparent',
-              marginBottom: 16,
-              shadowColor: isDark ? '#fff' : '#000',
-              shadowOffset: { width: 0, height: 8 },
-              shadowOpacity: 0.3,
-              shadowRadius: 12,
-              elevation: 15,
-            }}>
+            <View
+              style={{
+                backgroundColor: "transparent",
+                marginBottom: 16,
+                shadowColor: isDark ? "#fff" : "#000",
+                shadowOffset: { width: 0, height: 8 },
+                shadowOpacity: 0.3,
+                shadowRadius: 12,
+                elevation: 15,
+              }}
+            >
               <Image
                 source={require("../../assets/images/snp.png")}
                 style={{
                   width: 290,
                   height: 100,
-                  resizeMode: "cover"
+                  resizeMode: "cover",
                 }}
               />
             </View>
-            
           </View>
         </SafeAreaView>
       </View>
@@ -80,21 +85,25 @@ export default function LoginPage({ onLogin }: { onLogin: () => void }) {
           marginTop: 224
         }}>
           <View style={{ flex: 1 }}>
-            <Text style={{
-              color: colors.text,
-              fontSize: 24,
-              fontWeight: '600',
-              textAlign: 'center',
-              marginBottom: 8
-            }}>
+            <Text
+              style={{
+                color: colors.text,
+                fontSize: 24,
+                fontWeight: "600",
+                textAlign: "center",
+                marginBottom: 8,
+              }}
+            >
               Sign In
             </Text>
-            <Text style={{
-              color: colors.text,
-              opacity: 0.6,
-              textAlign: 'center',
-              marginBottom: 24
-            }}>
+            <Text
+              style={{
+                color: colors.text,
+                opacity: 0.6,
+                textAlign: "center",
+                marginBottom: 24,
+              }}
+            >
               Enter your Email and Password to Sign in for this app
             </Text>
 
@@ -108,10 +117,10 @@ export default function LoginPage({ onLogin }: { onLogin: () => void }) {
                 paddingVertical: 12,
                 marginBottom: 16,
                 backgroundColor: colors.surface,
-                color: colors.text
+                color: colors.text,
               }}
-              placeholder="Email"
-              placeholderTextColor={colors.text + '80'}
+              placeholder="Email@domain.com"
+              placeholderTextColor={colors.text + "80"}
               keyboardType="email-address"
               value={email}
               onChangeText={setEmail}
@@ -127,24 +136,26 @@ export default function LoginPage({ onLogin }: { onLogin: () => void }) {
                 paddingVertical: 12,
                 marginBottom: 16,
                 backgroundColor: colors.surface,
-                color: colors.text
+                color: colors.text,
               }}
               placeholder="Password"
-              placeholderTextColor={colors.text + '80'}
+              placeholderTextColor={colors.text + "80"}
               secureTextEntry
               value={password}
               onChangeText={setPassword}
             />
 
             {/* Remember Me & Forgot Password */}
-            <View style={{
-              flexDirection: 'row',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              marginBottom: 24
-            }}>
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginBottom: 24,
+              }}
+            >
               <Pressable
-                style={{ flexDirection: 'row', alignItems: 'center' }}
+                style={{ flexDirection: "row", alignItems: "center" }}
                 onPress={() => setRememberMe(!rememberMe)}
               >
                 <View style={{
@@ -160,15 +171,27 @@ export default function LoginPage({ onLogin }: { onLogin: () => void }) {
                   backgroundColor: rememberMe ? colors.primary : colors.background
                 }}>
                   {rememberMe && (
-                    <Ionicons name="checkmark" size={14} color={isDark ? '#000' : '#fff'} />
+                    <Ionicons
+                      name="checkmark"
+                      size={14}
+                      color={isDark ? "#000" : "#fff"}
+                    />
                   )}
                 </View>
-                <Text style={{ color: colors.text, opacity: 0.6, fontSize: 14 }}>
+                <Text
+                  style={{ color: colors.text, opacity: 0.6, fontSize: 14 }}
+                >
                   Remember me
                 </Text>
               </Pressable>
               <Pressable>
-                <Text style={{ color: colors.secondary, fontSize: 14, fontWeight: '500' }}>
+                <Text
+                  style={{
+                    color: colors.secondary,
+                    fontSize: 14,
+                    fontWeight: "500",
+                  }}
+                >
                   Forgot password?
                 </Text>
               </Pressable>
@@ -181,8 +204,8 @@ export default function LoginPage({ onLogin }: { onLogin: () => void }) {
                 backgroundColor: colors.accent,
                 paddingVertical: 16,
                 borderRadius: 8,
-                alignItems: 'center',
-                marginBottom: 8,
+                alignItems: "center",
+                marginBottom: 16,
                 shadowColor: colors.accent,
                 shadowOffset: { width: 0, height: 4 },
                 shadowOpacity: 0.3,
@@ -190,24 +213,40 @@ export default function LoginPage({ onLogin }: { onLogin: () => void }) {
                 elevation: 8,
               }}
             >
-              <Text style={{
-                color: '#FFFFFF',
-                fontWeight: '600',
-                fontSize: 16
-              }}>
+              <Text
+                style={{
+                  color: "#FFFFFF",
+                  fontWeight: "600",
+                  fontSize: 16,
+                }}
+              >
                 Sign In
               </Text>
             </TouchableOpacity>
 
             {/* Divider */}
-            <View style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              marginVertical: 16
-            }}>
-              <View style={{ flex: 1, height: 1, backgroundColor: colors.border }} />
-              <Text style={{ marginHorizontal: 12, color: colors.text, opacity: 0.6 }}>or</Text>
-              <View style={{ flex: 1, height: 1, backgroundColor: colors.border }} />
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                marginVertical: 16,
+              }}
+            >
+              <View
+                style={{ flex: 1, height: 1, backgroundColor: colors.border }}
+              />
+              <Text
+                style={{
+                  marginHorizontal: 12,
+                  color: colors.text,
+                  opacity: 0.6,
+                }}
+              >
+                or
+              </Text>
+              <View
+                style={{ flex: 1, height: 1, backgroundColor: colors.border }}
+              />
             </View>
 
             {/* Social Login Buttons */}
@@ -228,10 +267,12 @@ export default function LoginPage({ onLogin }: { onLogin: () => void }) {
               elevation: 2,
             }}>
               <Image
-                source={{ uri: "https://img.icons8.com/color/48/google-logo.png" }}
+                source={{
+                  uri: "https://img.icons8.com/color/48/google-logo.png",
+                }}
                 style={{ width: 24, height: 24, marginRight: 12 }}
               />
-              <Text style={{ color: colors.text, fontWeight: '500' }}>
+              <Text style={{ color: colors.text, fontWeight: "500" }}>
                 Continue with Google
               </Text>
             </TouchableOpacity>
@@ -253,15 +294,17 @@ export default function LoginPage({ onLogin }: { onLogin: () => void }) {
               elevation: 2,
             }}>
               <Image
-                source={{ uri: "https://img.icons8.com/ios-filled/50/mac-os.png" }}
-                style={{ 
-                  width: 24, 
-                  height: 24, 
+                source={{
+                  uri: "https://img.icons8.com/ios-filled/50/mac-os.png",
+                }}
+                style={{
+                  width: 24,
+                  height: 24,
                   marginRight: 12,
-                  tintColor: colors.text
+                  tintColor: colors.text,
                 }}
               />
-              <Text style={{ color: colors.text, fontWeight: '500' }}>
+              <Text style={{ color: colors.text, fontWeight: "500" }}>
                 Continue with Apple
               </Text>
             </TouchableOpacity>
@@ -277,7 +320,10 @@ export default function LoginPage({ onLogin }: { onLogin: () => void }) {
                 opacity: 0.6
               }}>
                 By clicking continue, you agree to our{" "}
-                <Text style={{ color: colors.secondary }}>Terms of Service</Text> and{" "}
+                <Text style={{ color: colors.secondary }}>
+                  Terms of Service
+                </Text>{" "}
+                and{" "}
                 <Text style={{ color: colors.secondary }}>Privacy Policy</Text>.
               </Text>
             </View>
