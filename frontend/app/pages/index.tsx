@@ -93,9 +93,9 @@ const FoodItem = ({
 
 export default function HomePage() {
   return (
-    <ScrollView className="flex-1 bg-gray-50">
+    <View className="flex-1 bg-gray-50">
       {/* Header */}
-      <View className="flex-row justify-between items-center px-5 pt-16 pb-6">
+      <View className="flex-row justify-between items-center px-5 pt-16 pb-6 bg-white">
         <Text className="text-xl font-bold text-gray-800">
           Welcome back / Guest
         </Text>
@@ -104,7 +104,10 @@ export default function HomePage() {
         </TouchableOpacity>
       </View>
 
-      {/* Scan & Discover Card */}
+      <ScrollView className="flex-1"
+        contentContainerStyle={{ paddingHorizontal: 10, paddingBottom: 20, paddingTop: 10 }}>
+
+          {/* Scan & Discover Card */}
       <View className="bg-green-100 mx-5 rounded-2xl p-6 flex-row items-center mb-8 shadow-md">
         <View className="flex-1">
           <Text className="text-2xl font-black text-gray-800 mb-2">
@@ -125,7 +128,7 @@ export default function HomePage() {
       </View>
 
       {/* Daily Macros */}
-      <View className="px-5 mx-5 bg-white rounded-2xl p-6 shadow-sm">
+      <View className="flex-1 px-5 mx-5 bg-white rounded-2xl p-6 shadow-sm">
         <Text className="text-xl font-black text-gray-800 mb-6">Macros</Text>
         <View className="flex-row justify-between px-2">
           <MacroCircle label="Carbs" value={142} total={200} color="#ff6b6b" />
@@ -142,7 +145,7 @@ export default function HomePage() {
       </View>
 
       {/* Food Items */}
-      <View className="px-5 mb-8 mt-6">
+      <View className="flex-1 px-5 mb-8 mt-6">
         <Text className="text-xl font-black text-gray-800 mb-6">
           Food Items
         </Text>
@@ -156,7 +159,7 @@ export default function HomePage() {
       </View>
 
       {/* Today's Nutrition */}
-      <View className="px-5 mb-28">
+      <View className="flex-1 px-5 mb-28">
         <Text className="text-xl font-black text-gray-800 mb-6">
           Today's Nutrition
         </Text>
@@ -166,6 +169,8 @@ export default function HomePage() {
           </Text>
         </View>
       </View>
-    </ScrollView>
+
+      </ScrollView>
+    </View>
   );
 }
