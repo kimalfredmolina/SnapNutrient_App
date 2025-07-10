@@ -74,8 +74,8 @@ export default function LoginPage({ onLogin }: { onLogin: () => void }) {
           borderTopLeftRadius: 24,
           borderTopRightRadius: 24,
           paddingHorizontal: 32,
-          paddingTop: 16,
-          paddingBottom: 0,
+          paddingTop: 32,
+          paddingBottom: 16,
           flex: 1,
           marginTop: 224
         }}>
