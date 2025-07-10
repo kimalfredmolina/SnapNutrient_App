@@ -7,6 +7,7 @@ import {
   Pressable,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Circle } from "react-native-svg";
 import { useTheme } from "../contexts/ThemeContext";
 
@@ -142,13 +143,15 @@ const FoodItem = ({
   );
 };
 
-// Home Page
 export default function HomePage() {
   const [user, setUser] = useState<{ name?: string } | null>(null);
   const { colors, isDark } = useTheme();
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.background }}>
+    <SafeAreaView
+      edges={['top', 'bottom']}
+      style={{ flex: 1, backgroundColor: colors.background }}
+    >
       {/* Header */}
       <View
         style={{
@@ -169,30 +172,45 @@ export default function HomePage() {
       </View>
 
       <ScrollView
-        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 60, paddingTop: 10 }}
+        contentContainerStyle={{
+          paddingHorizontal: 16,
+          paddingBottom: 100,
+          paddingTop: 16,
+        }}
         showsVerticalScrollIndicator={false}
       >
         {/* Scan Card */}
         <View
           style={{
-            backgroundColor: colors.secondary + "100",
+            backgroundColor: colors.secondary + "50",
             borderRadius: 20,
             padding: 24,
             flexDirection: "row",
             alignItems: "center",
             marginBottom: 20,
-            shadowColor: colors.secondary,
+            shadowColor: colors.secondary + "50",
             shadowOffset: { width: 0, height: 3 },
             shadowOpacity: 0.1,
             shadowRadius: 4,
             elevation: 4,
+            outlineColor: colors.secondary + "30",
+            outlineWidth: 1,
           }}
         >
           <View style={{ flex: 1 }}>
-            <Text style={{ fontSize: 20, fontWeight: "bold", color: colors.text, marginBottom: 8 }}>
+            <Text
+              style={{
+                fontSize: 20,
+                fontWeight: "bold",
+                color: colors.text,
+                marginBottom: 8,
+              }}
+            >
               Scan & Discover
             </Text>
-            <Text style={{ color: colors.text, opacity: 0.6, marginBottom: 12 }}>
+            <Text
+              style={{ color: colors.text, opacity: 0.6, marginBottom: 12 }}
+            >
               Scan food items to get detailed nutritional information
             </Text>
             <TouchableOpacity
@@ -203,7 +221,9 @@ export default function HomePage() {
                 borderRadius: 24,
               }}
             >
-              <Text style={{ color: "#fff", fontWeight: "bold" }}>Start Scanning</Text>
+              <Text style={{ color: "#fff", fontWeight: "bold" }}>
+                Start Scanning
+              </Text>
             </TouchableOpacity>
           </View>
           <Ionicons name="qr-code-outline" size={64} color={colors.accent} />
@@ -218,20 +238,40 @@ export default function HomePage() {
             marginBottom: 24,
           }}
         >
-          <Text style={{ fontSize: 18, fontWeight: "bold", color: colors.text, marginBottom: 16 }}>
+          <Text
+            style={{
+              fontSize: 18,
+              fontWeight: "bold",
+              color: colors.text,
+              marginBottom: 16,
+            }}
+          >
             Macros
           </Text>
           <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
             <MacroCircle label="Carbs" value={142} total={200} color="#ff6b6b" />
             <MacroCircle label="Protein" value={87} total={150} color="#4ecdc4" />
             <MacroCircle label="Fat" value={45} total={80} color="#45b7d1" />
-            <MacroCircle label="Calories" value={1250} total={2000} color="#f9ca24" unit="cal" />
+            <MacroCircle
+              label="Calories"
+              value={1250}
+              total={2000}
+              color="#f9ca24"
+              unit="cal"
+            />
           </View>
         </View>
 
         {/* Food Items */}
         <View style={{ marginBottom: 24 }}>
-          <Text style={{ fontSize: 18, fontWeight: "bold", color: colors.text, marginBottom: 16 }}>
+          <Text
+            style={{
+              fontSize: 18,
+              fontWeight: "bold",
+              color: colors.text,
+              marginBottom: 16,
+            }}
+          >
             Food Items
           </Text>
           <FoodItem name="Banana (Latundan)" calories="105 cal (Sweet)" onPress={() => {}} />
@@ -239,9 +279,16 @@ export default function HomePage() {
           <FoodItem name="Honey" calories="64 cal (Sweet)" onPress={() => {}} />
         </View>
 
-        {/* Today’s Nutrition */}
+        {/* Today's Nutrition */}
         <View>
-          <Text style={{ fontSize: 18, fontWeight: "bold", color: colors.text, marginBottom: 16 }}>
+          <Text
+            style={{
+              fontSize: 18,
+              fontWeight: "bold",
+              color: colors.text,
+              marginBottom: 16,
+            }}
+          >
             Today's Nutrition
           </Text>
           <View
@@ -259,6 +306,7 @@ export default function HomePage() {
           </View>
         </View>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
+
