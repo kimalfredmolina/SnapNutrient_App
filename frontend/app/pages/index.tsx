@@ -91,13 +91,20 @@ const FoodItem = ({
   </TouchableOpacity>
 );
 
+import { useState } from "react";
+
 export default function HomePage() {
+  // Simulate user authentication state
+  const [user, setUser] = useState<{ name?: string } | null>(null); // Replace with real auth logic
+
   return (
     <View className="flex-1 bg-gray-50">
       {/* Header */}
       <View className="flex-row justify-between items-center px-5 pt-16 pb-6 bg-white">
         <Text className="text-xl font-bold text-gray-800">
-          Welcome back / Guest
+          {user && user.name
+            ? `Welcome back, ${user.name}`
+            : "Welcome, Guest"}
         </Text>
         <TouchableOpacity className="p-2">
           <Ionicons name="notifications-outline" size={24} color="#333" />
