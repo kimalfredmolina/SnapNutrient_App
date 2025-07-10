@@ -27,27 +27,16 @@ export default function LoginPage({ onLogin }: { onLogin: () => void }) {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.primary }}>
+    <View className="flex-1" style={{ backgroundColor: colors.primary }}>
       <StatusBar
         barStyle={isDark ? "light-content" : "dark-content"}
         backgroundColor={colors.primary}
       />
 
       {/* Background Header */}
-      <View
-        style={{
-          position: "absolute",
-          top: 40,
-          left: 0,
-          right: 0,
-          zIndex: 0,
-        }}
-      >
+      <View className="absolute top-10 left-0 right-0 z-0">
         <SafeAreaView>
-          <View
-            style={{ alignItems: "center", paddingTop: 32, paddingBottom: 80 }}
-          >
-            {/* Logo Container */}
+          <View className="items-center pt-8 pb-20">
             <View
               style={{
                 backgroundColor: "transparent",
@@ -61,11 +50,8 @@ export default function LoginPage({ onLogin }: { onLogin: () => void }) {
             >
               <Image
                 source={require("../../assets/images/snp.png")}
-                style={{
-                  width: 290,
-                  height: 100,
-                  resizeMode: "cover",
-                }}
+                className="w-[290px] h-[100px]"
+                resizeMode="cover"
               />
             </View>
           </View>
@@ -73,260 +59,185 @@ export default function LoginPage({ onLogin }: { onLogin: () => void }) {
       </View>
 
       {/* Form Container */}
-      <View style={{ flex: 1, justifyContent: 'flex-end' }}>
-        <View style={{
-          backgroundColor: colors.background,
-          borderTopLeftRadius: 24,
-          borderTopRightRadius: 24,
-          paddingHorizontal: 32,
-          paddingTop: 32,
-          paddingBottom: 16,
-          flex: 1,
-          marginTop: 224
-        }}>
-          <View style={{ flex: 1 }}>
-            <Text
-              style={{
-                color: colors.text,
-                fontSize: 24,
-                fontWeight: "600",
-                textAlign: "center",
-                marginBottom: 8,
-              }}
-            >
-              Sign In
-            </Text>
-            <Text
-              style={{
-                color: colors.text,
-                opacity: 0.6,
-                textAlign: "center",
-                marginBottom: 24,
-              }}
-            >
-              Enter your Email and Password to Sign in for this app
-            </Text>
+      <View className="flex-1 justify-end mt-[224px]">
+        <View
+          className="rounded-t-3xl px-8 pt-8 pb-4 flex-1"
+          style={{ backgroundColor: colors.background }}
+        >
+          <Text
+            className="text-2xl font-semibold text-center mb-2"
+            style={{ color: colors.text }}
+          >
+            Sign In
+          </Text>
+          <Text
+            className="text-center mb-6"
+            style={{ color: colors.text, opacity: 0.6 }}
+          >
+            Enter your Email and Password to Sign in for this app
+          </Text>
 
-            {/* Email Input */}
-            <TextInput
-              style={{
-                borderWidth: 1,
-                borderColor: colors.border,
-                borderRadius: 8,
-                paddingHorizontal: 16,
-                paddingVertical: 12,
-                marginBottom: 16,
-                backgroundColor: colors.surface,
-                color: colors.text,
-              }}
-              placeholder="Email@domain.com"
-              placeholderTextColor={colors.text + "80"}
-              keyboardType="email-address"
-              value={email}
-              onChangeText={setEmail}
-            />
+          {/* Email Input */}
+          <TextInput
+            className="border rounded-md px-4 py-3 mb-4"
+            style={{
+              borderColor: colors.border,
+              backgroundColor: colors.surface,
+              color: colors.text,
+            }}
+            placeholder="Email@domain.com"
+            placeholderTextColor={colors.text + "80"}
+            keyboardType="email-address"
+            value={email}
+            onChangeText={setEmail}
+          />
 
-            {/* Password Input */}
-            <TextInput
-              style={{
-                borderWidth: 1,
-                borderColor: colors.border,
-                borderRadius: 8,
-                paddingHorizontal: 16,
-                paddingVertical: 12,
-                marginBottom: 16,
-                backgroundColor: colors.surface,
-                color: colors.text,
-              }}
-              placeholder="Password"
-              placeholderTextColor={colors.text + "80"}
-              secureTextEntry
-              value={password}
-              onChangeText={setPassword}
-            />
+          {/* Password Input */}
+          <TextInput
+            className="border rounded-md px-4 py-3 mb-4"
+            style={{
+              borderColor: colors.border,
+              backgroundColor: colors.surface,
+              color: colors.text,
+            }}
+            placeholder="Password"
+            placeholderTextColor={colors.text + "80"}
+            secureTextEntry
+            value={password}
+            onChangeText={setPassword}
+          />
 
-            {/* Remember Me & Forgot Password */}
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                alignItems: "center",
-                marginBottom: 24,
-              }}
+          {/* Remember Me & Forgot Password */}
+          <View className="flex-row justify-between items-center mb-6">
+            <Pressable
+              className="flex-row items-center"
+              onPress={() => setRememberMe(!rememberMe)}
             >
-              <Pressable
-                style={{ flexDirection: "row", alignItems: "center" }}
-                onPress={() => setRememberMe(!rememberMe)}
-              >
-                <View style={{
-                  flexDirection: 'row',
-                  width: 20,
-                  height: 20,
-                  marginRight: 8,
-                  borderRadius: 4,
-                  borderWidth: 1,
+              <View
+                className="w-5 h-5 mr-2 rounded border items-center justify-center"
+                style={{
                   borderColor: colors.border,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  backgroundColor: rememberMe ? colors.primary : colors.background
-                }}>
-                  {rememberMe && (
-                    <Ionicons
-                      name="checkmark"
-                      size={14}
-                      color={isDark ? "#000" : "#fff"}
-                    />
-                  )}
-                </View>
-                <Text
-                  style={{ color: colors.text, opacity: 0.6, fontSize: 14 }}
-                >
-                  Remember me
-                </Text>
-              </Pressable>
-              <Pressable>
-                <Text
-                  style={{
-                    color: colors.secondary,
-                    fontSize: 14,
-                    fontWeight: "500",
-                  }}
-                >
-                  Forgot password?
-                </Text>
-              </Pressable>
-            </View>
-
-            {/* Sign In Button */}
-            <TouchableOpacity
-              onPress={handleLogin}
-              style={{
-                backgroundColor: colors.accent,
-                paddingVertical: 16,
-                borderRadius: 8,
-                alignItems: "center",
-                marginBottom: 16,
-                shadowColor: colors.accent,
-                shadowOffset: { width: 0, height: 4 },
-                shadowOpacity: 0.3,
-                shadowRadius: 8,
-                elevation: 8,
-              }}
-            >
-              <Text
-                style={{
-                  color: "#FFFFFF",
-                  fontWeight: "600",
-                  fontSize: 16,
+                  backgroundColor: rememberMe
+                    ? colors.primary
+                    : colors.background,
                 }}
               >
-                Sign In
+                {rememberMe && (
+                  <Ionicons
+                    name="checkmark"
+                    size={14}
+                    color={isDark ? "#000" : "#fff"}
+                  />
+                )}
+              </View>
+              <Text
+                className="text-sm"
+                style={{ color: colors.text, opacity: 0.6 }}
+              >
+                Remember me
               </Text>
-            </TouchableOpacity>
+            </Pressable>
+            <Pressable>
+              <Text
+                className="text-sm font-medium"
+                style={{ color: colors.secondary }}
+              >
+                Forgot password?
+              </Text>
+            </Pressable>
+          </View>
 
-            {/* Divider */}
+          {/* Sign In Button */}
+          <TouchableOpacity
+            onPress={handleLogin}
+            className="py-4 rounded-lg items-center mb-4"
+            style={{
+              backgroundColor: colors.accent,
+              shadowColor: colors.accent,
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.3,
+              shadowRadius: 8,
+              elevation: 8,
+            }}
+          >
+            <Text className="text-white font-semibold text-base">Sign In</Text>
+          </TouchableOpacity>
+
+          {/* Divider */}
+          <View className="flex-row items-center my-4">
             <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                marginVertical: 16,
+              className="flex-1 h-[1px]"
+              style={{ backgroundColor: colors.border }}
+            />
+            <Text className="mx-3" style={{ color: colors.text, opacity: 0.6 }}>
+              or
+            </Text>
+            <View
+              className="flex-1 h-[1px]"
+              style={{ backgroundColor: colors.border }}
+            />
+          </View>
+
+          {/* Social Login: Google */}
+          <TouchableOpacity
+            className="flex-row items-center justify-center border rounded-lg py-3 mb-4"
+            style={{
+              backgroundColor: colors.surface,
+              borderColor: colors.border,
+              shadowColor: isDark ? "#fff" : "#000",
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.1,
+              shadowRadius: 4,
+              elevation: 2,
+            }}
+          >
+            <Image
+              source={{
+                uri: "https://img.icons8.com/color/48/google-logo.png",
               }}
+              className="w-6 h-6 mr-3"
+            />
+            <Text style={{ color: colors.text, fontWeight: "500" }}>
+              Continue with Google
+            </Text>
+          </TouchableOpacity>
+
+          {/* Social Login: Apple */}
+          <TouchableOpacity
+            className="flex-row items-center justify-center border rounded-lg py-3 mb-2"
+            style={{
+              backgroundColor: colors.surface,
+              borderColor: colors.border,
+              shadowColor: isDark ? "#fff" : "#000",
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.1,
+              shadowRadius: 4,
+              elevation: 2,
+            }}
+          >
+            <Image
+              source={{
+                uri: "https://img.icons8.com/ios-filled/50/mac-os.png",
+              }}
+              className="w-6 h-6 mr-3"
+              style={{ tintColor: colors.text }}
+            />
+            <Text style={{ color: colors.text, fontWeight: "500" }}>
+              Continue with Apple
+            </Text>
+          </TouchableOpacity>
+
+          {/* Terms & Privacy */}
+          <View className="pb-4">
+            <Text
+              className="text-xs text-center"
+              style={{ color: colors.text, opacity: 0.6 }}
             >
-              <View
-                style={{ flex: 1, height: 1, backgroundColor: colors.border }}
-              />
-              <Text
-                style={{
-                  marginHorizontal: 12,
-                  color: colors.text,
-                  opacity: 0.6,
-                }}
-              >
-                or
-              </Text>
-              <View
-                style={{ flex: 1, height: 1, backgroundColor: colors.border }}
-              />
-            </View>
-
-            {/* Social Login Buttons */}
-            <TouchableOpacity style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'center',
-              borderWidth: 1,
-              borderColor: colors.border,
-              paddingVertical: 12,
-              borderRadius: 8,
-              marginBottom: 16,
-              backgroundColor: colors.surface,
-              shadowColor: isDark ? '#fff' : '#000',
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.1,
-              shadowRadius: 4,
-              elevation: 2,
-            }}>
-              <Image
-                source={{
-                  uri: "https://img.icons8.com/color/48/google-logo.png",
-                }}
-                style={{ width: 24, height: 24, marginRight: 12 }}
-              />
-              <Text style={{ color: colors.text, fontWeight: "500" }}>
-                Continue with Google
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'center',
-              borderWidth: 1,
-              borderColor: colors.border,
-              paddingVertical: 12,
-              borderRadius: 8,
-              marginBottom: 8,
-              backgroundColor: colors.surface,
-              shadowColor: isDark ? '#fff' : '#000',
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.1,
-              shadowRadius: 4,
-              elevation: 2,
-            }}>
-              <Image
-                source={{
-                  uri: "https://img.icons8.com/ios-filled/50/mac-os.png",
-                }}
-                style={{
-                  width: 24,
-                  height: 24,
-                  marginRight: 12,
-                  tintColor: colors.text,
-                }}
-              />
-              <Text style={{ color: colors.text, fontWeight: "500" }}>
-                Continue with Apple
-              </Text>
-            </TouchableOpacity>
-
-            <View style={{ flex: 1 }} />
-
-            {/* Terms and Privacy */}
-            <View style={{ flex: 1, paddingBottom: 16 }}>
-              <Text style={{
-                fontSize: 12,
-                textAlign: 'center',
-                color: colors.text,
-                opacity: 0.6
-              }}>
-                By clicking continue, you agree to our{" "}
-                <Text style={{ color: colors.secondary }}>
-                  Terms of Service
-                </Text>{" "}
-                and{" "}
-                <Text style={{ color: colors.secondary }}>Privacy Policy</Text>.
-              </Text>
-            </View>
+              By clicking continue, you agree to our{" "}
+              <Text style={{ color: colors.secondary }}>Terms of Service</Text>{" "}
+              and{" "}
+              <Text style={{ color: colors.secondary }}>Privacy Policy</Text>.
+            </Text>
           </View>
         </View>
       </View>
