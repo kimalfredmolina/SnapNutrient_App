@@ -74,7 +74,7 @@ export default function LoginPage({ onLogin }: { onLogin: () => void }) {
           borderTopLeftRadius: 24,
           borderTopRightRadius: 24,
           paddingHorizontal: 32,
-          paddingTop: 32,
+          paddingTop: 16,
           paddingBottom: 0,
           flex: 1,
           marginTop: 224
@@ -110,7 +110,7 @@ export default function LoginPage({ onLogin }: { onLogin: () => void }) {
                 backgroundColor: colors.surface,
                 color: colors.text
               }}
-              placeholder="Email@domain.com"
+              placeholder="Email"
               placeholderTextColor={colors.text + '80'}
               keyboardType="email-address"
               value={email}
@@ -148,6 +148,7 @@ export default function LoginPage({ onLogin }: { onLogin: () => void }) {
                 onPress={() => setRememberMe(!rememberMe)}
               >
                 <View style={{
+                  flexDirection: 'row',
                   width: 20,
                   height: 20,
                   marginRight: 8,
@@ -181,7 +182,7 @@ export default function LoginPage({ onLogin }: { onLogin: () => void }) {
                 paddingVertical: 16,
                 borderRadius: 8,
                 alignItems: 'center',
-                marginBottom: 16,
+                marginBottom: 8,
                 shadowColor: colors.accent,
                 shadowOffset: { width: 0, height: 4 },
                 shadowOpacity: 0.3,
@@ -218,7 +219,7 @@ export default function LoginPage({ onLogin }: { onLogin: () => void }) {
               borderColor: colors.border,
               paddingVertical: 12,
               borderRadius: 8,
-              marginBottom: 12,
+              marginBottom: 16,
               backgroundColor: colors.surface,
               shadowColor: isDark ? '#fff' : '#000',
               shadowOffset: { width: 0, height: 2 },
@@ -243,7 +244,7 @@ export default function LoginPage({ onLogin }: { onLogin: () => void }) {
               borderColor: colors.border,
               paddingVertical: 12,
               borderRadius: 8,
-              marginBottom: 24,
+              marginBottom: 8,
               backgroundColor: colors.surface,
               shadowColor: isDark ? '#fff' : '#000',
               shadowOffset: { width: 0, height: 2 },
@@ -268,7 +269,7 @@ export default function LoginPage({ onLogin }: { onLogin: () => void }) {
             <View style={{ flex: 1 }} />
 
             {/* Terms and Privacy */}
-            <View style={{ paddingBottom: 32 }}>
+            <View style={{ flex: 1, paddingBottom: 16 }}>
               <Text style={{
                 fontSize: 12,
                 textAlign: 'center',
