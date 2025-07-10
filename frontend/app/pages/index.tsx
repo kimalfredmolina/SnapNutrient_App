@@ -1,13 +1,22 @@
-import { Text, View, ScrollView, TouchableOpacity } from "react-native";
+import React, { useState } from "react";
+import {
+  Text,
+  View,
+  ScrollView,
+  TouchableOpacity,
+  Pressable,
+} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-
 import Svg, { Circle } from "react-native-svg";
+import { useTheme } from "../contexts/ThemeContext";
 
+// Constants
 const SIZE = 64;
 const STROKE_WIDTH = 6;
 const RADIUS = (SIZE - STROKE_WIDTH) / 2;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 
+// Macro Circle Component
 const MacroCircle = ({
   label,
   value,
@@ -21,6 +30,7 @@ const MacroCircle = ({
   color: string;
   unit?: string;
 }) => {
+  const { isDark, colors } = useTheme();
   const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
   const offset = CIRCUMFERENCE - (CIRCUMFERENCE * percentage) / 100;
 
@@ -28,16 +38,14 @@ const MacroCircle = ({
     <View className="items-center">
       <View style={{ width: SIZE, height: SIZE }}>
         <Svg width={SIZE} height={SIZE}>
-          {/* background circle */}
           <Circle
             cx={SIZE / 2}
             cy={SIZE / 2}
             r={RADIUS}
-            stroke="#e5e7eb"
+            stroke={colors.border}
             strokeWidth={STROKE_WIDTH}
             fill="none"
           />
-          {/* progress circle */}
           <Circle
             cx={SIZE / 2}
             cy={SIZE / 2}
@@ -51,18 +59,23 @@ const MacroCircle = ({
           />
         </Svg>
         <View className="absolute top-0 left-0 right-0 bottom-0 justify-center items-center">
-          <Text className="text-xs font-black text-gray-800">
+          <Text className="text-xs font-black" style={{ color: colors.text }}>
             {value}
             {unit}
           </Text>
         </View>
       </View>
-      <Text className="text-xs font-bold text-gray-700 mt-2">{label}</Text>
-      <Text className="text-xs text-blue-500">{percentage}%</Text>
+      <Text className="text-xs font-bold mt-2" style={{ color: colors.text }}>
+        {label}
+      </Text>
+      <Text className="text-xs" style={{ color: colors.accent }}>
+        {percentage}%
+      </Text>
     </View>
   );
 };
 
+// Food Item Component
 const FoodItem = ({
   name,
   calories,
@@ -71,112 +84,180 @@ const FoodItem = ({
   name: string;
   calories: string;
   onPress: () => void;
-}) => (
-  <TouchableOpacity
-    className="bg-white rounded-xl p-4 flex-row items-center mb-3 shadow-sm"
-    onPress={onPress}
-    activeOpacity={0.7}
-  >
-    <View className="w-12 h-12 rounded-full bg-gray-100 justify-center items-center mr-4">
-      {/* food item icon dito lagay yung mga image code nalang na same id = image */}
-      <Ionicons name="nutrition-outline" size={24} color="#a259ff" />
-    </View>
-    <View className="flex-1">
-      <Text className="text-base font-bold text-gray-800 mb-1">{name}</Text>
-      <Text className="text-sm text-gray-500 font-medium">{calories}</Text>
-    </View>
-    <TouchableOpacity className="bg-white px-4 py-2 rounded-2xl border border-black">
-      <Text className="text-black text-xs font-bold">View</Text>
-    </TouchableOpacity>
-  </TouchableOpacity>
-);
-
-import { useState } from "react";
-
-export default function HomePage() {
-  // Simulate user authentication state
-  const [user, setUser] = useState<{ name?: string } | null>(null); // Replace with real auth logic
+}) => {
+  const { colors, isDark } = useTheme();
 
   return (
-    <View className="flex-1 bg-gray-50">
-      {/* Header */}
-      <View className="flex-row justify-between items-center px-5 pt-6 pb-6 bg-white">
-        <Text className="text-xl font-bold text-gray-800">
-          {user && user.name
-            ? `Welcome back, ${user.name}`
-            : "Welcome, Guest"}
+    <TouchableOpacity
+      style={{
+        backgroundColor: colors.surface,
+        borderRadius: 16,
+        padding: 16,
+        flexDirection: "row",
+        alignItems: "center",
+        marginBottom: 12,
+        shadowColor: isDark ? "#fff" : "#000",
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.1,
+        shadowRadius: 3,
+        elevation: 3,
+      }}
+      onPress={onPress}
+      activeOpacity={0.7}
+    >
+      <View
+        style={{
+          width: 48,
+          height: 48,
+          borderRadius: 24,
+          backgroundColor: colors.background,
+          justifyContent: "center",
+          alignItems: "center",
+          marginRight: 12,
+        }}
+      >
+        <Ionicons name="nutrition-outline" size={24} color={colors.primary} />
+      </View>
+      <View style={{ flex: 1 }}>
+        <Text style={{ color: colors.text, fontWeight: "bold", marginBottom: 4 }}>
+          {name}
         </Text>
-        <TouchableOpacity className="p-2">
-          <Ionicons name="notifications-outline" size={24} color="#333" />
+        <Text style={{ color: colors.text, opacity: 0.6 }}>{calories}</Text>
+      </View>
+      <TouchableOpacity
+        style={{
+          paddingHorizontal: 16,
+          paddingVertical: 8,
+          borderRadius: 16,
+          borderWidth: 1,
+          borderColor: colors.text,
+          backgroundColor: colors.background,
+        }}
+      >
+        <Text style={{ color: colors.text, fontSize: 12, fontWeight: "bold" }}>
+          View
+        </Text>
+      </TouchableOpacity>
+    </TouchableOpacity>
+  );
+};
+
+// Home Page
+export default function HomePage() {
+  const [user, setUser] = useState<{ name?: string } | null>(null);
+  const { colors, isDark } = useTheme();
+
+  return (
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
+      {/* Header */}
+      <View
+        style={{
+          flexDirection: "row",
+          justifyContent: "space-between",
+          alignItems: "center",
+          paddingHorizontal: 20,
+          paddingVertical: 16,
+          backgroundColor: colors.primary,
+        }}
+      >
+        <Text style={{ fontSize: 20, fontWeight: "bold", color: colors.text }}>
+          {user?.name ? `Welcome back, ${user.name}` : "Welcome, Guest"}
+        </Text>
+        <TouchableOpacity>
+          <Ionicons name="notifications-outline" size={24} color={colors.text} />
         </TouchableOpacity>
       </View>
 
-      <ScrollView className="flex-1"
-        contentContainerStyle={{ paddingHorizontal: 10, paddingBottom: 20, paddingTop: 10 }}>
-
-          {/* Scan & Discover Card */}
-      <View className="bg-green-100 mx-5 rounded-2xl p-6 flex-row items-center mb-8 shadow-md">
-        <View className="flex-1">
-          <Text className="text-2xl font-black text-gray-800 mb-2">
-            Scan & Discover
-          </Text>
-          <Text className="text-sm text-gray-600 mb-4 leading-5 font-medium">
-            Scan food items to get detailed nutritional information
-          </Text>
-          <TouchableOpacity className="bg-[#a259ff] px-6 py-3 rounded-full self-start shadow-md">
-            <Text className="text-white font-black text-sm">
-              Start Scanning
+      <ScrollView
+        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 60, paddingTop: 10 }}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Scan Card */}
+        <View
+          style={{
+            backgroundColor: colors.secondary + "100",
+            borderRadius: 20,
+            padding: 24,
+            flexDirection: "row",
+            alignItems: "center",
+            marginBottom: 20,
+            shadowColor: colors.secondary,
+            shadowOffset: { width: 0, height: 3 },
+            shadowOpacity: 0.1,
+            shadowRadius: 4,
+            elevation: 4,
+          }}
+        >
+          <View style={{ flex: 1 }}>
+            <Text style={{ fontSize: 20, fontWeight: "bold", color: colors.text, marginBottom: 8 }}>
+              Scan & Discover
             </Text>
-          </TouchableOpacity>
+            <Text style={{ color: colors.text, opacity: 0.6, marginBottom: 12 }}>
+              Scan food items to get detailed nutritional information
+            </Text>
+            <TouchableOpacity
+              style={{
+                backgroundColor: colors.accent,
+                paddingHorizontal: 20,
+                paddingVertical: 12,
+                borderRadius: 24,
+              }}
+            >
+              <Text style={{ color: "#fff", fontWeight: "bold" }}>Start Scanning</Text>
+            </TouchableOpacity>
+          </View>
+          <Ionicons name="qr-code-outline" size={64} color={colors.accent} />
         </View>
-        <View className="ml-6">
-          <Ionicons name="qr-code-outline" size={64} color="#a259ff" />
-        </View>
-      </View>
 
-      {/* Daily Macros */}
-      <View className="flex-1 px-5 mx-5 bg-white rounded-2xl p-6 shadow-sm">
-        <Text className="text-xl font-black text-gray-800 mb-6">Macros</Text>
-        <View className="flex-row justify-between px-2">
-          <MacroCircle label="Carbs" value={142} total={200} color="#ff6b6b" />
-          <MacroCircle label="Protein" value={87} total={150} color="#4ecdc4" />
-          <MacroCircle label="Fat" value={45} total={80} color="#45b7d1" />
-          <MacroCircle
-            label="Calories"
-            value={1250}
-            total={2000}
-            color="#f9ca24"
-            unit="cal"
-          />
-        </View>
-      </View>
-
-      {/* Food Items */}
-      <View className="flex-1 px-5 mb-8 mt-6">
-        <Text className="text-xl font-black text-gray-800 mb-6">
-          Food Items
-        </Text>
-        <FoodItem
-          name="Banana (Latundan)"
-          calories="105 cal (Sweet)"
-          onPress={() => {}}
-        />
-        <FoodItem name="Yogurt" calories="150 cal" onPress={() => {}} />
-        <FoodItem name="Honey" calories="64 cal (Sweet)" onPress={() => {}} />
-      </View>
-
-      {/* Today's Nutrition */}
-      <View className="flex-1 px-5 mb-28">
-        <Text className="text-xl font-black text-gray-800 mb-6">
-          Today's Nutrition
-        </Text>
-        <View className="bg-blue-50 rounded-xl p-5 border border-blue-100">
-          <Text className="text-sm text-gray-800 leading-6 font-medium">
-            You've consumed 1,250 calories today. Keep up the good work!
+        {/* Macros */}
+        <View
+          style={{
+            backgroundColor: colors.surface,
+            borderRadius: 20,
+            padding: 24,
+            marginBottom: 24,
+          }}
+        >
+          <Text style={{ fontSize: 18, fontWeight: "bold", color: colors.text, marginBottom: 16 }}>
+            Macros
           </Text>
+          <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+            <MacroCircle label="Carbs" value={142} total={200} color="#ff6b6b" />
+            <MacroCircle label="Protein" value={87} total={150} color="#4ecdc4" />
+            <MacroCircle label="Fat" value={45} total={80} color="#45b7d1" />
+            <MacroCircle label="Calories" value={1250} total={2000} color="#f9ca24" unit="cal" />
+          </View>
         </View>
-      </View>
 
+        {/* Food Items */}
+        <View style={{ marginBottom: 24 }}>
+          <Text style={{ fontSize: 18, fontWeight: "bold", color: colors.text, marginBottom: 16 }}>
+            Food Items
+          </Text>
+          <FoodItem name="Banana (Latundan)" calories="105 cal (Sweet)" onPress={() => {}} />
+          <FoodItem name="Yogurt" calories="150 cal" onPress={() => {}} />
+          <FoodItem name="Honey" calories="64 cal (Sweet)" onPress={() => {}} />
+        </View>
+
+        {/* Today’s Nutrition */}
+        <View>
+          <Text style={{ fontSize: 18, fontWeight: "bold", color: colors.text, marginBottom: 16 }}>
+            Today's Nutrition
+          </Text>
+          <View
+            style={{
+              backgroundColor: colors.secondary + "20",
+              borderRadius: 12,
+              padding: 16,
+              borderColor: colors.secondary + "30",
+              borderWidth: 1,
+            }}
+          >
+            <Text style={{ color: colors.text, lineHeight: 20 }}>
+              You've consumed 1,250 calories today. Keep up the good work!
+            </Text>
+          </View>
+        </View>
       </ScrollView>
     </View>
   );
