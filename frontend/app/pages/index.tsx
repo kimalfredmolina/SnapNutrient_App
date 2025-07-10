@@ -100,7 +100,7 @@ export default function HomePage() {
   return (
     <View className="flex-1 bg-gray-50">
       {/* Header */}
-      <View className="flex-row justify-between items-center px-5 pt-16 pb-6 bg-white">
+      <View className="flex-row justify-between items-center px-5 pt-6 pb-6 bg-white">
         <Text className="text-xl font-bold text-gray-800">
           {user && user.name
             ? `Welcome back, ${user.name}`
