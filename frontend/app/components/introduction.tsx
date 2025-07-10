@@ -127,12 +127,12 @@ export default function Introduction({ onGetStarted }: IntroductionProps) {
           </View>
 
           {/* Welcome Text */}
-          <View style={{ flex: 1, alignItems: 'center', marginBottom: 48 }}>
+          <View style={{ flex: 1, alignItems: "center", marginBottom: 48 }}>
             <Text
               style={{
                 fontSize: 36,
-                fontWeight: 'bold',
-                textAlign: 'center',
+                fontWeight: "bold",
+                textAlign: "center",
                 marginBottom: 32,
                 color: colors.text,
                 textShadowColor: isDark
@@ -293,7 +293,7 @@ export default function Introduction({ onGetStarted }: IntroductionProps) {
               textShadowRadius: 1,
             }}
           >
-            copyright 2025 SnapNutrient
+            © 2025 SnapNutrients. All rights reserved.
           </Text>
         </View>
       </View>
