@@ -118,13 +118,13 @@ export default function Introduction({ onGetStarted }: IntroductionProps) {
           </View>
 
           {/* Welcome Text */}
-          <View style={{ alignItems: 'center', marginBottom: 48 }}>
+          <View style={{ flex: 1, alignItems: 'center', marginBottom: 48 }}>
             <Text
               style={{
                 fontSize: 36,
                 fontWeight: 'bold',
                 textAlign: 'center',
-                marginBottom: 16,
+                marginBottom: 32,
                 color: colors.text,
                 textShadowColor: isDark 
                   ? 'rgba(0, 0, 0, 0.8)' 
@@ -139,6 +139,7 @@ export default function Introduction({ onGetStarted }: IntroductionProps) {
 
             <Text
               style={{
+                flex: 1,
                 fontSize: 18,
                 textAlign: 'center',
                 lineHeight: 24,
@@ -160,6 +161,7 @@ export default function Introduction({ onGetStarted }: IntroductionProps) {
           {/* Feature Highlights with background */}
           <View
             style={{
+              flex: 1,
               marginBottom: 32,
             }}
           >
