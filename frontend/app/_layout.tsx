@@ -53,7 +53,6 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
           borderTopLeftRadius: 24,
           borderTopRightRadius: 24,
           height: 70,
-          shadowColor: isDark ? "#fff" : "#000",
           shadowOffset: { width: 0, height: -2 },
           shadowOpacity: 0.1,
           shadowRadius: 8,
