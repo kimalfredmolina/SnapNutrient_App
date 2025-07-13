@@ -1,136 +1,219 @@
 import { View, Text, TouchableOpacity, Image, ScrollView } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "../contexts/ThemeContext";
 
 export default function Account() {
   const router = useRouter();
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
 
   const handleSignOut = () => {
     router.replace("/authentication/signin");
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
-      <View
-        style={{
-          flex: 1,
-          backgroundColor: colors.background,
-          justifyContent: "space-between",
+    <View className="flex-1" style={{ backgroundColor: colors.background }}>
+      <ScrollView
+        contentContainerStyle={{
+          flexGrow: 1,
           paddingHorizontal: 16,
           paddingTop: 32,
-          paddingBottom: 16,
+          paddingBottom: 24,
         }}
+        showsVerticalScrollIndicator={false}
       >
-        {/* Scrollable Content */}
-        <ScrollView
-          contentContainerStyle={{
-            flexGrow: 1,
-            paddingBottom: 24,
-          }}
-          showsVerticalScrollIndicator={false}
+        {/* Profile Card */}
+        <View
+          className="flex-row items-center rounded-2xl p-4 mb-8 shadow-md mt-10"
+          style={{ backgroundColor: colors.surface }}
         >
-          {/* Profile Card */}
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              backgroundColor: colors.surface,
-              borderRadius: 16,
-              padding: 16,
-              marginBottom: 16,
-              shadowColor: "#000",
-              shadowOpacity: 0.1,
-              shadowRadius: 8,
-              elevation: 4,
-            }}
-          >
-            <Image
-              source={{ uri: "https://randomuser.me/api/portraits/men/32.jpg" }}
-              style={{
-                width: 64,
-                height: 64,
-                borderRadius: 32,
-                borderWidth: 2,
-                borderColor: colors.primary,
-              }}
-            />
-            <View style={{ marginLeft: 16, flex: 1 }}>
-              <Text style={{ fontSize: 18, fontWeight: "bold", color: colors.text }}>
-                Grow A. Garden Jr.
+          <Image
+            source={{ uri: "https://randomuser.me/api/portraits/men/32.jpg" }}
+            className="w-16 h-16 rounded-full border-2"
+            style={{ borderColor: colors.primary }}
+          />
+          <View className="ml-4 flex-1">
+            <Text className="text-lg font-bold" style={{ color: colors.text }}>
+              Grow A. Garden Jr.
+            </Text>
+            <View className="flex-row items-center mt-1">
+              <Text
+                className="font-medium"
+                style={{ color: isDark ? "#A1A1AA" : "#374151" }}
+              >
+                Streak
               </Text>
-              <View style={{ flexDirection: "row", alignItems: "center", marginTop: 4 }}>
-                <Text style={{ color: colors.text, fontWeight: "500" }}>Streak</Text>
-                <Text style={{ marginLeft: 8, color: colors.accent, fontWeight: "bold" }}>
-                  2 Days
-                </Text>
-              </View>
+              <Text className="ml-2 font-bold" style={{ color: colors.accent }}>
+                2 Days
+              </Text>
             </View>
           </View>
+        </View>
 
-          {/* Menu */}
-          <View style={{ gap: 16, marginLeft: 8 }}>
-            <TouchableOpacity style={{ flexDirection: "row", alignItems: "center" }}>
-              <Ionicons name="settings-outline" size={26} color={colors.text} />
-              <Text style={{ marginLeft: 16, fontSize: 16, color: colors.text, fontWeight: "500" }}>
-                Settings
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={{ flexDirection: "row", alignItems: "center" }}>
-              <Ionicons name="help-circle-outline" size={26} color={colors.text} />
-              <Text style={{ marginLeft: 16, fontSize: 16, color: colors.text, fontWeight: "500" }}>
-                Help
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={{ flexDirection: "row", alignItems: "center" }}>
-              <MaterialIcons name="privacy-tip" size={26} color={colors.text} />
-              <Text style={{ marginLeft: 16, fontSize: 16, color: colors.text, fontWeight: "500" }}>
-                Privacy
-              </Text>
-            </TouchableOpacity>
-          </View>
+        {/* Menu */}
+        <View className="gap-y-2 mb-8 ml-4">
+          <TouchableOpacity className="flex-row items-center py-3">
+            <Ionicons name="settings-outline" size={24} color={colors.text} />
+            <Text
+              className="ml-4 text-base font-medium flex-1"
+              style={{ color: colors.text }}
+            >
+              Settings
+            </Text>
+            <Ionicons
+              name="chevron-forward"
+              size={20}
+              color={colors.text}
+              style={{ opacity: 0.5 }}
+            />
+          </TouchableOpacity>
 
-          {/* Spacer */}
-          <View style={{ height: 24 }} />
+          <TouchableOpacity className="flex-row items-center py-3">
+            <Ionicons
+              name="help-circle-outline"
+              size={24}
+              color={colors.text}
+            />
+            <Text
+              className="ml-4 text-base font-medium flex-1"
+              style={{ color: colors.text }}
+            >
+              Help
+            </Text>
+            <Ionicons
+              name="chevron-forward"
+              size={20}
+              color={colors.text}
+              style={{ opacity: 0.5 }}
+            />
+          </TouchableOpacity>
 
-        </ScrollView>
+          <TouchableOpacity className="flex-row items-center py-3">
+            <MaterialIcons name="security" size={24} color={colors.text} />
+            <Text
+              className="ml-4 text-base font-medium flex-1"
+              style={{ color: colors.text }}
+            >
+              Privacy
+            </Text>
+            <Ionicons
+              name="chevron-forward"
+              size={20}
+              color={colors.text}
+              style={{ opacity: 0.5 }}
+            />
+          </TouchableOpacity>
 
-        {/* Log Out Button */}
+          <TouchableOpacity className="flex-row items-center py-3">
+            <Ionicons name="mail-outline" size={24} color={colors.text} />
+            <Text
+              className="ml-4 text-base font-medium flex-1"
+              style={{ color: colors.text }}
+            >
+              Contact Us
+            </Text>
+            <Ionicons
+              name="chevron-forward"
+              size={20}
+              color={colors.text}
+              style={{ opacity: 0.5 }}
+            />
+          </TouchableOpacity>
+
+          <TouchableOpacity className="flex-row items-center py-3">
+            <Ionicons
+              name="alert-circle-outline"
+              size={24}
+              color={colors.text}
+            />
+            <Text
+              className="ml-4 text-base font-medium flex-1"
+              style={{ color: colors.text }}
+            >
+              Report a Problem
+            </Text>
+            <Ionicons
+              name="chevron-forward"
+              size={20}
+              color={colors.text}
+              style={{ opacity: 0.5 }}
+            />
+          </TouchableOpacity>
+
+          <TouchableOpacity className="flex-row items-center py-3">
+            <Ionicons
+              name={isDark ? "moon" : "moon-outline"}
+              size={24}
+              color={colors.text}
+            />
+            <Text
+              className="ml-4 text-base font-medium flex-1"
+              style={{ color: colors.text }}
+            >
+              Dark Mode
+            </Text>
+            <Ionicons
+              name="chevron-forward"
+              size={20}
+              color={colors.text}
+              style={{ opacity: 0.5 }}
+            />
+          </TouchableOpacity>
+
+          <TouchableOpacity className="flex-row items-center py-3">
+            <Ionicons
+              name="information-circle-outline"
+              size={24}
+              color={colors.text}
+            />
+            <Text
+              className="ml-4 text-base font-medium flex-1"
+              style={{ color: colors.text }}
+            >
+              About Us
+            </Text>
+            <Ionicons
+              name="chevron-forward"
+              size={20}
+              color={colors.text}
+              style={{ opacity: 0.5 }}
+            />
+          </TouchableOpacity>
+        </View>
+
+        {/* Spacer */}
+        <View className="flex-1" />
+
+        {/* Log Out Button*/}
+        <View className="mb-0">
           <TouchableOpacity
+            className="rounded-xl py-3 border"
+            style={{ borderColor: colors.accent }}
             onPress={handleSignOut}
-            style={{
-              borderColor: colors.accent,
-              borderWidth: 1,
-              borderRadius: 12,
-              paddingVertical: 12,
-              marginTop: 16,
-            }}
           >
             <Text
-              style={{
-                textAlign: "center",
-                color: colors.accent,
-                fontSize: 18,
-                fontWeight: "600",
-              }}
+              className="text-center text-lg font-semibold"
+              style={{ color: colors.accent }}
             >
               Log Out
             </Text>
           </TouchableOpacity>
-
-        {/* Footer Fixed at Bottom */}
-        <View style={{ alignItems: "center", marginTop: 16 }}>
-          <Text style={{ fontSize: 12, color: colors.text + "99" }}>SnapNutrients v1.0</Text>
-          <Text style={{ fontSize: 12, color: colors.text + "66" }}>
-            © 2025 SnapNutrients. All rights reserved.
-          </Text>
+          <View className="items-center mb-40 mt-4">
+            <Text
+              className="text-xs"
+              style={{ color: isDark ? "#71717A" : "#6B7280" }}
+            >
+              SnapNutrients v1.0
+            </Text>
+            <Text
+              className="text-xs"
+              style={{ color: isDark ? "#52525B" : "#9CA3AF" }}
+            >
+              © 2025 SnapNutrients. All rights reserved.
+            </Text>
+          </View>
         </View>
-
-        {/* Spacer */}
-          <View style={{ height: 90 }} />
-      </View>
-    </SafeAreaView>
+      </ScrollView>
+    </View>
   );
 }

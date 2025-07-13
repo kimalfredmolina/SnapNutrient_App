@@ -228,7 +228,7 @@ export default function LoginPage({ onLogin }: { onLogin: () => void }) {
           </TouchableOpacity>
 
           {/* Terms & Privacy */}
-          <View className="pb-4">
+          <View className="pb-4 mt-4">
             <Text
               className="text-xs text-center"
               style={{ color: colors.text, opacity: 0.6 }}

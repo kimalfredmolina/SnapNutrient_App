@@ -1,19 +1,13 @@
 import React from "react";
-import {
-  ScrollView,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-  useColorScheme,
-} from "react-native";
+import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import {
   ChevronDownIcon,
-  MagnifyingGlassIcon,
   EllipsisVerticalIcon,
 } from "react-native-heroicons/outline";
+import { useTheme } from "../contexts/ThemeContext";
 
 export default function History() {
+  const { colors, isDark } = useTheme();
   const historyData = [
     {
       day: "1",
@@ -24,23 +18,7 @@ export default function History() {
       carbs: 104,
     },
     {
-      day: "2",
-      date: "July, 2025",
-      calories: 99,
-      protein: 117,
-      fat: 14,
-      carbs: 110,
-    },
-    {
-      day: "3",
-      date: "July, 2025",
-      calories: 97,
-      protein: 137,
-      fat: 17,
-      carbs: 140,
-    },
-    {
-      day: "4",
+      day: "1",
       date: "July, 2025",
       calories: 1144,
       protein: 130,
@@ -48,7 +26,7 @@ export default function History() {
       carbs: 104,
     },
     {
-      day: "4",
+      day: "1",
       date: "July, 2025",
       calories: 1144,
       protein: 130,
@@ -56,7 +34,7 @@ export default function History() {
       carbs: 104,
     },
     {
-      day: "4",
+      day: "1",
       date: "July, 2025",
       calories: 1144,
       protein: 130,
@@ -64,7 +42,23 @@ export default function History() {
       carbs: 104,
     },
     {
-      day: "4",
+      day: "1",
+      date: "July, 2025",
+      calories: 1144,
+      protein: 130,
+      fat: 21,
+      carbs: 104,
+    },
+    {
+      day: "1",
+      date: "July, 2025",
+      calories: 1144,
+      protein: 130,
+      fat: 21,
+      carbs: 104,
+    },
+    {
+      day: "1",
       date: "July, 2025",
       calories: 1144,
       protein: 130,
@@ -74,19 +68,25 @@ export default function History() {
   ];
 
   return (
-    <View className="flex-1 bg-[#F7F8FA] dark:bg-black px-4 pt-4">
+    <View
+      className="flex-1 px-4 pt-4"
+      style={{ backgroundColor: colors.background }}
+    >
       {/* Filter and Sort Buttons aligned to right */}
       <View className="flex-row justify-end space-x-3 mb-4 mt-12">
         {["Filter", "Sort"].map((label, i) => (
           <TouchableOpacity
             key={i}
-            className="flex-row items-center bg-white dark:bg-[#1f2937] 
-                       rounded-xl ml-2 px-4 py-2 shadow-md dark:shadow-none"
+            className="flex-row items-center rounded-xl ml-2 px-4 py-2 shadow-md"
+            style={{ backgroundColor: colors.surface }}
           >
-            <Text className="text-gray-800 dark:text-gray-100 font-semibold text-sm mr-1">
+            <Text
+              className="font-semibold text-sm mr-1"
+              style={{ color: colors.text }}
+            >
               {label}
             </Text>
-            <ChevronDownIcon size={18} color="#9CA3AF" />
+            <ChevronDownIcon size={18} color={isDark ? "#9CA3AF" : "#6B7280"} />
           </TouchableOpacity>
         ))}
       </View>
@@ -96,20 +96,27 @@ export default function History() {
         {historyData.map((item, index) => (
           <View
             key={index}
-            className="bg-white dark:bg-[#1f2937] 
-                       rounded-3xl px-5 py-4 mb-4 
-                       flex-row items-center shadow-lg dark:shadow-none"
+            className="rounded-3xl px-5 py-4 mb-4 flex-row items-center shadow-lg"
+            style={{ backgroundColor: colors.surface }}
           >
             {/* Date */}
             <View
-              className="bg-white dark:bg-[#374151] 
-                            rounded-xl p-3 w-16 items-center mr-4 
-                            border border-gray-200 dark:border-gray-600 shadow-sm"
+              className="rounded-xl p-3 w-16 items-center mr-4 border shadow-sm"
+              style={{
+                backgroundColor: isDark ? "#374151" : colors.surface,
+                borderColor: isDark ? "#4B5563" : "#E5E7EB",
+              }}
             >
-              <Text className="text-xl font-extrabold text-indigo-700 dark:text-indigo-400">
+              <Text
+                className="text-xl font-extrabold"
+                style={{ color: colors.primary }}
+              >
                 {item.day}
               </Text>
-              <Text className="text-[10px] text-gray-500 dark:text-gray-400 text-center">
+              <Text
+                className="text-[10px] text-center"
+                style={{ color: isDark ? "#9CA3AF" : "#6B7280" }}
+              >
                 {item.date}
               </Text>
             </View>
@@ -120,19 +127,28 @@ export default function History() {
                 {
                   value: item.calories,
                   label: "Calories",
-                  color: "bg-red-500/90",
+                  color: "#EF4444",
                 },
                 {
                   value: item.protein,
                   label: "Protein",
-                  color: "bg-green-500/90",
+                  color: "#10B981",
                 },
-                { value: item.fat, label: "Fat", color: "bg-orange-400/90" },
-                { value: item.carbs, label: "Carbs", color: "bg-blue-600/90" },
+                {
+                  value: item.fat,
+                  label: "Fat",
+                  color: "#F97316",
+                },
+                {
+                  value: item.carbs,
+                  label: "Carbs",
+                  color: "#3B82F6",
+                },
               ].map((nutrient, idx) => (
                 <View
                   key={idx}
-                  className={`${nutrient.color} rounded-lg px-3 py-1 min-w-[78px]`}
+                  className="rounded-lg px-3 py-1 min-w-[78px]"
+                  style={{ backgroundColor: nutrient.color }}
                 >
                   <Text className="text-white font-semibold text-base leading-4">
                     {nutrient.value}
@@ -146,7 +162,10 @@ export default function History() {
 
             {/* Options */}
             <TouchableOpacity className="ml-3 p-1">
-              <EllipsisVerticalIcon size={22} color="#9CA3AF" />
+              <EllipsisVerticalIcon
+                size={22}
+                color={isDark ? "#9CA3AF" : "#6B7280"}
+              />
             </TouchableOpacity>
           </View>
         ))}
