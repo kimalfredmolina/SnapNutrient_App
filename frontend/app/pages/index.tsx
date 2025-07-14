@@ -1,10 +1,5 @@
 import React, { useState } from "react";
-import {
-  Text,
-  View,
-  ScrollView,
-  TouchableOpacity,
-} from "react-native";
+import { Text, View, ScrollView, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Circle } from "react-native-svg";
@@ -108,7 +103,10 @@ const FoodItem = ({
         <Text className="font-bold mb-1" style={{ color: colors.text }}>
           {name}
         </Text>
-        <Text className="text-sm text-opacity-60" style={{ color: colors.text }}>
+        <Text
+          className="text-sm text-opacity-60"
+          style={{ color: colors.text }}
+        >
           {calories}
         </Text>
       </View>
@@ -134,14 +132,33 @@ export default function HomePage() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
       <View
-        className="flex-row justify-between items-center px-5 py-4"
+        className="flex-row items-center justify-between px-5 py-4"
         style={{ backgroundColor: colors.primary }}
       >
-        <Text className="text-lg font-bold" style={{ color: colors.text }}>
-          {user?.name ? `Welcome back, ${user.name}` : "Welcome, Guest"}
-        </Text>
-        <TouchableOpacity>
-          <Ionicons name="notifications-outline" size={24} color={colors.text} />
+        {/* Left: Welcome Text */}
+        <View className="flex-1">
+          <Text
+            className="text-base font-semibold"
+            style={{ color: colors.text }}
+          >
+            {user?.name ? `Welcome back, ${user.name}` : "Welcome, Guest"}
+          </Text>
+        </View>
+
+        {/* Center: SnapNutrients */}
+        <View className="absolute left-0 right-0 items-center">
+          <Text className="text-3xl font-bold" style={{ color: colors.text }}>
+            SnapNutrients
+          </Text>
+        </View>
+
+        {/* Right: Notification */}
+        <TouchableOpacity className="flex-1 items-end">
+          <Ionicons
+            name="notifications-outline"
+            size={24}
+            color={colors.text}
+          />
         </TouchableOpacity>
       </View>
 
@@ -166,10 +183,16 @@ export default function HomePage() {
           }}
         >
           <View className="flex-1">
-            <Text className="text-lg font-bold mb-2" style={{ color: colors.text }}>
+            <Text
+              className="text-lg font-bold mb-2"
+              style={{ color: colors.text }}
+            >
               Scan & Discover
             </Text>
-            <Text className="text-sm text-opacity-60 mb-3" style={{ color: colors.text }}>
+            <Text
+              className="text-sm text-opacity-60 mb-3"
+              style={{ color: colors.text }}
+            >
               Scan food items to get detailed nutritional information
             </Text>
             <TouchableOpacity
@@ -183,31 +206,63 @@ export default function HomePage() {
         </View>
 
         {/* Macros */}
-        <View className="rounded-2xl p-6 mb-6" style={{ backgroundColor: colors.surface }}>
-          <Text className="text-base font-bold mb-4" style={{ color: colors.text }}>
+        <View
+          className="rounded-2xl p-6 mb-6"
+          style={{ backgroundColor: colors.surface }}
+        >
+          <Text
+            className="text-base font-bold mb-4"
+            style={{ color: colors.text }}
+          >
             Macros
           </Text>
           <View className="flex-row justify-between">
-            <MacroCircle label="Carbs" value={142} total={200} color="#ff6b6b" />
-            <MacroCircle label="Protein" value={87} total={150} color="#4ecdc4" />
+            <MacroCircle
+              label="Carbs"
+              value={142}
+              total={200}
+              color="#ff6b6b"
+            />
+            <MacroCircle
+              label="Protein"
+              value={87}
+              total={150}
+              color="#4ecdc4"
+            />
             <MacroCircle label="Fat" value={45} total={80} color="#45b7d1" />
-            <MacroCircle label="Calories" value={1250} total={2000} color="#f9ca24" unit="cal" />
+            <MacroCircle
+              label="Calories"
+              value={1250}
+              total={2000}
+              color="#f9ca24"
+              unit="cal"
+            />
           </View>
         </View>
 
         {/* Food Items */}
         <View className="mb-6">
-          <Text className="text-base font-bold mb-4" style={{ color: colors.text }}>
+          <Text
+            className="text-base font-bold mb-4"
+            style={{ color: colors.text }}
+          >
             Food Items
           </Text>
-          <FoodItem name="Banana (Latundan)" calories="105 cal (Sweet)" onPress={() => {}} />
+          <FoodItem
+            name="Banana (Latundan)"
+            calories="105 cal (Sweet)"
+            onPress={() => {}}
+          />
           <FoodItem name="Yogurt" calories="150 cal" onPress={() => {}} />
           <FoodItem name="Honey" calories="64 cal (Sweet)" onPress={() => {}} />
         </View>
 
         {/* Today's Nutrition */}
         <View>
-          <Text className="text-base font-bold mb-4" style={{ color: colors.text }}>
+          <Text
+            className="text-base font-bold mb-4"
+            style={{ color: colors.text }}
+          >
             Today's Nutrition
           </Text>
           <View
