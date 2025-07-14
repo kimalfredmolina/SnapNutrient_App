@@ -2,12 +2,15 @@ import { View, Text, TouchableOpacity, Image, ScrollView } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useTheme } from "../contexts/ThemeContext";
+import { useAuth } from "../contexts/AuthContext";
 
 export default function Account() {
   const router = useRouter();
   const { colors, isDark } = useTheme();
+  const { logout } = useAuth();
 
   const handleSignOut = () => {
+    logout();
     router.replace("/authentication/signin");
   };
 
@@ -17,7 +20,7 @@ export default function Account() {
         contentContainerStyle={{
           flexGrow: 1,
           paddingHorizontal: 16,
-          paddingTop: 32,
+          paddingTop: 12,
           paddingBottom: 24,
         }}
         showsVerticalScrollIndicator={false}
@@ -185,7 +188,7 @@ export default function Account() {
         <View className="flex-1" />
 
         {/* Log Out Button*/}
-        <View className="mb-0">
+        <View className="mt-16 mb-4">
           <TouchableOpacity
             className="rounded-xl py-3 border"
             style={{ borderColor: colors.accent }}
