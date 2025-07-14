@@ -92,7 +92,10 @@ export default function History() {
       </View>
 
       {/* History Cards */}
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 100 }}
+        >
         {historyData.map((item, index) => (
           <View
             key={index}
