@@ -10,7 +10,6 @@ export default function History() {
   const { colors, isDark } = useTheme();
   const historyData = [
     {
-      name: "NAME",
       day: "1",
       date: "July, 2025",
       calories: 1144,
@@ -19,7 +18,6 @@ export default function History() {
       carbs: 104,
     },
     {
-      name: "NAME",
       day: "1",
       date: "July, 2025",
       calories: 1144,
@@ -28,7 +26,6 @@ export default function History() {
       carbs: 104,
     },
     {
-      name: "NAME",
       day: "1",
       date: "July, 2025",
       calories: 1144,
@@ -37,34 +34,6 @@ export default function History() {
       carbs: 104,
     },
     {
-      name: "NAME",      
-      day: "1",
-      date: "July, 2025",
-      calories: 1144,
-      protein: 130,
-      fat: 21,
-      carbs: 104,
-    },
-    {
-      name: "NAME",
-      day: "1",
-      date: "July, 2025",
-      calories: 1144,
-      protein: 130,
-      fat: 21,
-      carbs: 104,
-    },
-    {
-      name: "NAME",
-      day: "1",
-      date: "July, 2025",
-      calories: 1144,
-      protein: 130,
-      fat: 21,
-      carbs: 104,
-    },
-    {
-      name: "NAME",
       day: "1",
       date: "July, 2025",
       calories: 1144,
@@ -113,24 +82,29 @@ export default function History() {
             }}
           >
             {/* Date */}
-            <View className="items-start mr-4">
+            <View
+              className="rounded-xl p-2 w-16 items-center mr-1 border shadow-sm"
+              style={{
+                backgroundColor: isDark ? "#374151" : colors.surface,
+                borderColor: isDark ? "#4B5563" : "#E5E7EB",
+              }}
+            >
               <Text
-                className="font-bold text-base mb-1"
-                style={{ color: colors.text }}
+                className="text-xl font-extrabold"
+                style={{ color: colors.primary }}
               >
-                {item.name}
+                {item.day}
               </Text>
-              <View
-                className="px-3 py-1 rounded "
-                style={{
-                  borderColor: isDark ? "#4B5563" : "#D1D5DB",
-                  backgroundColor: isDark ? "#1F2937" : "#F9FAFB",
-                }}
-              >
-                <Text className="text-xs" style={{ color: colors.text }}>
-                  {item.day} {item.date}
+              {/* Split month and year */}
+              {item.date.split(",").map((part, i) => (
+                <Text
+                  key={i}
+                  className="text-[10px] text-center"
+                  style={{ color: isDark ? "#9CA3AF" : "#6B7280" }}
+                >
+                  {part.trim()}
                 </Text>
-              </View>
+              ))}
             </View>
 
             {/* Nutrients */}
@@ -159,7 +133,7 @@ export default function History() {
               ].map((nutrient, idx) => (
                 <View
                   key={idx}
-                  className="items-center px-2 py-1 rounded min-w-[45px]"
+                  className="items-center px-2 py-4 min-w-[50px] min-h-[65px] rounded-xl"
                   style={{
                     backgroundColor: nutrient.color,
                   }}
@@ -174,6 +148,7 @@ export default function History() {
               ))}
             </View>
 
+            {/* Options */}
             <TouchableOpacity className="ml-2 p-1">
               <EllipsisVerticalIcon
                 size={22}
