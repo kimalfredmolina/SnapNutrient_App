@@ -217,11 +217,11 @@ function TabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="pages/search"
+        name="pages/progress"
         options={{
-          title: "Search",
+          title: "Progress",
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="search-outline" size={size} color={color} />
+            <Ionicons name="stats-chart-outline" size={size} color={color} />
           ),
         }}
       />
