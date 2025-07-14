@@ -9,9 +9,15 @@ import "../global.css";
 import Introduction from "./components/introduction";
 import LoginPage from "./authentication/signin";
 import SvgComponent from "./components/foodscanner";
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
 
 function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const { colors, isDark } = useTheme();
+  const { isAuthenticated } = useAuth();
+
+  if (!isAuthenticated) {
+    return null;
+  }
 
   // Filter out specific routes from the bottom navbar
   const filteredRoutes = state.routes.filter(
@@ -165,6 +171,7 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
 }
 
 function TabsLayout() {
+  const { isAuthenticated, login, logout } = useAuth();
   const [step, setStep] = useState<"intro" | "login" | "main">("intro");
 
   if (step === "intro") {
@@ -172,7 +179,25 @@ function TabsLayout() {
   }
 
   if (step === "login") {
-    return <LoginPage onLogin={() => setStep("main")} />;
+    return (
+      <LoginPage
+        onLogin={() => {
+          login();
+          setStep("main");
+        }}
+      />
+    );
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <LoginPage
+        onLogin={() => {
+          login();
+          setStep("main");
+        }}
+      />
+    );
   }
 
   return (
@@ -234,7 +259,9 @@ function TabsLayout() {
 export default function RootLayout() {
   return (
     <ThemeProvider>
-      <TabsLayout />
+      <AuthProvider>
+        <TabsLayout />
+      </AuthProvider>
     </ThemeProvider>
   );
 }
