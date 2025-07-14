@@ -20,7 +20,7 @@ export default function Account() {
         contentContainerStyle={{
           flexGrow: 1,
           paddingHorizontal: 16,
-          paddingTop: 32,
+          paddingTop: 12,
           paddingBottom: 24,
         }}
         showsVerticalScrollIndicator={false}
@@ -188,7 +188,7 @@ export default function Account() {
         <View className="flex-1" />
 
         {/* Log Out Button*/}
-        <View className="mb-0">
+        <View className="mt-16 mb-4">
           <TouchableOpacity
             className="rounded-xl py-3 border"
             style={{ borderColor: colors.accent }}
