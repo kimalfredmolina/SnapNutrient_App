@@ -10,6 +10,11 @@ This study highlights the development and implementation of SnapNutrient, focusi
 
 ---
 
+<h2 id="figma">Figma Design 🎨</h2>
+
+[Figma Design](https://www.figma.com/design/l02RJEt5eMlpr21sAJeOKg/UI-design?m=auto&t=Uf2Ad1lW1D1D7KCm-1&fbclid=IwY2xjawLi8SFleHRuA2FlbQIxMABicmlkETFObmVRbHRJUDFYbGo5eG1yAR59iSrClhieHeaj-wdgE55Oxy4OETaTl-17ZFPGAa3Sni4oVaKV9IutZhs47w_aem_YLF0-ZmQ0vCtuf9Ot9Qtpg
+).
+
 ## 🚀 Getting Started
 
 ### 0. Install Expo CLI (if you don't have it)
