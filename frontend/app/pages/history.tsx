@@ -83,7 +83,7 @@ export default function History() {
           >
             {/* Date */}
             <View
-              className="rounded-xl p-2 w-16 items-center mr-1 border shadow-sm"
+              className="rounded-xl p-2 w-16 items-center mr-4 border shadow-sm"
               style={{
                 backgroundColor: isDark ? "#374151" : colors.surface,
                 borderColor: isDark ? "#4B5563" : "#E5E7EB",
