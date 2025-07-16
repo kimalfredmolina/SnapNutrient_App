@@ -16,6 +16,7 @@ interface ThemeContextType {
     surface: string;
     text: string;
     border: string;
+    bgray: string,
   };
 }
 
@@ -43,7 +44,8 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     background: '#FFFFFF',  // White
     surface: '#F8F9FA',
     text: '#000000',
-    border: '#E5E7EB',
+    border: 'black',
+    bgray: '#F3F4F6',
   };
 
   const darkColors = {
@@ -54,6 +56,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     surface: '#1A1A1A',
     text: '#FFFFFF',
     border: '#374151',
+    bgray: '#F3F4F6',
   };
 
   const colors = isDark ? darkColors : lightColors;
