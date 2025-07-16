@@ -148,18 +148,18 @@ export default function HomePage() {
       className="flex-row items-center justify-between px-5 py-4"
       style={{ backgroundColor: colors.primary }}
     >
-      {/* Left: Avatar + Welcome */}
+      {/* Welcome */}
       <View className="flex-row items-center space-x-3">
         <Image
           source={require("../../assets/images/icon.png")}
           style={{ width: 40, height: 40, borderRadius: 999 }}
         />
-        <Text className="text-base font-semibold" style={{ color: colors.text }}>
+        <Text className="text-2xl font-bold pl-4" style={{ color: colors.text }}>
           {user?.name ? `Welcome back, ${user.name}` : "Welcome, Guest"}
         </Text>
       </View>
 
-      {/* Right: Notification Icon */}
+      {/* Notification Icon */}
       <TouchableOpacity>
         <Ionicons
           name="notifications-outline"
