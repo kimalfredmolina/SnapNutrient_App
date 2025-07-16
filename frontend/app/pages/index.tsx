@@ -11,6 +11,18 @@ const STROKE_WIDTH = 6;
 const RADIUS = (SIZE - STROKE_WIDTH) / 2;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 
+const formatDate = (date: Date) =>
+  date.toLocaleDateString("en-US", {
+    month: "long", 
+    day: "numeric", 
+    year: "numeric", 
+  });
+
+const currentDate = new Date();
+const weekdays = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
+const dates = [14, 15, 16, 17, 18, 19, 20]; // mock dates
+const streak = [14, 15]; // days with streak
+
 const MacroCircle = ({
   label,
   value,
@@ -36,7 +48,7 @@ const MacroCircle = ({
             cx={SIZE / 2}
             cy={SIZE / 2}
             r={RADIUS}
-            stroke={colors.border}
+            stroke={colors.bgray}
             strokeWidth={STROKE_WIDTH}
             fill="none"
           />
@@ -95,7 +107,7 @@ const FoodItem = ({
     >
       <View
         className="w-12 h-12 rounded-full justify-center items-center mr-3"
-        style={{ backgroundColor: colors.background }}
+        style={{ backgroundColor: colors.background  }}
       >
         <Ionicons name="nutrition-outline" size={24} color={colors.primary} />
       </View>
@@ -132,7 +144,7 @@ export default function HomePage() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
       <View
-        className="flex-row items-center justify-between px-5 py-4"
+        className="flex-row items-center justify-between px-5 py-3"
         style={{ backgroundColor: colors.primary }}
       >
         {/* Left: Welcome Text */}
@@ -163,45 +175,74 @@ export default function HomePage() {
           paddingBottom: 100,
         }}
       >
-        {/* Scan Card */}
+        {/* Card */}
         <View
-          className="rounded-2xl p-6 flex-row items-center mb-5"
+          className="rounded-xl p-4"
           style={{
-            backgroundColor: colors.secondary + "50",
-            shadowColor: colors.secondary + "50",
-            shadowOffset: { width: 0, height: 3 },
-            shadowOpacity: 0.1,
+            backgroundColor: colors.secondary + "cc",
+            shadowColor: "#000",
+            shadowOpacity: 0.05,
             shadowRadius: 4,
-            elevation: 4,
           }}
         >
-          <View className="flex-1">
-            <Text
-              className="text-lg font-bold mb-2"
-              style={{ color: colors.text }}
-            >
-              Scan & Discover
-            </Text>
-            <Text
-              className="text-sm text-opacity-60 mb-3"
-              style={{ color: colors.text }}
-            >
-              Scan food items to get detailed nutritional information
-            </Text>
-            <TouchableOpacity
-              className="px-5 py-3 rounded-full"
-              style={{ backgroundColor: colors.accent }}
-            >
-              <Text className="text-white font-bold">Start Scanning</Text>
-            </TouchableOpacity>
+          {/* Date + Streak */}
+          <Text
+            className="text-base font-semibold mb-1"
+            style={{ color: colors.text }}
+          >
+            {formatDate(currentDate)}
+          </Text>
+          <Text className="text-sm font-medium text-red-500 mb-3">
+            Streak <Text className="font-bold">2 Days</Text>
+          </Text>
+
+          {/* Streak Days */}
+          <View className="flex-row justify-between items-center mb-2">
+            {dates.map((date) => {
+              const isStreak = streak.includes(date);
+              const day = weekdays[new Date(2025, 6, date).getDay()];
+
+              return (
+                <View key={date} className="items-center mx-1">
+                  {/* Circle */}
+                  <View
+                    className={`w-10 h-10 rounded-full items-center justify-center ${
+                      isStreak ? "border-2 border-red-500" : "bg-gray-100"
+                    }`}
+                  >
+                    {isStreak ? (
+                      <Text className="text-xl" style={{ color: colors.text }}>
+                        ⚡
+                      </Text>
+                    ) : (
+                      <Text className="text-sm" style={{ color: colors.text }}>
+                        {day}
+                      </Text>
+                    )}
+                  </View>
+
+                  {/* Date under circle */}
+                  <Text
+                    className="text-xs mt-1 font-semibold"
+                    style={{ color: colors.text }}
+                  >
+                    {date}
+                  </Text>
+                </View>
+              );
+            })}
           </View>
-          <Ionicons name="qr-code-outline" size={64} color={colors.accent} />
+
+          {/* Footer */}
+          <Text className="text-sm text-blue-500 text-right font-medium">
+            Check Analytic &gt;
+          </Text>
         </View>
 
         {/* Macros */}
         <View
-          className="rounded-2xl p-6 mb-6"
-          style={{ backgroundColor: colors.surface }}
+          className="rounded-2xl p-6 my-3 mb-6"
+          style={{ backgroundColor: colors.background + "cc", borderColor: colors.border, borderWidth: 1 }}
         >
           <Text
             className="text-base font-bold mb-4"
