@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import LottieView from "lottie-react-native";
 import { useRef, useEffect } from "react";
-import { useTheme } from "../contexts/ThemeContext";
+import { useTheme } from "../../contexts/ThemeContext";
 
 type IntroductionProps = {
   onGetStarted: () => void;

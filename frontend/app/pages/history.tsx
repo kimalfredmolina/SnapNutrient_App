@@ -4,7 +4,7 @@ import {
   ChevronDownIcon,
   EllipsisVerticalIcon,
 } from "react-native-heroicons/outline";
-import { useTheme } from "../contexts/ThemeContext";
+import { useTheme } from "../../contexts/ThemeContext";
 
 export default function History() {
   const { colors, isDark } = useTheme();
