@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Text, View, ScrollView, TouchableOpacity } from "react-native";
+import { Text, View, ScrollView, TouchableOpacity, Image } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Circle } from "react-native-svg";
@@ -143,29 +143,32 @@ export default function HomePage() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
+      
       <View
-        className="flex-row items-center justify-between px-5 py-3"
-        style={{ backgroundColor: colors.primary }}
-      >
-        {/* Left: Welcome Text */}
-        <View className="flex-1">
-          <Text
-            className="text-base font-semibold"
-            style={{ color: colors.text }}
-          >
-            {user?.name ? `Welcome back, ${user.name}` : "Welcome, Guest"}
-          </Text>
-        </View>
-
-        {/* Right: Notification */}
-        <TouchableOpacity className="flex-1 items-end">
-          <Ionicons
-            name="notifications-outline"
-            size={24}
-            color={colors.text}
-          />
-        </TouchableOpacity>
+      className="flex-row items-center justify-between px-5 py-4"
+      style={{ backgroundColor: colors.primary }}
+    >
+      {/* Left: Avatar + Welcome */}
+      <View className="flex-row items-center space-x-3">
+        <Image
+          source={require("../../assets/images/icon.png")}
+          style={{ width: 40, height: 40, borderRadius: 999 }}
+        />
+        <Text className="text-base font-semibold" style={{ color: colors.text }}>
+          {user?.name ? `Welcome back, ${user.name}` : "Welcome, Guest"}
+        </Text>
       </View>
+
+      {/* Right: Notification Icon */}
+      <TouchableOpacity>
+        <Ionicons
+          name="notifications-outline"
+          size={24}
+          color={colors.text}
+        />
+      </TouchableOpacity>
+    </View>
+
 
       <ScrollView
         showsVerticalScrollIndicator={false}
