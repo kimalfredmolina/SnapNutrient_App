@@ -217,9 +217,9 @@ function TabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="pages/progress"
+        name="pages/statistics"
         options={{
-          title: "Progress",
+          title: "Statistics",
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="stats-chart-outline" size={size} color={color} />
           ),
