@@ -11,7 +11,7 @@ import { useRef, useEffect } from "react";
 import { useTheme } from "../../contexts/ThemeContext";
 
 type IntroductionProps = {
-  onGetStarted: () => void;
+  onGetStarted: () => Promise<void>;
 };
 
 const { width, height } = Dimensions.get("window");

@@ -11,7 +11,7 @@ export default function Account() {
 
   const handleSignOut = () => {
     logout();
-    router.replace("/authentication/signin");
+    router.replace("/(auth)/signin");
   };
 
   return (
@@ -27,7 +27,7 @@ export default function Account() {
       >
         {/* Profile Card */}
         <View
-          className="flex-row items-center rounded-2xl p-4 mb-8 shadow-md mt-10"
+          className="flex-row items-center rounded-2xl p-4 mb-8 shadow-md mt-16"
           style={{ backgroundColor: colors.surface }}
         >
           <Image

@@ -4,6 +4,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Circle } from "react-native-svg";
 import { useTheme } from "../../contexts/ThemeContext";
+import { Redirect } from "expo-router";
+import { useAuth } from "../../contexts/AuthContext";
 
 // Constants
 const SIZE = 64;
@@ -13,9 +15,9 @@ const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 
 const formatDate = (date: Date) =>
   date.toLocaleDateString("en-US", {
-    month: "long", 
-    day: "numeric", 
-    year: "numeric", 
+    month: "long",
+    day: "numeric",
+    year: "numeric",
   });
 
 const currentDate = new Date();
@@ -107,7 +109,7 @@ const FoodItem = ({
     >
       <View
         className="w-12 h-12 rounded-full justify-center items-center mr-3"
-        style={{ backgroundColor: colors.background  }}
+        style={{ backgroundColor: colors.background }}
       >
         <Ionicons name="nutrition-outline" size={24} color={colors.primary} />
       </View>
@@ -140,35 +142,41 @@ const FoodItem = ({
 export default function HomePage() {
   const [user] = useState<{ name?: string } | null>(null);
   const { colors } = useTheme();
+  const { isAuthenticated } = useAuth();
+
+  if (!isAuthenticated) {
+    return <Redirect href="/(auth)/signin" />;
+  }
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
-      
       <View
-      className="flex-row items-center justify-between px-5 py-4"
-      style={{ backgroundColor: colors.primary }}
-    >
-      {/* Welcome */}
-      <View className="flex-row items-center space-x-3">
-        <Image
-          source={require("../../assets/images/icon.png")}
-          style={{ width: 40, height: 40, borderRadius: 999 }}
-        />
-        <Text className="text-2xl font-bold pl-4" style={{ color: colors.text }}>
-          {user?.name ? `Welcome back, ${user.name}` : "Welcome, Guest"}
-        </Text>
+        className="flex-row items-center justify-between px-5 py-4"
+        style={{ backgroundColor: colors.primary }}
+      >
+        {/* Welcome */}
+        <View className="flex-row items-center space-x-3">
+          <Image
+            source={require("../../assets/images/icon.png")}
+            style={{ width: 40, height: 40, borderRadius: 999 }}
+          />
+          <Text
+            className="text-2xl font-bold pl-4"
+            style={{ color: colors.text }}
+          >
+            {user?.name ? `Welcome back, ${user.name}` : "Welcome, Guest"}
+          </Text>
+        </View>
+
+        {/* Notification Icon */}
+        <TouchableOpacity>
+          <Ionicons
+            name="notifications-outline"
+            size={24}
+            color={colors.text}
+          />
+        </TouchableOpacity>
       </View>
-
-      {/* Notification Icon */}
-      <TouchableOpacity>
-        <Ionicons
-          name="notifications-outline"
-          size={24}
-          color={colors.text}
-        />
-      </TouchableOpacity>
-    </View>
-
 
       <ScrollView
         showsVerticalScrollIndicator={false}
@@ -245,7 +253,11 @@ export default function HomePage() {
         {/* Macros */}
         <View
           className="rounded-2xl p-6 my-3 mb-6"
-          style={{ backgroundColor: colors.background + "cc", borderColor: colors.border, borderWidth: 1 }}
+          style={{
+            backgroundColor: colors.background + "cc",
+            borderColor: colors.border,
+            borderWidth: 1,
+          }}
         >
           <Text
             className="text-base font-bold mb-4"

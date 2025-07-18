@@ -11,19 +11,28 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../../contexts/ThemeContext";
+import { Link } from "expo-router";
 
 export default function LoginPage({ onLogin }: { onLogin: () => void }) {
+  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const { colors, isDark } = useTheme();
 
   const handleLogin = () => {
-    if (email && password) {
-      onLogin();
-    } else {
-      alert("Enter your email and password.");
+    if (!username || !email || !password || !confirmPassword) {
+      alert("Please fill in all fields.");
+      return;
     }
+
+    if (password !== confirmPassword) {
+      alert("Passwords do not match.");
+      return;
+    }
+
+    onLogin();
   };
 
   return (
@@ -68,16 +77,30 @@ export default function LoginPage({ onLogin }: { onLogin: () => void }) {
             className="text-2xl font-semibold text-center mb-2"
             style={{ color: colors.text }}
           >
-            Sign In
+            Sign Up
           </Text>
           <Text
             className="text-center mb-6"
             style={{ color: colors.text, opacity: 0.6 }}
           >
-            Enter your Email and Password to Sign in for this app
+            Enter your credentials to Sign Up
           </Text>
 
-          {/* Email Input */}
+          {/* Username */}
+          <TextInput
+            className="border rounded-md px-4 py-3 mb-4"
+            style={{
+              borderColor: colors.border,
+              backgroundColor: colors.surface,
+              color: colors.text,
+            }}
+            placeholder="Username"
+            placeholderTextColor={colors.text + "80"}
+            value={username}
+            onChangeText={setUsername}
+          />
+
+          {/* Email */}
           <TextInput
             className="border rounded-md px-4 py-3 mb-4"
             style={{
@@ -92,7 +115,7 @@ export default function LoginPage({ onLogin }: { onLogin: () => void }) {
             onChangeText={setEmail}
           />
 
-          {/* Password Input */}
+          {/* Password */}
           <TextInput
             className="border rounded-md px-4 py-3 mb-4"
             style={{
@@ -107,47 +130,22 @@ export default function LoginPage({ onLogin }: { onLogin: () => void }) {
             onChangeText={setPassword}
           />
 
-          {/* Remember Me & Forgot Password */}
-          <View className="flex-row justify-between items-center mb-6">
-            <Pressable
-              className="flex-row items-center"
-              onPress={() => setRememberMe(!rememberMe)}
-            >
-              <View
-                className="w-5 h-5 mr-2 rounded border items-center justify-center"
-                style={{
-                  borderColor: colors.border,
-                  backgroundColor: rememberMe
-                    ? colors.primary
-                    : colors.background,
-                }}
-              >
-                {rememberMe && (
-                  <Ionicons
-                    name="checkmark"
-                    size={14}
-                    color={isDark ? "#000" : "#fff"}
-                  />
-                )}
-              </View>
-              <Text
-                className="text-sm"
-                style={{ color: colors.text, opacity: 0.6 }}
-              >
-                Remember me
-              </Text>
-            </Pressable>
-            <Pressable>
-              <Text
-                className="text-sm font-medium"
-                style={{ color: colors.secondary }}
-              >
-                Forgot password?
-              </Text>
-            </Pressable>
-          </View>
+          {/* Confirm Password */}
+          <TextInput
+            className="border rounded-md px-4 py-3 mb-4"
+            style={{
+              borderColor: colors.border,
+              backgroundColor: colors.surface,
+              color: colors.text,
+            }}
+            placeholder="Confirm Password"
+            placeholderTextColor={colors.text + "80"}
+            secureTextEntry
+            value={confirmPassword}
+            onChangeText={setConfirmPassword}
+          />
 
-          {/* Sign In Button */}
+          {/* Sign Up Button */}
           <TouchableOpacity
             onPress={handleLogin}
             className="py-4 rounded-lg items-center mb-4"
@@ -160,71 +158,7 @@ export default function LoginPage({ onLogin }: { onLogin: () => void }) {
               elevation: 8,
             }}
           >
-            <Text className="text-white font-semibold text-base">Sign In</Text>
-          </TouchableOpacity>
-
-          {/* Divider */}
-          <View className="flex-row items-center my-4">
-            <View
-              className="flex-1 h-[1px]"
-              style={{ backgroundColor: colors.border }}
-            />
-            <Text className="mx-3" style={{ color: colors.text, opacity: 0.6 }}>
-              or
-            </Text>
-            <View
-              className="flex-1 h-[1px]"
-              style={{ backgroundColor: colors.border }}
-            />
-          </View>
-
-          {/* Social Login: Google */}
-          <TouchableOpacity
-            className="flex-row items-center justify-center border rounded-lg py-3 mb-4"
-            style={{
-              backgroundColor: colors.surface,
-              borderColor: colors.border,
-              shadowColor: isDark ? "#fff" : "#000",
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.1,
-              shadowRadius: 4,
-              elevation: 2,
-            }}
-          >
-            <Image
-              source={{
-                uri: "https://img.icons8.com/color/48/google-logo.png",
-              }}
-              className="w-6 h-6 mr-3"
-            />
-            <Text style={{ color: colors.text, fontWeight: "500" }}>
-              Continue with Google
-            </Text>
-          </TouchableOpacity>
-
-          {/* Social Login: Apple */}
-          <TouchableOpacity
-            className="flex-row items-center justify-center border rounded-lg py-3 mb-2"
-            style={{
-              backgroundColor: colors.surface,
-              borderColor: colors.border,
-              shadowColor: isDark ? "#fff" : "#000",
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.1,
-              shadowRadius: 4,
-              elevation: 2,
-            }}
-          >
-            <Image
-              source={{
-                uri: "https://img.icons8.com/ios-filled/50/mac-os.png",
-              }}
-              className="w-6 h-6 mr-3"
-              style={{ tintColor: colors.text }}
-            />
-            <Text style={{ color: colors.text, fontWeight: "500" }}>
-              Continue with Apple
-            </Text>
+            <Text className="text-white font-semibold text-base">Sign Up</Text>
           </TouchableOpacity>
 
           {/* Terms & Privacy */}
@@ -238,6 +172,20 @@ export default function LoginPage({ onLogin }: { onLogin: () => void }) {
               and{" "}
               <Text style={{ color: colors.secondary }}>Privacy Policy</Text>.
             </Text>
+          </View>
+
+          {/* Already have an account */}
+          <View className="flex-row justify-center items-center mt-4">
+            <Text style={{ color: colors.text }}>
+              Already have an account?{" "}
+            </Text>
+            <Link href="/(auth)/signin" asChild>
+              <TouchableOpacity>
+                <Text style={{ color: colors.secondary, fontWeight: "600" }}>
+                  Sign In
+                </Text>
+              </TouchableOpacity>
+            </Link>
           </View>
         </View>
       </View>
