@@ -187,15 +187,7 @@ export default function HomePage() {
         }}
       >
         {/* Card */}
-        <View
-          className="rounded-xl p-4"
-          style={{
-            backgroundColor: colors.secondary + "cc",
-            shadowColor: "#000",
-            shadowOpacity: 0.05,
-            shadowRadius: 4,
-          }}
-        >
+        <View className="rounded-xl p-4 bg-white dark:bg-gray-800 border border-black dark:border-gray-600">
           {/* Date + Streak */}
           <Text
             className="text-base font-semibold mb-1"
@@ -217,12 +209,15 @@ export default function HomePage() {
                 <View key={date} className="items-center mx-1">
                   {/* Circle */}
                   <View
-                    className={`w-10 h-10 rounded-full items-center justify-center ${
-                      isStreak ? "border-2 border-red-500" : "bg-gray-100"
-                    }`}
+                    style={{
+                      backgroundColor: isStreak ? colors.accent : colors.bgray,
+                      borderWidth: isStreak ? 2 : 0,
+                      borderColor: isStreak ? colors.accent : "transparent",
+                    }}
+                    className="w-10 h-10 rounded-full items-center justify-center"
                   >
                     {isStreak ? (
-                      <Text className="text-xl" style={{ color: colors.text }}>
+                      <Text style={{ color: colors.text, fontSize: 18 }}>
                         ⚡
                       </Text>
                     ) : (
@@ -245,7 +240,7 @@ export default function HomePage() {
           </View>
 
           {/* Footer */}
-          <Text className="text-sm text-blue-500 text-right font-medium">
+          <Text className="text-sm text-blue-500 text-right font-medium mt-4">
             Check Analytic &gt;
           </Text>
         </View>
@@ -259,12 +254,16 @@ export default function HomePage() {
             borderWidth: 1,
           }}
         >
-          <Text
-            className="text-base font-bold mb-4"
-            style={{ color: colors.text }}
-          >
-            Macros
-          </Text>
+          <View className="flex-row justify-between items-center mb-8">
+            <Text
+              className="text-base font-bold"
+              style={{ color: colors.text }}
+            >
+              Macros
+            </Text>
+            <Ionicons name="create-outline" size={20} color={colors.text} />
+          </View>
+
           <View className="flex-row justify-between">
             <MacroCircle
               label="Carbs"
@@ -289,13 +288,13 @@ export default function HomePage() {
           </View>
         </View>
 
-        {/* Food Items */}
+        {/* Recent Scan Foods */}
         <View className="mb-6">
           <Text
             className="text-base font-bold mb-4"
             style={{ color: colors.text }}
           >
-            Food Items
+            Recent Scan Foods
           </Text>
           <FoodItem
             name="Banana (Latundan)"
