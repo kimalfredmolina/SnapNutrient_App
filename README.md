@@ -70,7 +70,7 @@ npm run reset-project
 
 ```bash
 cd frontend
-npx expo start -c
+npx expo start --dev-client
 ```
 
 - Scan the QR code with Expo Go (Android/iOS) or run on an emulator/simulator.

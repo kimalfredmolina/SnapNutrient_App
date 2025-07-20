@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "439145963067",
+    "project_id": "snap-nutrient-app",
+    "storage_bucket": "snap-nutrient-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:439145963067:android:55e6d06a9964817fd1861e",
+        "android_client_info": {
+          "package_name": "com.snapnutrient.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "439145963067-tflku47gol1nbsbopbfsiv075i9djv9g.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCh-F_OuQl2elk1bPEkS5Kr46FjyLq7Ajc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "439145963067-tflku47gol1nbsbopbfsiv075i9djv9g.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

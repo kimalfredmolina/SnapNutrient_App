@@ -4,20 +4,17 @@ import {
   TouchableOpacity,
   Dimensions,
   Animated,
-  Image,
 } from "react-native";
 import LottieView from "lottie-react-native";
 import { useRef, useEffect } from "react";
 import { useTheme } from "../../contexts/ThemeContext";
-
-type IntroductionProps = {
-  onGetStarted: () => Promise<void>;
-};
+import { useNavigation } from "@react-navigation/native";
 
 const { width, height } = Dimensions.get("window");
 
-export default function Introduction({ onGetStarted }: IntroductionProps) {
+export default function Introduction() {
   const { colors, isDark } = useTheme();
+  const navigation = useNavigation();
   const animationRef = useRef<LottieView>(null);
   const rotateValue = useRef(new Animated.Value(0)).current;
 
@@ -54,6 +51,10 @@ export default function Introduction({ onGetStarted }: IntroductionProps) {
         }),
       },
     ],
+  };
+
+  const handleGetStarted = () => {
+    navigation.navigate("(auth)/signin" as never);
   };
 
   return (
@@ -148,7 +149,7 @@ export default function Introduction({ onGetStarted }: IntroductionProps) {
         <View className="px-8 pt-12 pb-12">
           <TouchableOpacity
             className="bg-[#a259ff] rounded-2xl px-8 py-4 shadow-lg active:scale-95"
-            onPress={onGetStarted}
+            onPress={handleGetStarted}
             activeOpacity={0.8}
           >
             <Text className="text-white font-semibold text-lg text-center">

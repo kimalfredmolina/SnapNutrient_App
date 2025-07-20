@@ -18,8 +18,13 @@ import { auth } from "../../config/firebase";
 import {
   signInWithEmailAndPassword,
   GoogleAuthProvider,
-  signInWithPopup,
+  signInWithCredential,
 } from "firebase/auth";
+import * as WebBrowser from "expo-web-browser";
+import * as Google from "expo-auth-session/providers/google";
+import * as AuthSession from "expo-auth-session";
+
+WebBrowser.maybeCompleteAuthSession();
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -28,6 +33,16 @@ export default function LoginPage() {
   const { colors, isDark } = useTheme();
   const { login } = useAuth();
   const router = useRouter();
+
+  const [request, response, promptAsync] = Google.useAuthRequest({
+    androidClientId: process.env.EXPO_PUBLIC_ANDROID_CLIENT_ID,
+    webClientId: process.env.EXPO_PUBLIC_WEB_CLIENT_ID,
+    redirectUri: AuthSession.makeRedirectUri({
+      native: "com.snapnutrient.app:/oauthredirect",
+    }),
+  });
+
+  //console.log(request?.redirectUri);
 
   const handleLogin = async () => {
     try {
@@ -38,7 +53,7 @@ export default function LoginPage() {
           password
         );
         const user = userCredential.user;
-        login(); // Call your existing auth context
+        login();
         router.replace("/pages");
       } else {
         Alert.alert("Error", "Please fill in all fields");
@@ -50,10 +65,16 @@ export default function LoginPage() {
 
   const handleGoogleSignIn = async () => {
     try {
-      const provider = new GoogleAuthProvider();
-      const result = await signInWithPopup(auth, provider);
-      login(); // Call your existing auth context
-      router.replace("/pages");
+      const result = await promptAsync();
+      if (result?.type === "success") {
+        const credential = GoogleAuthProvider.credential(
+          result.authentication?.idToken,
+          result.authentication?.accessToken
+        );
+        const userCredential = await signInWithCredential(auth, credential);
+        login();
+        router.replace("pages");
+      }
     } catch (error: any) {
       Alert.alert("Error", error.message);
     }
