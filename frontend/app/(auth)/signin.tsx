@@ -14,6 +14,12 @@ import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../../contexts/ThemeContext";
 import { Link, useRouter } from "expo-router";
 import { useAuth } from "../../contexts/AuthContext";
+import { auth } from "../../config/firebase";
+import {
+  signInWithEmailAndPassword,
+  GoogleAuthProvider,
+  signInWithPopup,
+} from "firebase/auth";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -23,14 +29,33 @@ export default function LoginPage() {
   const { login } = useAuth();
   const router = useRouter();
 
-  const handleLogin = () => {
-    // For testing purposes - accept any input
-    if (email.length > 0 && password.length > 0) {
-      login(); // Call the login function from AuthContext
-      router.replace("/pages"); // Navigate to the main app
-    } else {
-      // Show some error feedback
-      Alert.alert("Error", "Please fill in all fields");
+  const handleLogin = async () => {
+    try {
+      if (email && password) {
+        const userCredential = await signInWithEmailAndPassword(
+          auth,
+          email,
+          password
+        );
+        const user = userCredential.user;
+        login(); // Call your existing auth context
+        router.replace("/pages");
+      } else {
+        Alert.alert("Error", "Please fill in all fields");
+      }
+    } catch (error: any) {
+      Alert.alert("Error", error.message);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    try {
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+      login(); // Call your existing auth context
+      router.replace("/pages");
+    } catch (error: any) {
+      Alert.alert("Error", error.message);
     }
   };
 
@@ -186,8 +211,9 @@ export default function LoginPage() {
             />
           </View>
 
-          {/* Social Login: Google */}
+          {/* Google SignIn */}
           <TouchableOpacity
+            onPress={handleGoogleSignIn}
             className="flex-row items-center justify-center border rounded-lg py-3 mb-4"
             style={{
               backgroundColor: colors.surface,
@@ -210,7 +236,7 @@ export default function LoginPage() {
             </Text>
           </TouchableOpacity>
 
-          {/* Social Login: Apple */}
+          {/* Apple SignIn */}
           <TouchableOpacity
             className="flex-row items-center justify-center border rounded-lg py-3 mb-2"
             style={{

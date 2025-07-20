@@ -9,9 +9,12 @@ import {
   StatusBar,
   SafeAreaView,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../../contexts/ThemeContext";
-import { Link } from "expo-router";
+import { Link, router } from "expo-router";
+import { auth, db } from "../../config/firebase";
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { doc, setDoc } from "firebase/firestore";
+import { Alert } from "react-native";
 
 export default function LoginPage({ onLogin }: { onLogin: () => void }) {
   const [username, setUsername] = useState("");
@@ -33,6 +36,40 @@ export default function LoginPage({ onLogin }: { onLogin: () => void }) {
     }
 
     onLogin();
+  };
+  const handleSignUp = async () => {
+    try {
+      if (!username || !email || !password || !confirmPassword) {
+        Alert.alert("Error", "Please fill in all fields.");
+        return;
+      }
+
+      if (password !== confirmPassword) {
+        Alert.alert("Error", "Passwords do not match.");
+        return;
+      }
+
+      // Create user in Firebase Authentication
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+      const user = userCredential.user;
+
+      // Store additional user data in Firestore
+      await setDoc(doc(db, "users", user.uid), {
+        username,
+        email,
+        createdAt: new Date().toISOString(),
+      });
+
+      // Navigate to signin
+      router.replace("/(auth)/signin");
+      Alert.alert("Success", "Account created successfully. Please sign in.");
+    } catch (error: any) {
+      Alert.alert("Error", error.message);
+    }
   };
 
   return (
@@ -147,7 +184,7 @@ export default function LoginPage({ onLogin }: { onLogin: () => void }) {
 
           {/* Sign Up Button */}
           <TouchableOpacity
-            onPress={handleLogin}
+            onPress={handleSignUp}
             className="py-4 rounded-lg items-center mb-4"
             style={{
               backgroundColor: colors.accent,
