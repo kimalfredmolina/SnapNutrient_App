@@ -15,6 +15,7 @@ import { auth, db } from "../../config/firebase";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
 import { Alert } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 
 export default function LoginPage({ onLogin }: { onLogin: () => void }) {
   const [username, setUsername] = useState("");
@@ -23,6 +24,10 @@ export default function LoginPage({ onLogin }: { onLogin: () => void }) {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const { colors, isDark } = useTheme();
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const togglePasswordVisibility = () => setShowPassword(prev => !prev);
+  const toggleConfirmPasswordVisibility = () => setShowConfirmPassword(prev => !prev);
 
   const handleLogin = () => {
     if (!username || !email || !password || !confirmPassword) {
@@ -153,34 +158,55 @@ export default function LoginPage({ onLogin }: { onLogin: () => void }) {
           />
 
           {/* Password */}
-          <TextInput
-            className="border rounded-md px-4 py-3 mb-4"
+          <View className="border rounded-md px-4 py-0 mb-4 flex-row items-center"
             style={{
               borderColor: colors.border,
               backgroundColor: colors.surface,
-              color: colors.text,
             }}
-            placeholder="Password"
-            placeholderTextColor={colors.text + "80"}
-            secureTextEntry
-            value={password}
-            onChangeText={setPassword}
-          />
+          >
+            <TextInput
+              className="flex-1 pr-2"
+              placeholder="Password"
+              placeholderTextColor={colors.text + "80"}
+              secureTextEntry={!showPassword}
+              value={password}
+              onChangeText={setPassword}
+              style={{ color: colors.text }}
+            />
+            <Pressable onPress={togglePasswordVisibility}>
+              <Ionicons
+                name={showPassword ? "eye-off" : "eye"}
+                size={24}
+                color={colors.text}
+              />
+            </Pressable>
+          </View>
 
           {/* Confirm Password */}
-          <TextInput
-            className="border rounded-md px-4 py-3 mb-4"
-            style={{
-              borderColor: colors.border,
-              backgroundColor: colors.surface,
-              color: colors.text,
-            }}
-            placeholder="Confirm Password"
-            placeholderTextColor={colors.text + "80"}
-            secureTextEntry
-            value={confirmPassword}
-            onChangeText={setConfirmPassword}
-          />
+<View className="border rounded-md px-4 py-0 mb-4 flex-row items-center"
+  style={{
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+  }}
+>
+  <TextInput
+    className="flex-1 py-3 pr-2"
+    placeholder="Confirm Password"
+    placeholderTextColor={colors.text + "80"}
+    secureTextEntry={!showConfirmPassword}
+    value={confirmPassword}
+    onChangeText={setConfirmPassword}
+    style={{ color: colors.text }}
+  />
+  <Pressable onPress={toggleConfirmPasswordVisibility}>
+    <Ionicons
+      name={showConfirmPassword ? "eye-off" : "eye"}
+      size={24}
+      color={colors.text}
+    />
+  </Pressable>
+</View>
+
 
           {/* Sign Up Button */}
           <TouchableOpacity
