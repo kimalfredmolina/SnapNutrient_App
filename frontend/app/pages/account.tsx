@@ -37,7 +37,7 @@ export default function Account() {
           />
           <View className="ml-4 flex-1">
             <Text className="text-lg font-bold" style={{ color: colors.text }}>
-              Grow A. Garden Jr.
+              Grok A. Garden Jr.
             </Text>
             <View className="flex-row items-center mt-1">
               <Text
