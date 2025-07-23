@@ -33,6 +33,9 @@ export default function LoginPage() {
   const { colors, isDark } = useTheme();
   const { login } = useAuth();
   const router = useRouter();
+  const [showPassword, setShowPassword] = useState(false);
+  const togglePasswordVisibility = () => setShowPassword(prev => !prev);
+
 
   const [request, response, promptAsync] = Google.useAuthRequest({
     androidClientId: process.env.EXPO_PUBLIC_ANDROID_CLIENT_ID,
@@ -147,19 +150,29 @@ export default function LoginPage() {
           />
 
           {/* Password Input */}
-          <TextInput
-            className="border rounded-md px-4 py-3 mb-4"
+          <View className="border rounded-md px-4 py-0 mb-4 flex-row items-center"
             style={{
               borderColor: colors.border,
               backgroundColor: colors.surface,
-              color: colors.text,
             }}
-            placeholder="Password"
-            placeholderTextColor={colors.text + "80"}
-            secureTextEntry
-            value={password}
-            onChangeText={setPassword}
-          />
+            >
+            <TextInput
+              className="flex-1 pr-2"
+              placeholder="Password"
+              placeholderTextColor={colors.text + "80"}
+              secureTextEntry={!showPassword}
+              value={password}
+              onChangeText={setPassword}
+              style={{ color: colors.text }}
+            />
+            <Pressable onPress={togglePasswordVisibility}>
+              <Ionicons
+                name={showPassword ? "eye-off" : "eye"}
+                size={24}
+                color={colors.text}
+              />
+            </Pressable>
+          </View>
 
           {/* Remember Me & Forgot Password */}
           <View className="flex-row justify-between items-center mb-6">
