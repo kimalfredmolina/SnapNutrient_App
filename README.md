@@ -10,10 +10,15 @@ This study highlights the development and implementation of SnapNutrient, focusi
 
 ---
 
-<h2 id="figma">Figma Design 🎨</h2>
+## 🌟 Key Features
 
-[Figma Design](https://www.figma.com/design/l02RJEt5eMlpr21sAJeOKg/UI-design?m=auto&t=Uf2Ad1lW1D1D7KCm-1&fbclid=IwY2xjawLi8SFleHRuA2FlbQIxMABicmlkETFObmVRbHRJUDFYbGo5eG1yAR59iSrClhieHeaj-wdgE55Oxy4OETaTl-17ZFPGAa3Sni4oVaKV9IutZhs47w_aem_YLF0-ZmQ0vCtuf9Ot9Qtpg
-).
+- 📷 Real-time food recognition using YOLOv8
+- 🍽️ Instant macronutrient estimation (Protein, Carbs, Fats)
+- 🧠 AI-powered dietary analysis
+- 🌍 Support for local and international cuisines
+- 🎨 Clean and user-friendly UI ([View Figma Design](https://www.figma.com/design/l02RJEt5eMlpr21sAJeOKg/UI-design?m=auto&t=Uf2Ad1lW1D1D7KCm-1))
+
+---
 
 ## 🚀 Getting Started
 
@@ -58,15 +63,30 @@ npx tailwindcss init
 npm run reset-project
 ```
 
-> **Note:** The `tailwind.config.js` is already set up for this project.  
-> Make sure your `content` array includes all files with NativeWind classes:
->
-> ```js
-> content: ["./app/**/*.{js,jsx,ts,tsx}", "./components/**/*.{js,jsx,ts,tsx}"];
-> ```
+---
+## Other Installation (need to run the app in your devices)
+
+### 6. Install Firebase 
+
+```bash
+npx expo install firebase
+```
+
+### 7. EAS Account
+
+```bash
+npm install -g eas-cli
+eas login
+```
+
+### 8. For .env file for API keys (need)
+
+```bash
+npx expo install expo-constants
+```
 
 ---
-### 6. Start the app
+### Start the app
 
 ```bash
 cd frontend
