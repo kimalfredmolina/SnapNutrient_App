@@ -47,6 +47,7 @@ npm install expo
 ```
 
 ---
+
 ## Other Installation (Already install in our project)
 
 ### 4. Install Tailwind CSS (for NativeWind) [Guide](https://www.nativewind.dev/docs/getting-started/installation).
@@ -64,9 +65,10 @@ npm run reset-project
 ```
 
 ---
+
 ## Other Installation (need to run the app in your devices)
 
-### 6. Install Firebase 
+### 6. Install Firebase
 
 ```bash
 npx expo install firebase
@@ -85,7 +87,14 @@ eas login
 npx expo install expo-constants
 ```
 
+### 8. Install this to rebuild the app after installing native modules
+
+```bash
+eas build --profile development --platform android
+```
+
 ---
+
 ### Start the app
 
 ```bash
@@ -102,6 +111,7 @@ npx expo start --dev-client
 - `app/` — Main application code (screens, components)
 - `tailwind.config.js` — Tailwind/NativeWind configuration
 - backend
+
 ---
 
 ## 📚 Learn More
@@ -111,4 +121,3 @@ npx expo start --dev-client
 - [Tailwind CSS Documentation](https://tailwindcss.com/docs/installation)
 
 ---
-

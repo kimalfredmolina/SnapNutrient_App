@@ -27,7 +27,7 @@ export default function Account() {
       >
         {/* Profile Card */}
         <View
-          className="flex-row items-center rounded-2xl p-4 mb-8 shadow-md mt-16"
+          className="flex-row items-center rounded-2xl p-4 mb-8 shadow-md mt-4"
           style={{ backgroundColor: colors.surface }}
         >
           <Image
