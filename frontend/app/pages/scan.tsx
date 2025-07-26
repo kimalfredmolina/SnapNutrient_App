@@ -1,104 +1,119 @@
 import { useEffect, useRef, useState } from "react";
-import { View, Text, TouchableOpacity, Image } from "react-native";
-import { Camera, CameraType, FlashMode } from "expo-camera";
-import * as MediaLibrary from "expo-media-library";
+import { View, Text, TouchableOpacity, Image, StyleSheet } from "react-native";
+import { Camera } from "expo-camera";
 import { Ionicons } from "@expo/vector-icons";
 
 export default function Scan() {
-  const cameraRef = useRef<Camera | null>(null);
+  const cameraRef = useRef<Camera>(null);
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
-  const [flash, setFlash] = useState<FlashMode | null>(null);
-  const [cameraType, setCameraType] = useState<CameraType | null>(null);
+  const [isFlashOn, setIsFlashOn] = useState(false);
   const [capturedPhoto, setCapturedPhoto] = useState<string | null>(null);
+  const [type, setType] = useState(Camera.Constants.Type.back);
 
   useEffect(() => {
     (async () => {
-      const { status: cameraStatus } =
-        await Camera.requestCameraPermissionsAsync();
-      const { status: mediaStatus } =
-        await MediaLibrary.requestPermissionsAsync();
-      const granted = cameraStatus === "granted" && mediaStatus === "granted";
-      setHasPermission(granted);
-
-      if (granted && Camera?.Constants) {
-        setFlash(Camera.Constants.FlashMode.off as FlashMode);
-        setCameraType(Camera.Constants.Type.back as CameraType);
-      }
+      const { status } = await Camera.requestCameraPermissionsAsync();
+      setHasPermission(status === "granted");
     })();
   }, []);
 
-  const toggleFlash = () => {
-    if (!Camera?.Constants || flash === null) return;
-
-    setFlash(
-      flash === Camera.Constants.FlashMode.off
-        ? Camera.Constants.FlashMode.torch
-        : Camera.Constants.FlashMode.off
-    );
-  };
-
-  const openGallery = async () => {
-    try {
-      const result = await MediaLibrary.getAssetsAsync({
-        first: 1,
-        mediaType: "photo",
-      });
-      if (result.assets.length > 0) {
-        setCapturedPhoto(result.assets[0].uri);
-      }
-    } catch (error) {
-      console.error("Error opening gallery", error);
+  const takePhoto = async () => {
+    if (cameraRef.current) {
+      const photo = await cameraRef.current.takePictureAsync();
+      setCapturedPhoto(photo.uri);
     }
   };
 
-  if (hasPermission === null) return <View />;
-  if (hasPermission === false) return <Text>No access to camera</Text>;
-  if (!Camera?.Constants || !flash || !cameraType)
-    return <Text>Loading camera...</Text>;
+  const toggleFlash = () => {
+    setIsFlashOn((prev) => !prev);
+  };
+
+  if (hasPermission === null) {
+    return <View style={styles.container} />;
+  }
+
+  if (!hasPermission) {
+    return (
+      <View style={styles.centered}>
+        <Text>No access to camera</Text>
+      </View>
+    );
+  }
 
   return (
-    <View className="flex-1 bg-black">
+    <View style={styles.container}>
       <Camera
-        className="flex-1"
-        type={cameraType}
-        flashMode={flash}
-        ref={(ref) => (cameraRef.current = ref)}
-        ratio="16:9"
-      >
-        <View className="flex-row justify-end p-4">
-          <TouchableOpacity
-            onPress={toggleFlash}
-            className="bg-black/40 p-2 rounded-full"
-          >
-            <Ionicons
-              name={
-                flash === Camera.Constants.FlashMode.torch
-                  ? "flash"
-                  : "flash-off"
-              }
-              size={28}
-              color="white"
-            />
-          </TouchableOpacity>
-        </View>
+        ref={cameraRef}
+        style={StyleSheet.absoluteFill}
+        type={type}
+        flashMode={isFlashOn ? "on" : "off"}
+      />
 
-        <View className="absolute bottom-8 w-full flex-row justify-center items-center space-x-6">
-          <TouchableOpacity
-            onPress={openGallery}
-            className="bg-black/40 p-3 rounded-full"
-          >
-            <Ionicons name="images" size={28} color="white" />
-          </TouchableOpacity>
-        </View>
-      </Camera>
+      {/* Flash Toggle */}
+      <View style={styles.flashButtonContainer}>
+        <TouchableOpacity onPress={toggleFlash} style={styles.flashButton}>
+          <Ionicons
+            name={isFlashOn ? "flash" : "flash-off"}
+            size={28}
+            color="white"
+          />
+        </TouchableOpacity>
+      </View>
+
+      {/* Capture Button */}
+      <View style={styles.captureButtonContainer}>
+        <TouchableOpacity onPress={takePhoto} style={styles.captureButton} />
+      </View>
 
       {capturedPhoto && (
         <Image
           source={{ uri: capturedPhoto }}
-          className="absolute bottom-28 w-full h-52"
+          style={styles.capturedImage}
           resizeMode="contain"
         />
       )}
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "black",
+  },
+  centered: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "white",
+  },
+  flashButtonContainer: {
+    position: "absolute",
+    top: 40,
+    right: 20,
+  },
+  flashButton: {
+    backgroundColor: "rgba(0,0,0,0.5)",
+    padding: 10,
+    borderRadius: 50,
+  },
+  captureButtonContainer: {
+    position: "absolute",
+    bottom: 40,
+    alignSelf: "center",
+  },
+  captureButton: {
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    backgroundColor: "white",
+    borderWidth: 5,
+    borderColor: "gray",
+  },
+  capturedImage: {
+    position: "absolute",
+    bottom: 120,
+    width: "100%",
+    height: 200,
+  },
+});

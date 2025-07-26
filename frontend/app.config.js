@@ -18,10 +18,9 @@ module.exports = {
       bundleIdentifier: "com.yourcompany.snapnutrient",
       googleServicesFile: "./GoogleService-Info.plist",
       infoPlist: {
-        NSCameraUsageDescription: "This app uses the camera to scan food items and analyze nutrition",
-        NSMicrophoneUsageDescription: "This app needs microphone access for video recording",
-        NSPhotoLibraryUsageDescription: "This app needs photo library access to save and select photos"
-      }
+        NSCameraUsageDescription:
+          "This app uses the camera to scan food items and analyze nutrition",
+      },
     },
     plugins: [
       "@react-native-firebase/app",
@@ -33,7 +32,7 @@ module.exports = {
         }
       ]
     ],
-    scheme: 'com.snapnutrient.app',
+    scheme: "com.snapnutrient.app",
     extra: {
       eas: {
         projectId: "7506c756-aa5e-4912-925f-420f262d9581" /*Kim "7506c756-aa5e-4912-925f-420f262d9581" balik mo nalng sa ganto ayw ko ignore app.config.js o kaya wag mo accept yung changes*/
@@ -43,7 +42,7 @@ module.exports = {
       firebaseProjectId: process.env.FIREBASE_PROJECT_ID,
       firebaseStorageBucket: process.env.FIREBASE_STORAGE_BUCKET,
       firebaseMessagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
-      firebaseAppId: process.env.FIREBASE_APP_ID
-    }
-  }
+      firebaseAppId: process.env.FIREBASE_APP_ID,
+    },
+  },
 };
