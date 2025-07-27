@@ -10,10 +10,16 @@ This study highlights the development and implementation of SnapNutrient, focusi
 
 ---
 
-<h2 id="figma">Figma Design 🎨</h2>
+## 🌟 Key Features
 
-[Figma Design](https://www.figma.com/design/l02RJEt5eMlpr21sAJeOKg/UI-design?m=auto&t=Uf2Ad1lW1D1D7KCm-1&fbclid=IwY2xjawLi8SFleHRuA2FlbQIxMABicmlkETFObmVRbHRJUDFYbGo5eG1yAR59iSrClhieHeaj-wdgE55Oxy4OETaTl-17ZFPGAa3Sni4oVaKV9IutZhs47w_aem_YLF0-ZmQ0vCtuf9Ot9Qtpg
-).
+- 📷 Real-time food recognition using YOLOv8
+- 🍽️ Instant macronutrient estimation (Protein, Carbs, Fats)
+- 🧠 AI-powered dietary analysis
+- 🌍 Support for local and international cuisines
+- 🎨 Clean and user-friendly UI ([View Figma Design](https://www.figma.com/design/l02RJEt5eMlpr21sAJeOKg/UI-design?m=auto&t=Uf2Ad1lW1D1D7KCm-1))
+- 📚 Expo Camera ([Expo Camera Documentation](https://docs.expo.dev/versions/latest/sdk/camera/))
+
+---
 
 ## 🚀 Getting Started
 
@@ -42,6 +48,7 @@ npm install expo
 ```
 
 ---
+
 ## Other Installation (Already install in our project)
 
 ### 4. Install Tailwind CSS (for NativeWind) [Guide](https://www.nativewind.dev/docs/getting-started/installation).
@@ -58,22 +65,45 @@ npx tailwindcss init
 npm run reset-project
 ```
 
-> **Note:** The `tailwind.config.js` is already set up for this project.  
-> Make sure your `content` array includes all files with NativeWind classes:
->
-> ```js
-> content: ["./app/**/*.{js,jsx,ts,tsx}", "./components/**/*.{js,jsx,ts,tsx}"];
-> ```
+---
+
+## Other Installation (need to run the app in your devices)
+
+### 6. Install Firebase
+
+```bash
+npx expo install firebase
+```
+
+### 7. EAS Account
+
+```bash
+npm install -g eas-cli
+eas login
+```
+
+### 8. For .env file for API keys (need)
+
+```bash
+npx expo install expo-constants
+```
+
+### 8. Install this to rebuild the app after installing native modules
+
+```bash
+eas build --profile development --platform android
+```
 
 ---
-### 6. Start the app
+
+### Start the app
 
 ```bash
 cd frontend
 npx expo start --dev-client
 ```
 
-- Scan the QR code with Expo Go (Android/iOS) or run on an emulator/simulator.
+- Scan the QR code with your integrated scanner on your phone (Android/iOS) or run on an emulator/simulator.
 
 ---
 
@@ -82,6 +112,7 @@ npx expo start --dev-client
 - `app/` — Main application code (screens, components)
 - `tailwind.config.js` — Tailwind/NativeWind configuration
 - backend
+
 ---
 
 ## 📚 Learn More
@@ -91,4 +122,3 @@ npx expo start --dev-client
 - [Tailwind CSS Documentation](https://tailwindcss.com/docs/installation)
 
 ---
-

@@ -49,7 +49,7 @@ export default function History() {
       style={{ backgroundColor: colors.background }}
     >
       {/* Filter and Sort Buttons aligned to right */}
-      <View className="flex-row justify-end space-x-3 mb-4 mt-12">
+      <View className="flex-row justify-end space-x-3 mb-8 mt-4">
         {["Filter", "Sort"].map((label, i) => (
           <TouchableOpacity
             key={i}
