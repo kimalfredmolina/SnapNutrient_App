@@ -4,43 +4,59 @@ import {
   TouchableOpacity,
   Dimensions,
   Animated,
+  Image,
 } from "react-native";
 import LottieView from "lottie-react-native";
-import { useRef, useEffect } from "react";
-import { useTheme } from "../../contexts/ThemeContext";
-import { useNavigation } from "@react-navigation/native";
+import { useRef, useEffect, useState } from "react";
+import { useTheme } from "../contexts/ThemeContext";
+import { router } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const { width, height } = Dimensions.get("window");
 
 export default function Introduction() {
   const { colors, isDark } = useTheme();
-  const navigation = useNavigation();
   const animationRef = useRef<LottieView>(null);
   const rotateValue = useRef(new Animated.Value(0)).current;
+  const [loading, setLoading] = useState(true);
+
+  // Check if intro was already shown
+  useEffect(() => {
+    (async () => {
+      const seenIntro = await AsyncStorage.getItem("seenIntro");
+      if (seenIntro) {
+        router.replace("/(auth)/signin");
+      } else {
+        setLoading(false);
+      }
+    })();
+  }, []);
 
   useEffect(() => {
-    const playWithInterval = () => {
-      animationRef.current?.play();
-      setTimeout(() => {
+    if (!loading) {
+      const playWithInterval = () => {
+        animationRef.current?.play();
+        setTimeout(() => {
+          animationRef.current?.reset();
+          playWithInterval();
+        }, 10000);
+      };
+
+      playWithInterval();
+
+      Animated.loop(
+        Animated.timing(rotateValue, {
+          toValue: 1,
+          duration: 13000,
+          useNativeDriver: true,
+        })
+      ).start();
+
+      return () => {
         animationRef.current?.reset();
-        playWithInterval();
-      }, 10000);
-    };
-
-    playWithInterval();
-
-    Animated.loop(
-      Animated.timing(rotateValue, {
-        toValue: 1,
-        duration: 13000,
-        useNativeDriver: true,
-      })
-    ).start();
-
-    return () => {
-      animationRef.current?.reset();
-    };
-  }, []);
+      };
+    }
+  }, [loading]);
 
   const rotateStyle = {
     transform: [
@@ -53,13 +69,15 @@ export default function Introduction() {
     ],
   };
 
-  const handleGetStarted = () => {
-    navigation.navigate("(auth)/signin" as never);
+  const handleGetStarted = async () => {
+    await AsyncStorage.setItem("seenIntro", "true");
+    router.replace("/(auth)/signin");
   };
+
+  if (loading) return null;
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      {/* Rotating Background */}
       <Animated.Image
         source={{
           uri: "https://healthyfitnessmeals.com/wp-content/uploads/2022/09/Chicken-adobo-recipe-5.jpg",
@@ -78,7 +96,6 @@ export default function Introduction() {
         resizeMode="cover"
       />
 
-      {/* Overlay */}
       <View
         style={{
           flex: 1,
@@ -88,7 +105,6 @@ export default function Introduction() {
         }}
       >
         <View className="flex-1 justify-center items-center px-8">
-          {/* Lottie Animation */}
           <View className="mb-8 w-[300px] h-[300px] overflow-hidden">
             <LottieView
               ref={animationRef}
@@ -109,7 +125,6 @@ export default function Introduction() {
             />
           </View>
 
-          {/* Welcome Message */}
           <View className="items-center mb-12 flex-1">
             <Text
               className="text-4xl font-bold text-center mb-8"
@@ -128,7 +143,6 @@ export default function Introduction() {
             </Text>
           </View>
 
-          {/* Feature Highlights */}
           <View className="mb-3 space-y-3">
             {[
               "Instant food recognition",
@@ -145,7 +159,6 @@ export default function Introduction() {
           </View>
         </View>
 
-        {/* Bottom Section */}
         <View className="px-8 pt-12 pb-12">
           <TouchableOpacity
             className="bg-[#a259ff] rounded-2xl px-8 py-4 shadow-lg active:scale-95"
