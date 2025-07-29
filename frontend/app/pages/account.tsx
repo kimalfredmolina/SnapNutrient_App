@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, Image, ScrollView } from "react-native";
+import { View, Text, TouchableOpacity, Image, ScrollView, Switch, } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useTheme } from "../../contexts/ThemeContext";
@@ -6,7 +6,7 @@ import { useAuth } from "../../contexts/AuthContext";
 
 export default function Account() {
   const router = useRouter();
-  const { colors, isDark } = useTheme();
+  const { colors, isDark, toggle: toggleTheme } = useTheme(); 
   const { logout } = useAuth();
 
   const handleSignOut = () => {
@@ -16,14 +16,14 @@ export default function Account() {
 
   return (
     <View className="flex-1" style={{ backgroundColor: colors.background }}>
-      <ScrollView
-        contentContainerStyle={{
+      <View
+        className="flex-1"
+        style={{
           flexGrow: 1,
           paddingHorizontal: 16,
           paddingTop: 12,
           paddingBottom: 24,
         }}
-        showsVerticalScrollIndicator={false}
       >
         {/* Profile Card */}
         <View
@@ -53,8 +53,9 @@ export default function Account() {
           </View>
         </View>
 
-        {/* Menu */}
+        {/* Menu Options */}
         <View className="gap-y-2 mb-8 ml-4">
+          {/* Settings */}
           <TouchableOpacity className="flex-row items-center py-3">
             <Ionicons name="settings-outline" size={24} color={colors.text} />
             <Text
@@ -71,6 +72,7 @@ export default function Account() {
             />
           </TouchableOpacity>
 
+          {/* Help */}
           <TouchableOpacity className="flex-row items-center py-3">
             <Ionicons
               name="help-circle-outline"
@@ -91,6 +93,7 @@ export default function Account() {
             />
           </TouchableOpacity>
 
+          {/* Privacy */}
           <TouchableOpacity className="flex-row items-center py-3">
             <MaterialIcons name="security" size={24} color={colors.text} />
             <Text
@@ -107,6 +110,7 @@ export default function Account() {
             />
           </TouchableOpacity>
 
+          {/* Contact */}
           <TouchableOpacity className="flex-row items-center py-3">
             <Ionicons name="mail-outline" size={24} color={colors.text} />
             <Text
@@ -123,6 +127,7 @@ export default function Account() {
             />
           </TouchableOpacity>
 
+          {/* Report */}
           <TouchableOpacity className="flex-row items-center py-3">
             <Ionicons
               name="alert-circle-outline"
@@ -143,7 +148,8 @@ export default function Account() {
             />
           </TouchableOpacity>
 
-          <TouchableOpacity className="flex-row items-center py-3">
+          {/* Appearance (Dark/Light) */}
+          <View className="flex-row items-center py-3">
             <Ionicons
               name={isDark ? "moon" : "moon-outline"}
               size={24}
@@ -153,16 +159,17 @@ export default function Account() {
               className="ml-4 text-base font-medium flex-1"
               style={{ color: colors.text }}
             >
-              Dark Mode
+              Appearance
             </Text>
-            <Ionicons
-              name="chevron-forward"
-              size={20}
-              color={colors.text}
-              style={{ opacity: 0.5 }}
+            <Switch
+              value={isDark}
+              onValueChange={toggleTheme}
+              thumbColor={isDark ? "#f4f3f4" : "#f4f3f4"}
+              trackColor={{ false: "#767577", true: "#81b0ff" }}
             />
-          </TouchableOpacity>
+          </View>
 
+          {/* About */}
           <TouchableOpacity className="flex-row items-center py-3">
             <Ionicons
               name="information-circle-outline"
@@ -187,7 +194,7 @@ export default function Account() {
         {/* Spacer */}
         <View className="flex-1" />
 
-        {/* Log Out Button*/}
+        {/* Logout */}
         <View className="mt-16 mb-4">
           <TouchableOpacity
             className="rounded-xl py-3 border"
@@ -201,6 +208,7 @@ export default function Account() {
               Log Out
             </Text>
           </TouchableOpacity>
+
           <View className="items-center mb-40 mt-4">
             <Text
               className="text-xs"
@@ -216,7 +224,7 @@ export default function Account() {
             </Text>
           </View>
         </View>
-      </ScrollView>
+      </View>
     </View>
   );
 }
