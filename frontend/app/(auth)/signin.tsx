@@ -34,8 +34,13 @@ export default function LoginPage() {
   const { login } = useAuth();
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
-  const togglePasswordVisibility = () => setShowPassword(prev => !prev);
+  const togglePasswordVisibility = () => setShowPassword((prev) => !prev);
 
+  console.log(
+    AuthSession.makeRedirectUri({
+      native: "com.snapnutrient.app:/oauthredirect",
+    })
+  );
 
   const [request, response, promptAsync] = Google.useAuthRequest({
     androidClientId: process.env.EXPO_PUBLIC_ANDROID_CLIENT_ID,
@@ -44,8 +49,6 @@ export default function LoginPage() {
       native: "com.snapnutrient.app:/oauthredirect",
     }),
   });
-
-  //console.log(request?.redirectUri);
 
   const handleLogin = async () => {
     try {
@@ -150,12 +153,13 @@ export default function LoginPage() {
           />
 
           {/* Password Input */}
-          <View className="border rounded-md px-4 py-0 mb-4 flex-row items-center"
+          <View
+            className="border rounded-md px-4 py-0 mb-4 flex-row items-center"
             style={{
               borderColor: colors.border,
               backgroundColor: colors.surface,
             }}
-            >
+          >
             <TextInput
               className="flex-1 pr-2"
               placeholder="Password"
