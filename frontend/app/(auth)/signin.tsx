@@ -23,7 +23,8 @@ import {
 import * as WebBrowser from "expo-web-browser";
 import * as Google from "expo-auth-session/providers/google";
 import * as AuthSession from "expo-auth-session";
-import Constants from 'expo-constants';
+import Constants from "expo-constants";
+import axios from "axios";
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -40,16 +41,38 @@ export default function LoginPage() {
   console.log("ANDROID CLIENT:", process.env.EXPO_PUBLIC_ANDROID_CLIENT_ID);
   console.log("WEB CLIENT:", process.env.EXPO_PUBLIC_WEB_CLIENT_ID);
 
-
   const redirectUri = AuthSession.makeRedirectUri({
-    native: "com.snapnutrient.app:/oauthredirect", 
+    native: "com.snapnutrient.app://",
   });
+
+  console.log("REDIRECT URI:", redirectUri);
 
   const [request, response, promptAsync] = Google.useAuthRequest({
     androidClientId: process.env.EXPO_PUBLIC_ANDROID_CLIENT_ID,
-    webClientId: process.env.EXPO_PUBLIC_WEB_CLIENT_ID,
     redirectUri,
   });
+
+  const handleGoogleSignIn = async () => {
+    try {
+      const result = await promptAsync();
+
+      console.log("GOOGLE RESULT:", JSON.stringify(result, null, 2));
+
+      if (result?.type === "success" && result.authentication?.idToken) {
+        const { idToken } = result.authentication;
+
+        const credential = GoogleAuthProvider.credential(idToken);
+        await signInWithCredential(auth, credential);
+        login();
+        router.replace("/pages");
+      } else {
+        Alert.alert("Error", "Google Sign-In was cancelled or failed");
+      }
+    } catch (error: any) {
+      console.error("Google Sign-In Error:", error);
+      Alert.alert("Error", error.message);
+    }
+  };
 
   const handleLogin = async () => {
     try {
@@ -69,29 +92,6 @@ export default function LoginPage() {
       Alert.alert("Error", error.message);
     }
   };
-
-  const handleGoogleSignIn = async () => {
-    try {
-      const result = await promptAsync();
-  
-      if (result?.type === "success") {
-        const { idToken } = result.authentication ?? {};
-        if (!idToken) {
-          Alert.alert("Error", "Missing ID token");
-          return;
-        }
-  
-        const credential = GoogleAuthProvider.credential(idToken);
-        await signInWithCredential(auth, credential);
-  
-        login();
-        router.replace("/pages");
-      }
-    } catch (error: any) {
-      Alert.alert("Error", error.message);
-    }
-  };
-  
 
   return (
     <View className="flex-1" style={{ backgroundColor: colors.primary }}>
