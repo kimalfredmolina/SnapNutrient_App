@@ -23,6 +23,7 @@ import {
 import * as WebBrowser from "expo-web-browser";
 import * as Google from "expo-auth-session/providers/google";
 import * as AuthSession from "expo-auth-session";
+import Constants from 'expo-constants';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -36,18 +37,18 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const togglePasswordVisibility = () => setShowPassword((prev) => !prev);
 
-  console.log(
-    AuthSession.makeRedirectUri({
-      native: "com.snapnutrient.app:/oauthredirect",
-    })
-  );
+  console.log("ANDROID CLIENT:", process.env.EXPO_PUBLIC_ANDROID_CLIENT_ID);
+  console.log("WEB CLIENT:", process.env.EXPO_PUBLIC_WEB_CLIENT_ID);
+
+
+  const redirectUri = AuthSession.makeRedirectUri({
+    native: "com.snapnutrient.app:/oauthredirect", 
+  });
 
   const [request, response, promptAsync] = Google.useAuthRequest({
     androidClientId: process.env.EXPO_PUBLIC_ANDROID_CLIENT_ID,
     webClientId: process.env.EXPO_PUBLIC_WEB_CLIENT_ID,
-    redirectUri: AuthSession.makeRedirectUri({
-      native: "com.snapnutrient.app:/oauthredirect",
-    }),
+    redirectUri,
   });
 
   const handleLogin = async () => {
@@ -72,19 +73,25 @@ export default function LoginPage() {
   const handleGoogleSignIn = async () => {
     try {
       const result = await promptAsync();
+  
       if (result?.type === "success") {
-        const credential = GoogleAuthProvider.credential(
-          result.authentication?.idToken,
-          result.authentication?.accessToken
-        );
-        const userCredential = await signInWithCredential(auth, credential);
+        const { idToken } = result.authentication ?? {};
+        if (!idToken) {
+          Alert.alert("Error", "Missing ID token");
+          return;
+        }
+  
+        const credential = GoogleAuthProvider.credential(idToken);
+        await signInWithCredential(auth, credential);
+  
         login();
-        router.replace("pages");
+        router.replace("/pages");
       }
     } catch (error: any) {
       Alert.alert("Error", error.message);
     }
   };
+  
 
   return (
     <View className="flex-1" style={{ backgroundColor: colors.primary }}>
