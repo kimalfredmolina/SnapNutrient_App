@@ -1,3 +1,4 @@
+import React, { useEffect, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -7,42 +8,45 @@ import {
   Image,
 } from "react-native";
 import LottieView from "lottie-react-native";
-import { useRef, useEffect, useState } from "react";
 import { useTheme } from "../contexts/ThemeContext";
 import { router } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const { width, height } = Dimensions.get("window");
 
-export default function Introduction() {
+export default function AppEntry() {
   const { colors, isDark } = useTheme();
-  const animationRef = useRef<LottieView>(null);
-  const rotateValue = useRef(new Animated.Value(0)).current;
+  const [showSplash, setShowSplash] = useState(true);
   const [loading, setLoading] = useState(true);
+  const rotateValue = useRef(new Animated.Value(0)).current;
+  const animationRef = useRef<LottieView>(null);
 
-  // Check if intro was already shown
+  // Run SplashScreen on mount
   useEffect(() => {
-    (async () => {
+    const checkIntroStatus = async () => {
+      await new Promise((resolve) => setTimeout(resolve, 1500)); // 1.5s delay
       const seenIntro = await AsyncStorage.getItem("seenIntro");
-      if (seenIntro) {
+      if (seenIntro === "true") {
         router.replace("/(auth)/signin");
       } else {
+        setShowSplash(false);
         setLoading(false);
       }
-    })();
+    };
+    checkIntroStatus();
   }, []);
 
   useEffect(() => {
     if (!loading) {
-      const playWithInterval = () => {
+      const loopAnimation = () => {
         animationRef.current?.play();
         setTimeout(() => {
           animationRef.current?.reset();
-          playWithInterval();
+          loopAnimation();
         }, 10000);
       };
 
-      playWithInterval();
+      loopAnimation();
 
       Animated.loop(
         Animated.timing(rotateValue, {
@@ -74,7 +78,24 @@ export default function Introduction() {
     router.replace("/(auth)/signin");
   };
 
-  if (loading) return null;
+  if (showSplash) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: colors.background,
+        }}
+      >
+        <Image
+          source={require("../assets/images/icon.png")}
+          style={{ width: 120, height: 120 }}
+          resizeMode="contain"
+        />
+      </View>
+    );
+  }
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
