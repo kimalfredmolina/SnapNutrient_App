@@ -35,7 +35,7 @@ module.exports = {
     scheme: "com.snapnutrient.app",
     extra: {
       eas: {
-        projectId: "7506c756-aa5e-4912-925f-420f262d9581" /*Kim "7506c756-aa5e-4912-925f-420f262d9581" balik mo nalng sa ganto ayw ko ignore app.config.js o kaya wag mo accept yung changes*/
+        projectId: "7506c756-aa5e-4912-925f-420f262d9581" /*Kim "7506c756-aa5e-4912-925f-420f262d9581" Nel"007b9a28-c506-4c86-a5ca-a4ad843eb51d" balik mo nalng sa ganto ayw ko ignore app.config.js o kaya wag mo accept yung changes*/
       },
       firebaseApiKey: process.env.FIREBASE_API_KEY,
       firebaseAuthDomain: process.env.FIREBASE_AUTH_DOMAIN,
