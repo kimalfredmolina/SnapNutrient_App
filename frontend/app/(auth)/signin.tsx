@@ -37,15 +37,10 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const togglePasswordVisibility = () => setShowPassword((prev) => !prev);
 
-  //safe to remove for debugging only
-  console.log("ANDROID CLIENT:", process.env.EXPO_PUBLIC_ANDROID_CLIENT_ID);
-  console.log("WEB CLIENT:", process.env.EXPO_PUBLIC_WEB_CLIENT_ID);
 
   const redirectUri = AuthSession.makeRedirectUri({
     native: "com.snapnutrient.app://",
   });
-
-  console.log("REDIRECT URI:", redirectUri);
 
   const [request, response, promptAsync] = Google.useAuthRequest({
     androidClientId: process.env.EXPO_PUBLIC_ANDROID_CLIENT_ID,
@@ -55,15 +50,8 @@ export default function LoginPage() {
 
   const handleGoogleSignIn = async () => {
     try {
-      //safe to remove for debugging only
-      console.log("Starting Google Sign-In...");
-      console.log("Android Client ID:", process.env.EXPO_PUBLIC_ANDROID_CLIENT_ID);
-      console.log("Web Client ID:", process.env.EXPO_PUBLIC_WEB_CLIENT_ID);
-      console.log("Redirect URI:", redirectUri);
       
       const result = await promptAsync();
-
-      console.log("GOOGLE RESULT:", JSON.stringify(result, null, 2));
 
       if (result?.type === "success" && result.params?.code) {
         console.log("Authorization code received, exchanging for tokens...");
@@ -83,14 +71,21 @@ export default function LoginPage() {
           }
         );
 
-        console.log("TOKEN RESPONSE:", JSON.stringify(tokenResponse, null, 2));
 
         if (tokenResponse.idToken) {
-          console.log("ID Token received, creating Firebase credential...");
           const credential = GoogleAuthProvider.credential(tokenResponse.idToken);
-          await signInWithCredential(auth, credential);
-          console.log("Firebase authentication successful");
-          login();
+          const userCredential = await signInWithCredential(auth, credential);
+          const firebaseUser = userCredential.user;
+          
+          // Extract user information
+          const userData = {
+            name: firebaseUser.displayName || undefined,
+            email: firebaseUser.email || undefined,
+            photoURL: firebaseUser.photoURL || undefined,
+          };
+          
+          console.log("Firebase authentication successful", userData);
+          login(userData);
           router.replace("/pages");
         } else {
           console.error("No ID token in response:", tokenResponse);
@@ -119,8 +114,16 @@ export default function LoginPage() {
           email,
           password
         );
-        const user = userCredential.user;
-        login();
+        const firebaseUser = userCredential.user;
+        
+        // Extract user information
+        const userData = {
+          name: firebaseUser.displayName || email.split('@')[0], // Use email prefix if no display name
+          email: firebaseUser.email || undefined,
+          photoURL: firebaseUser.photoURL || undefined,
+        };
+        
+        login(userData);
         router.replace("/pages");
       } else {
         Alert.alert("Error", "Please fill in all fields");
