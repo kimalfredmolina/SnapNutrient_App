@@ -23,8 +23,7 @@ import {
 import * as WebBrowser from "expo-web-browser";
 import * as Google from "expo-auth-session/providers/google";
 import * as AuthSession from "expo-auth-session";
-import Constants from "expo-constants";
-import axios from "axios";
+
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -38,6 +37,7 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const togglePasswordVisibility = () => setShowPassword((prev) => !prev);
 
+  //safe to remove for debugging only
   console.log("ANDROID CLIENT:", process.env.EXPO_PUBLIC_ANDROID_CLIENT_ID);
   console.log("WEB CLIENT:", process.env.EXPO_PUBLIC_WEB_CLIENT_ID);
 
@@ -49,28 +49,65 @@ export default function LoginPage() {
 
   const [request, response, promptAsync] = Google.useAuthRequest({
     androidClientId: process.env.EXPO_PUBLIC_ANDROID_CLIENT_ID,
+    webClientId: process.env.EXPO_PUBLIC_WEB_CLIENT_ID,
     redirectUri,
   });
 
   const handleGoogleSignIn = async () => {
     try {
+      //safe to remove for debugging only
+      console.log("Starting Google Sign-In...");
+      console.log("Android Client ID:", process.env.EXPO_PUBLIC_ANDROID_CLIENT_ID);
+      console.log("Web Client ID:", process.env.EXPO_PUBLIC_WEB_CLIENT_ID);
+      console.log("Redirect URI:", redirectUri);
+      
       const result = await promptAsync();
 
       console.log("GOOGLE RESULT:", JSON.stringify(result, null, 2));
 
-      if (result?.type === "success" && result.authentication?.idToken) {
-        const { idToken } = result.authentication;
+      if (result?.type === "success" && result.params?.code) {
+        console.log("Authorization code received, exchanging for tokens...");
+        const { code } = result.params;
+        
+        const tokenResponse = await AuthSession.exchangeCodeAsync(
+          {
+            clientId: process.env.EXPO_PUBLIC_ANDROID_CLIENT_ID!,
+            redirectUri,
+            code,
+            extraParams: {
+              code_verifier: request?.codeVerifier || "",
+            },
+          },
+          {
+            tokenEndpoint: "https://oauth2.googleapis.com/token",
+          }
+        );
 
-        const credential = GoogleAuthProvider.credential(idToken);
-        await signInWithCredential(auth, credential);
-        login();
-        router.replace("/pages");
+        console.log("TOKEN RESPONSE:", JSON.stringify(tokenResponse, null, 2));
+
+        if (tokenResponse.idToken) {
+          console.log("ID Token received, creating Firebase credential...");
+          const credential = GoogleAuthProvider.credential(tokenResponse.idToken);
+          await signInWithCredential(auth, credential);
+          console.log("Firebase authentication successful");
+          login();
+          router.replace("/pages");
+        } else {
+          console.error("No ID token in response:", tokenResponse);
+          Alert.alert("Error", "Failed to get ID token from Google");
+        }
       } else {
+        console.error("Google sign-in failed or was cancelled:", result);
         Alert.alert("Error", "Google Sign-In was cancelled or failed");
       }
     } catch (error: any) {
       console.error("Google Sign-In Error:", error);
-      Alert.alert("Error", error.message);
+      console.error("Error details:", {
+        message: error.message,
+        code: error.code,
+        stack: error.stack
+      });
+      Alert.alert("Error", error.message || "Google Sign-In failed");
     }
   };
 
