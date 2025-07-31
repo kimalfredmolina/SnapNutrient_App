@@ -186,11 +186,21 @@ export default function HomePage() {
         }}
       >
         {/* Card */}
-        <View className="rounded-xl p-4 bg-white dark:bg-gray-800 border border-black dark:border-gray-600">
+        <View
+          className="rounded-2xl p-6 my-3 mb-6 shadow-md"
+          style={{
+            backgroundColor: colors.border + "cc", 
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 3 },
+            shadowOpacity: 0.1,
+            shadowRadius: 6,
+            elevation: 5, 
+          }}
+        >
           {/* Date + Streak */}
           <Text
             className="text-base font-semibold mb-1"
-            style={{ color: colors.text }}
+            style={{ color: colors.border }}
           >
             {formatDate(currentDate)}
           </Text>
