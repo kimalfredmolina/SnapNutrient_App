@@ -24,6 +24,7 @@ import * as WebBrowser from "expo-web-browser";
 import * as Google from "expo-auth-session/providers/google";
 import * as AuthSession from "expo-auth-session";
 
+
 WebBrowser.maybeCompleteAuthSession();
 
 export default function LoginPage() {
@@ -34,18 +35,76 @@ export default function LoginPage() {
   const { login } = useAuth();
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
-  const togglePasswordVisibility = () => setShowPassword(prev => !prev);
+  const togglePasswordVisibility = () => setShowPassword((prev) => !prev);
 
+
+  const redirectUri = AuthSession.makeRedirectUri({
+    native: "com.snapnutrient.app://",
+  });
 
   const [request, response, promptAsync] = Google.useAuthRequest({
     androidClientId: process.env.EXPO_PUBLIC_ANDROID_CLIENT_ID,
     webClientId: process.env.EXPO_PUBLIC_WEB_CLIENT_ID,
-    redirectUri: AuthSession.makeRedirectUri({
-      native: "com.snapnutrient.app:/oauthredirect",
-    }),
+    redirectUri,
   });
 
-  //console.log(request?.redirectUri);
+  const handleGoogleSignIn = async () => {
+    try {
+      
+      const result = await promptAsync();
+
+      if (result?.type === "success" && result.params?.code) {
+        console.log("Authorization code received, exchanging for tokens...");
+        const { code } = result.params;
+        
+        const tokenResponse = await AuthSession.exchangeCodeAsync(
+          {
+            clientId: process.env.EXPO_PUBLIC_ANDROID_CLIENT_ID!,
+            redirectUri,
+            code,
+            extraParams: {
+              code_verifier: request?.codeVerifier || "",
+            },
+          },
+          {
+            tokenEndpoint: "https://oauth2.googleapis.com/token",
+          }
+        );
+
+
+        if (tokenResponse.idToken) {
+          const credential = GoogleAuthProvider.credential(tokenResponse.idToken);
+          const userCredential = await signInWithCredential(auth, credential);
+          const firebaseUser = userCredential.user;
+          
+          // Extract user information
+          const userData = {
+            name: firebaseUser.displayName || undefined,
+            email: firebaseUser.email || undefined,
+            photoURL: firebaseUser.photoURL || undefined,
+          };
+          
+          console.log("Firebase authentication successful", userData);
+          login(userData);
+          router.replace("/pages");
+        } else {
+          console.error("No ID token in response:", tokenResponse);
+          Alert.alert("Error", "Failed to get ID token from Google");
+        }
+      } else {
+        console.error("Google sign-in failed or was cancelled:", result);
+        Alert.alert("Error", "Google Sign-In was cancelled or failed");
+      }
+    } catch (error: any) {
+      console.error("Google Sign-In Error:", error);
+      console.error("Error details:", {
+        message: error.message,
+        code: error.code,
+        stack: error.stack
+      });
+      Alert.alert("Error", error.message || "Google Sign-In failed");
+    }
+  };
 
   const handleLogin = async () => {
     try {
@@ -55,28 +114,19 @@ export default function LoginPage() {
           email,
           password
         );
-        const user = userCredential.user;
-        login();
+        const firebaseUser = userCredential.user;
+        
+        // Extract user information
+        const userData = {
+          name: firebaseUser.displayName || email.split('@')[0], // Use email prefix if no display name
+          email: firebaseUser.email || undefined,
+          photoURL: firebaseUser.photoURL || undefined,
+        };
+        
+        login(userData);
         router.replace("/pages");
       } else {
         Alert.alert("Error", "Please fill in all fields");
-      }
-    } catch (error: any) {
-      Alert.alert("Error", error.message);
-    }
-  };
-
-  const handleGoogleSignIn = async () => {
-    try {
-      const result = await promptAsync();
-      if (result?.type === "success") {
-        const credential = GoogleAuthProvider.credential(
-          result.authentication?.idToken,
-          result.authentication?.accessToken
-        );
-        const userCredential = await signInWithCredential(auth, credential);
-        login();
-        router.replace("pages");
       }
     } catch (error: any) {
       Alert.alert("Error", error.message);
@@ -150,12 +200,13 @@ export default function LoginPage() {
           />
 
           {/* Password Input */}
-          <View className="border rounded-md px-4 py-0 mb-4 flex-row items-center"
+          <View
+            className="border rounded-md px-4 py-0 mb-4 flex-row items-center"
             style={{
               borderColor: colors.border,
               backgroundColor: colors.surface,
             }}
-            >
+          >
             <TextInput
               className="flex-1 pr-2"
               placeholder="Password"

@@ -7,7 +7,7 @@ import { useAuth } from "../../contexts/AuthContext";
 export default function Account() {
   const router = useRouter();
   const { colors, isDark, toggle: toggleTheme } = useTheme(); 
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
 
   const handleSignOut = () => {
     logout();
@@ -37,17 +37,14 @@ export default function Account() {
           />
           <View className="ml-4 flex-1">
             <Text className="text-lg font-bold" style={{ color: colors.text }}>
-              Grok A. Garden Jr.
+              {user?.name || "User"}
             </Text>
             <View className="flex-row items-center mt-1">
               <Text
                 className="font-medium"
                 style={{ color: isDark ? "#A1A1AA" : "#374151" }}
               >
-                Streak
-              </Text>
-              <Text className="ml-2 font-bold" style={{ color: colors.accent }}>
-                2 Days
+                {user?.email || "email@email.com"}
               </Text>
             </View>
           </View>

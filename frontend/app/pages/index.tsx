@@ -140,9 +140,8 @@ const FoodItem = ({
 };
 
 export default function HomePage() {
-  const [user] = useState<{ name?: string } | null>(null);
   const { colors } = useTheme();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
 
   if (!isAuthenticated) {
     return <Redirect href="/(auth)/signin" />;
@@ -164,7 +163,7 @@ export default function HomePage() {
             className="text-2xl font-bold pl-4"
             style={{ color: colors.text }}
           >
-            {user?.name ? `Welcome back, ${user.name}` : "Welcome, Guest"}
+            {user?.name ? `${user.name}` : "Welcome"}
           </Text>
         </View>
 

@@ -91,7 +91,7 @@ npx expo install expo-constants
 ### 8. Install this to rebuild the app after installing native modules
 
 ```bash
-eas build --profile development --platform android
+eas build --profile development --platform android  //all
 ```
 
 ---

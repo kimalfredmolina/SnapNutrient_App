@@ -8,6 +8,7 @@ interface ThemeContextType {
   theme: Theme;
   isDark: boolean;
   setTheme: (theme: Theme) => void;
+  toggle: () => void;
   colors: {
     primary: string;
     secondary: string;
@@ -16,7 +17,7 @@ interface ThemeContextType {
     surface: string;
     text: string;
     border: string;
-    bgray: string,
+    bgray: string;
   };
 }
 
@@ -33,15 +34,14 @@ export const useTheme = () => {
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const systemColorScheme = useColorScheme();
   const [theme, setThemeState] = useState<Theme>('system');
-  
+
   const isDark = theme === 'dark' || (theme === 'system' && systemColorScheme === 'dark');
 
-  // Color palette
   const lightColors = {
-    primary: '#9ACD32',     // Light green
-    secondary: '#40E0D0',   // Teal/cyan
-    accent: '#FF6B6B',      // Red/coral
-    background: '#FFFFFF',  // White
+    primary: '#9ACD32',
+    secondary: '#40E0D0',
+    accent: '#FF6B6B',
+    background: '#FFFFFF',
     surface: '#F8F9FA',
     text: '#000000',
     border: 'black',
@@ -49,10 +49,10 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   const darkColors = {
-    primary: '#228B22',     // Dark green
-    secondary: '#008B8B',   // Dark teal
-    accent: '#DC143C',      // Dark red
-    background: '#000000',  // Black
+    primary: '#228B22',
+    secondary: '#008B8B',
+    accent: '#DC143C',
+    background: '#000000',
     surface: '#1A1A1A',
     text: '#FFFFFF',
     border: '#374151',
@@ -64,6 +64,14 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const setTheme = async (newTheme: Theme) => {
     setThemeState(newTheme);
     await AsyncStorage.setItem('theme', newTheme);
+  };
+
+  const toggle = () => {
+    const nextTheme =
+      theme === 'light' ? 'dark' :
+      theme === 'dark' ? 'light' :
+      systemColorScheme === 'dark' ? 'light' : 'dark';
+    setTheme(nextTheme);
   };
 
   useEffect(() => {
@@ -81,7 +89,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   }, []);
 
   return (
-    <ThemeContext.Provider value={{ theme, isDark, setTheme, colors }}>
+    <ThemeContext.Provider value={{ theme, isDark, setTheme, toggle, colors }}>
       {children}
     </ThemeContext.Provider>
   );
