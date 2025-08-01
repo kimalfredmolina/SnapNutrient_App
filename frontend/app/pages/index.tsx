@@ -187,20 +187,19 @@ export default function HomePage() {
       >
         {/* Card */}
         <View
-          className="rounded-2xl p-6 my-3 mb-6 shadow-md"
+          className="rounded-2xl p-6 my-3 mb-6"
           style={{
-            backgroundColor: colors.border + "cc", 
-            shadowColor: "#000",
-            shadowOffset: { width: 0, height: 3 },
-            shadowOpacity: 0.1,
-            shadowRadius: 6,
-            elevation: 5, 
+            backgroundColor: colors.surface,
+            shadowColor: colors.text === "#FFFFFF" ? "#fff" : "#000", 
+            shadowOffset: { width: 0, height: 1 },
+            shadowOpacity: 1,
+            shadowRadius: 5,
+            elevation: 5,
           }}
         >
           {/* Date + Streak */}
           <Text
-            className="text-base font-semibold mb-1"
-            style={{ color: colors.border }}
+            className="text-xl text-base font-semibold mb-2 text-green-500 dark:text-green-500"
           >
             {formatDate(currentDate)}
           </Text>
@@ -213,7 +212,6 @@ export default function HomePage() {
             {dates.map((date) => {
               const isStreak = streak.includes(date);
               const day = weekdays[new Date(2025, 6, date).getDay()];
-
               return (
                 <View key={date} className="items-center mx-1">
                   {/* Circle */}
@@ -226,16 +224,13 @@ export default function HomePage() {
                     className="w-10 h-10 rounded-full items-center justify-center"
                   >
                     {isStreak ? (
-                      <Text style={{ color: colors.text, fontSize: 18 }}>
-                        ⚡
-                      </Text>
+                      <Text style={{ color: colors.text, fontSize: 18 }}>⚡</Text>
                     ) : (
                       <Text className="text-sm" style={{ color: colors.text }}>
                         {day}
                       </Text>
                     )}
                   </View>
-
                   {/* Date under circle */}
                   <Text
                     className="text-xs mt-1 font-semibold"
@@ -258,9 +253,12 @@ export default function HomePage() {
         <View
           className="rounded-2xl p-6 my-3 mb-6"
           style={{
-            backgroundColor: colors.background + "cc",
-            borderColor: colors.border,
-            borderWidth: 1,
+            backgroundColor: colors.surface,
+            shadowColor: colors.text === "#FFFFFF" ? "#fff" : "#000", 
+            shadowOffset: { width: 0, height: 1 },
+            shadowOpacity: 1,
+            shadowRadius: 5,
+            elevation: 5,
           }}
         >
           <View className="flex-row justify-between items-center mb-8">
