@@ -53,7 +53,9 @@ export default function Account() {
         {/* Menu Options */}
         <View className="gap-y-2 mb-8 ml-4">
           {/* Settings */}
-          <TouchableOpacity className="flex-row items-center py-3">
+          <TouchableOpacity className="flex-row items-center py-3"
+            onPress={() => router.push("/pages/settings")}
+          >
             <Ionicons name="settings-outline" size={24} color={colors.text} />
             <Text
               className="ml-4 text-base font-medium flex-1"
@@ -70,7 +72,9 @@ export default function Account() {
           </TouchableOpacity>
 
           {/* Help */}
-          <TouchableOpacity className="flex-row items-center py-3">
+          <TouchableOpacity className="flex-row items-center py-3"
+            onPress={() => router.push("/pages/help")}
+          >
             <Ionicons
               name="help-circle-outline"
               size={24}
@@ -91,7 +95,9 @@ export default function Account() {
           </TouchableOpacity>
 
           {/* Privacy */}
-          <TouchableOpacity className="flex-row items-center py-3">
+          <TouchableOpacity className="flex-row items-center py-3"
+            onPress={() => router.push("/pages/privacy")}
+          >
             <MaterialIcons name="security" size={24} color={colors.text} />
             <Text
               className="ml-4 text-base font-medium flex-1"
@@ -108,7 +114,9 @@ export default function Account() {
           </TouchableOpacity>
 
           {/* Contact */}
-          <TouchableOpacity className="flex-row items-center py-3">
+          <TouchableOpacity className="flex-row items-center py-3"
+            onPress={() => router.push("/pages/contact")}
+          >
             <Ionicons name="mail-outline" size={24} color={colors.text} />
             <Text
               className="ml-4 text-base font-medium flex-1"
@@ -125,7 +133,9 @@ export default function Account() {
           </TouchableOpacity>
 
           {/* Report */}
-          <TouchableOpacity className="flex-row items-center py-3">
+          <TouchableOpacity className="flex-row items-center py-3"
+            onPress={() => router.push("/pages/report")}
+          >
             <Ionicons
               name="alert-circle-outline"
               size={24}
@@ -167,7 +177,9 @@ export default function Account() {
           </View>
 
           {/* About */}
-          <TouchableOpacity className="flex-row items-center py-3">
+          <TouchableOpacity className="flex-row items-center py-3"
+            onPress={() => router.push("/pages/about")}
+          >
             <Ionicons
               name="information-circle-outline"
               size={24}
