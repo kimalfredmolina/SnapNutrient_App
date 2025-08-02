@@ -190,7 +190,7 @@ export default function HomePage() {
           className="rounded-2xl p-6 my-3 mb-6"
           style={{
             backgroundColor: colors.surface,
-            shadowColor: colors.text === "#FFFFFF" ? "#fff" : "#000", 
+            shadowColor: colors.text === "#FFFFFF" ? "#fff" : "#000",
             shadowOffset: { width: 0, height: 1 },
             shadowOpacity: 1,
             shadowRadius: 5,
@@ -198,9 +198,7 @@ export default function HomePage() {
           }}
         >
           {/* Date + Streak */}
-          <Text
-            className="text-xl text-base font-semibold mb-2 text-green-500 dark:text-green-500"
-          >
+          <Text className="text-xl font-semibold mb-2 text-green-500 dark:text-green-500">
             {formatDate(currentDate)}
           </Text>
           <Text className="text-sm font-medium text-red-500 mb-3">
@@ -224,7 +222,9 @@ export default function HomePage() {
                     className="w-10 h-10 rounded-full items-center justify-center"
                   >
                     {isStreak ? (
-                      <Text style={{ color: colors.text, fontSize: 18 }}>⚡</Text>
+                      <Text style={{ color: colors.text, fontSize: 18 }}>
+                        ⚡
+                      </Text>
                     ) : (
                       <Text className="text-sm" style={{ color: colors.text }}>
                         {day}
@@ -254,7 +254,7 @@ export default function HomePage() {
           className="rounded-2xl p-6 my-3 mb-6"
           style={{
             backgroundColor: colors.surface,
-            shadowColor: colors.text === "#FFFFFF" ? "#fff" : "#000", 
+            shadowColor: colors.text === "#FFFFFF" ? "#fff" : "#000",
             shadowOffset: { width: 0, height: 1 },
             shadowOpacity: 1,
             shadowRadius: 5,

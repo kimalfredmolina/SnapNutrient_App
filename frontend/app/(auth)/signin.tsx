@@ -24,7 +24,6 @@ import * as WebBrowser from "expo-web-browser";
 import * as Google from "expo-auth-session/providers/google";
 import * as AuthSession from "expo-auth-session";
 
-
 WebBrowser.maybeCompleteAuthSession();
 
 export default function LoginPage() {
@@ -36,7 +35,6 @@ export default function LoginPage() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const togglePasswordVisibility = () => setShowPassword((prev) => !prev);
-
 
   const redirectUri = AuthSession.makeRedirectUri({
     native: "com.snapnutrient.app://",
@@ -50,13 +48,12 @@ export default function LoginPage() {
 
   const handleGoogleSignIn = async () => {
     try {
-      
       const result = await promptAsync();
 
       if (result?.type === "success" && result.params?.code) {
         console.log("Authorization code received, exchanging for tokens...");
         const { code } = result.params;
-        
+
         const tokenResponse = await AuthSession.exchangeCodeAsync(
           {
             clientId: process.env.EXPO_PUBLIC_ANDROID_CLIENT_ID!,
@@ -71,19 +68,20 @@ export default function LoginPage() {
           }
         );
 
-
         if (tokenResponse.idToken) {
-          const credential = GoogleAuthProvider.credential(tokenResponse.idToken);
+          const credential = GoogleAuthProvider.credential(
+            tokenResponse.idToken
+          );
           const userCredential = await signInWithCredential(auth, credential);
           const firebaseUser = userCredential.user;
-          
+
           // Extract user information
           const userData = {
             name: firebaseUser.displayName || undefined,
             email: firebaseUser.email || undefined,
             photoURL: firebaseUser.photoURL || undefined,
           };
-          
+
           console.log("Firebase authentication successful", userData);
           login(userData);
           router.replace("/pages");
@@ -100,7 +98,7 @@ export default function LoginPage() {
       console.error("Error details:", {
         message: error.message,
         code: error.code,
-        stack: error.stack
+        stack: error.stack,
       });
       Alert.alert("Error", error.message || "Google Sign-In failed");
     }
@@ -115,14 +113,14 @@ export default function LoginPage() {
           password
         );
         const firebaseUser = userCredential.user;
-        
+
         // Extract user information
         const userData = {
-          name: firebaseUser.displayName || email.split('@')[0], // Use email prefix if no display name
+          name: firebaseUser.displayName || email.split("@")[0], // Use email prefix if no display name
           email: firebaseUser.email || undefined,
           photoURL: firebaseUser.photoURL || undefined,
         };
-        
+
         login(userData);
         router.replace("/pages");
       } else {
@@ -299,15 +297,14 @@ export default function LoginPage() {
           {/* Google SignIn */}
           <TouchableOpacity
             onPress={handleGoogleSignIn}
-            className="flex-row items-center justify-center border rounded-lg py-3 mb-4"
+            className="flex-row items-center justify-center rounded-lg py-3 mb-4"
             style={{
               backgroundColor: colors.surface,
-              borderColor: colors.border,
-              shadowColor: isDark ? "#fff" : "#000",
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.1,
-              shadowRadius: 4,
-              elevation: 2,
+              shadowColor: colors.text === "#FFFFFF" ? "#fff" : "#000",
+              shadowOffset: { width: 0, height: 1 },
+              shadowOpacity: 1,
+              shadowRadius: 5,
+              elevation: 5,
             }}
           >
             <Image
@@ -323,15 +320,14 @@ export default function LoginPage() {
 
           {/* Apple SignIn */}
           <TouchableOpacity
-            className="flex-row items-center justify-center border rounded-lg py-3 mb-2"
+            className="flex-row items-center justify-center rounded-lg py-3 mb-2"
             style={{
               backgroundColor: colors.surface,
-              borderColor: colors.border,
-              shadowColor: isDark ? "#fff" : "#000",
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.1,
-              shadowRadius: 4,
-              elevation: 2,
+              shadowColor: colors.text === "#FFFFFF" ? "#fff" : "#000",
+              shadowOffset: { width: 0, height: 1 },
+              shadowOpacity: 1,
+              shadowRadius: 5,
+              elevation: 5,
             }}
           >
             <Image
