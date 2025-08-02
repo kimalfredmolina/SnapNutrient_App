@@ -33,7 +33,9 @@ export default function CustomTabBar({
           elevation: 8,
         }}
       >
-        {state.routes.map((route, index) => {
+        {state.routes
+        .filter((route) => !["settings", "privacy", "about", "help", "contact", "report"].includes(route.name))
+        .map((route, index) => {
           const { options } = descriptors[route.key];
           const label =
             options.tabBarLabel !== undefined
