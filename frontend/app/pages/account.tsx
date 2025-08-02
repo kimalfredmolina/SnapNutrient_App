@@ -1,4 +1,11 @@
-import { View, Text, TouchableOpacity, Image, ScrollView, Switch, } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Image,
+  ScrollView,
+  Switch,
+} from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useTheme } from "../../contexts/ThemeContext";
@@ -6,7 +13,7 @@ import { useAuth } from "../../contexts/AuthContext";
 
 export default function Account() {
   const router = useRouter();
-  const { colors, isDark, toggle: toggleTheme } = useTheme(); 
+  const { colors, isDark, toggle: toggleTheme } = useTheme();
   const { logout, user } = useAuth();
 
   const handleSignOut = () => {
@@ -28,10 +35,17 @@ export default function Account() {
         {/* Profile Card */}
         <View
           className="flex-row items-center rounded-2xl p-4 mb-8 shadow-md mt-4"
-          style={{ backgroundColor: colors.surface }}
+          style={{
+            backgroundColor: colors.surface,
+            shadowColor: colors.text === "#FFFFFF" ? "#fff" : "#000",
+            shadowOffset: { width: 0, height: 1 },
+            shadowOpacity: 1,
+            shadowRadius: 5,
+            elevation: 5,
+          }}
         >
           <Image
-            source={{ uri: "https://randomuser.me/api/portraits/men/32.jpg" }}
+            source={require("../../assets/images/icon.png")}
             className="w-16 h-16 rounded-full border-2"
             style={{ borderColor: colors.primary }}
           />
