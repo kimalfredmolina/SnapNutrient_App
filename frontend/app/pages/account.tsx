@@ -45,7 +45,7 @@ export default function Account() {
           }}
         >
           <Image
-            source={{ uri: "https://randomuser.me/api/portraits/men/32.jpg" }}
+            source={require("../../assets/images/icon.png")}
             className="w-16 h-16 rounded-full border-2"
             style={{ borderColor: colors.primary }}
           />
