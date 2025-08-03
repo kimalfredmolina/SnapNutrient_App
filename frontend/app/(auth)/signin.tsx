@@ -70,7 +70,8 @@ export default function LoginPage() {
 
         if (tokenResponse.idToken) {
           const credential = GoogleAuthProvider.credential(
-            tokenResponse.idToken
+            tokenResponse.idToken,
+            tokenResponse.accessToken
           );
           const userCredential = await signInWithCredential(auth, credential);
           const firebaseUser = userCredential.user;
@@ -82,12 +83,18 @@ export default function LoginPage() {
             photoURL: firebaseUser.photoURL || undefined,
           };
 
-          console.log("Firebase authentication successful", userData);
-          login(userData);
-          router.replace("/pages");
+          await login(userData);
+
+          setTimeout(() => {
+            try {
+              router.push("/pages");
+            } catch (error) {}
+          }, 500);
         } else {
-          console.error("No ID token in response:", tokenResponse);
-          Alert.alert("Error", "Failed to get ID token from Google");
+          Alert.alert(
+            "Error",
+            "Failed to get ID token from Google. Please check your Google Cloud Console configuration."
+          );
         }
       } else {
         console.error("Google sign-in failed or was cancelled:", result);
@@ -100,7 +107,21 @@ export default function LoginPage() {
         code: error.code,
         stack: error.stack,
       });
-      Alert.alert("Error", error.message || "Google Sign-In failed");
+
+      let errorMessage = "Google Sign-In failed";
+      if (error.message?.includes("invalid_grant")) {
+        errorMessage = "Authorization failed. Please try again.";
+      } else if (error.message?.includes("redirect_uri_mismatch")) {
+        errorMessage = "Configuration error. Please contact support.";
+      } else if (error.message?.includes("client_id")) {
+        errorMessage =
+          "Invalid client configuration. Please check your Google Cloud Console settings.";
+      } else if (error.message?.includes("unauthorized_client")) {
+        errorMessage =
+          "Client not authorized. Please check your Google Cloud Console OAuth settings.";
+      }
+
+      Alert.alert("Error", errorMessage);
     }
   };
 

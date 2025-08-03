@@ -3,9 +3,11 @@ import React, { useEffect, useRef } from "react";
 import { View, Image, Animated } from "react-native";
 import { useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useAuth } from "../contexts/AuthContext";
 
 export default function SplashScreen() {
   const router = useRouter();
+  const { isAuthenticated } = useAuth();
   const fadeAnim = useRef(new Animated.Value(1)).current; // Initial opacity is 1 (fully visible)
 
   useEffect(() => {
@@ -18,12 +20,16 @@ export default function SplashScreen() {
         duration: 500, // Fade out duration
         useNativeDriver: true,
       }).start(async () => {
-   
         const seenIntro = await AsyncStorage.getItem("seenIntro");
 
-        if (seenIntro === "true") {
+        if (isAuthenticated) {
+          console.log("SplashScreen: User is authenticated, going to pages");
+          router.replace("/pages");
+        } else if (seenIntro === "true") {
+          console.log("SplashScreen: User not authenticated, going to signin");
           router.replace("/(auth)/signin");
         } else {
+          console.log("SplashScreen: First time user, going to intro");
           router.replace("/index");
         }
       });
@@ -46,7 +52,7 @@ export default function SplashScreen() {
         style={{
           width: 300,
           height: 300,
-          opacity: fadeAnim, 
+          opacity: fadeAnim,
         }}
         resizeMode="contain"
       />

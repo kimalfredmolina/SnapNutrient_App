@@ -10,15 +10,24 @@ import { useRouter } from "expo-router";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useTheme } from "../../contexts/ThemeContext";
 import { useAuth } from "../../contexts/AuthContext";
+import { auth } from "../../config/firebase";
 
 export default function Account() {
   const router = useRouter();
   const { colors, isDark, toggle: toggleTheme } = useTheme();
   const { logout, user } = useAuth();
 
-  const handleSignOut = () => {
-    logout();
-    router.replace("/(auth)/signin");
+  const handleSignOut = async () => {
+    try {
+      await auth.signOut();
+      console.log("Firebase sign out successful");
+      await logout();
+      router.replace("/(auth)/signin");
+    } catch (error) {
+      console.error("Error signing out:", error);
+      await logout();
+      router.replace("/(auth)/signin");
+    }
   };
 
   return (
@@ -67,7 +76,8 @@ export default function Account() {
         {/* Menu Options */}
         <View className="gap-y-2 mb-8 ml-4">
           {/* Settings */}
-          <TouchableOpacity className="flex-row items-center py-3"
+          <TouchableOpacity
+            className="flex-row items-center py-3"
             onPress={() => router.push("/pages/settings")}
           >
             <Ionicons name="settings-outline" size={24} color={colors.text} />
@@ -86,7 +96,8 @@ export default function Account() {
           </TouchableOpacity>
 
           {/* Help */}
-          <TouchableOpacity className="flex-row items-center py-3"
+          <TouchableOpacity
+            className="flex-row items-center py-3"
             onPress={() => router.push("/pages/help")}
           >
             <Ionicons
@@ -109,7 +120,8 @@ export default function Account() {
           </TouchableOpacity>
 
           {/* Privacy */}
-          <TouchableOpacity className="flex-row items-center py-3"
+          <TouchableOpacity
+            className="flex-row items-center py-3"
             onPress={() => router.push("/pages/privacy")}
           >
             <MaterialIcons name="security" size={24} color={colors.text} />
@@ -128,7 +140,8 @@ export default function Account() {
           </TouchableOpacity>
 
           {/* Contact */}
-          <TouchableOpacity className="flex-row items-center py-3"
+          <TouchableOpacity
+            className="flex-row items-center py-3"
             onPress={() => router.push("/pages/contact")}
           >
             <Ionicons name="mail-outline" size={24} color={colors.text} />
@@ -147,7 +160,8 @@ export default function Account() {
           </TouchableOpacity>
 
           {/* Report */}
-          <TouchableOpacity className="flex-row items-center py-3"
+          <TouchableOpacity
+            className="flex-row items-center py-3"
             onPress={() => router.push("/pages/report")}
           >
             <Ionicons
@@ -191,7 +205,8 @@ export default function Account() {
           </View>
 
           {/* About */}
-          <TouchableOpacity className="flex-row items-center py-3"
+          <TouchableOpacity
+            className="flex-row items-center py-3"
             onPress={() => router.push("/pages/about")}
           >
             <Ionicons

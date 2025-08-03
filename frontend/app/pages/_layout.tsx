@@ -12,14 +12,14 @@ export default function TabsLayout() {
   const router = useRouter();
 
   useEffect(() => {
+    console.log("Pages Layout: isAuthenticated =", isAuthenticated);
     if (!isAuthenticated) {
+      console.log("Pages Layout: Redirecting to signin page");
       router.replace("/(auth)/signin");
+    } else {
+      console.log("Pages Layout: User is authenticated, staying on pages");
     }
   }, [isAuthenticated]);
-
-  if (!isAuthenticated) {
-    return null;
-  }
 
   return (
     <Tabs
