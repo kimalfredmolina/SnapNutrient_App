@@ -1,196 +1,115 @@
-import { View, Text, TouchableOpacity, Image, ScrollView, Switch, } from "react-native";
-import { useRouter } from "expo-router";
-import { Ionicons, MaterialIcons } from "@expo/vector-icons";
-import { useTheme } from "../../contexts/ThemeContext";
-import { useAuth } from "../../contexts/AuthContext";
+import React from "react"
+import { View, Text, TouchableOpacity, ScrollView, Image } from "react-native"
+import { useRouter } from "expo-router"
+import { Ionicons } from "@expo/vector-icons"
+import { useTheme } from "../../contexts/ThemeContext"
+import { SafeAreaView } from "react-native-safe-area-context"
 
-export default function Account() {
-  const router = useRouter();
-  const { colors, isDark, toggle: toggleTheme } = useTheme();     
-  const { logout, user } = useAuth();
-
-  const handleSignOut = () => {
-    logout();
-    router.replace("/(auth)/signin");
-  };
+export default function About() {
+  const router = useRouter()
+  const { colors } = useTheme()
 
   return (
-    <View className="flex-1" style={{ backgroundColor: colors.background }}>
-      <View
-        className="flex-1"
-        style={{
-          flexGrow: 1,
-          paddingHorizontal: 16,
-          paddingTop: 12,
-          paddingBottom: 24,
-        }}
-      >
-        {/* Profile Card */}
-        <View
-          className="flex-row items-center rounded-2xl p-4 mb-8 shadow-md mt-4"
-          style={{ backgroundColor: colors.surface }}
-        >
+    <SafeAreaView style={{ 
+      backgroundColor: colors.background,
+      flexGrow: 1,
+      paddingHorizontal: 16,
+      paddingTop: 12,
+      paddingBottom: 24,
+    }}>
+      {/* Header */}
+      <View className="flex-row items-center px-4 py-3 border-b" style={{ borderBottomColor: colors.surface }}>
+        <TouchableOpacity onPress={() => router.push("../pages/account")} className="mr-4">
+          <Ionicons name="arrow-back" size={24} color={colors.text} />
+        </TouchableOpacity>
+        <Text className="text-xl font-bold" style={{ color: colors.text }}>
+          About Us
+        </Text>
+      </View>
+
+      <ScrollView className="flex-1 px-4 py-6">
+        {/* App Logo and Name */}
+        <View className="items-center mb-8">
           <Image
-            source={{ uri: "https://randomuser.me/api/portraits/men/32.jpg" }}
-            className="w-16 h-16 rounded-full border-2"
-            style={{ borderColor: colors.primary }}
+            source={require("../../assets/images/snp.png")}
+            style={{ width: 100, height: 100, marginBottom: 16 }}
+            resizeMode="contain"
           />
-          <View className="ml-4 flex-1">
-            <Text className="text-lg font-bold" style={{ color: colors.text }}>
-              {user?.name || "User"}
-            </Text>
-            <View className="flex-row items-center mt-1">
-              <Text
-                className="font-medium"
-                style={{ color: isDark ? "#A1A1AA" : "#374151" }}
-              >
-                {user?.email || "email@email.com"}
+          <Text className="text-2xl font-bold mb-2" style={{ color: colors.text }}>
+            SnapNutrient
+          </Text>
+          <Text className="text-base" style={{ color: colors.text, opacity: 0.7 }}>
+            Version 1.0.0
+          </Text>
+        </View>
+
+        {/* Description */}
+        <View className="mb-8">
+          <Text className="text-lg font-semibold mb-4" style={{ color: colors.text }}>
+            Our Mission
+          </Text>
+          <Text className="text-base leading-6 mb-4" style={{ color: colors.text, opacity: 0.8 }}>
+            SnapNutrients is designed to make nutrition tracking simple and accessible for everyone. Our mission is to
+            help you make informed decisions about your food choices through advanced AI-powered food recognition and
+            comprehensive nutritional analysis.
+          </Text>
+          <Text className="text-base leading-6" style={{ color: colors.text, opacity: 0.8 }}>
+            We believe that understanding what you eat is the first step towards a healthier lifestyle. With just a snap
+            of your camera, you can instantly get detailed nutritional information about your meals.
+          </Text>
+        </View>
+
+        {/* Features */}
+        <View className="mb-8">
+          <Text className="text-lg font-semibold mb-4" style={{ color: colors.text }}>
+            Key Features
+          </Text>
+          {[
+            "Instant food recognition using AI",
+            "Comprehensive nutritional analysis",
+            "Daily nutrition tracking",
+            "Personalized recommendations",
+            "Progress monitoring and statistics",
+            "Dark/Light mode support",
+          ].map((feature, index) => (
+            <View key={index} className="flex-row items-center mb-3">
+              <View className="w-2 h-2 rounded-full mr-3" style={{ backgroundColor: colors.primary }} />
+              <Text className="text-base flex-1" style={{ color: colors.text }}>
+                {feature}
               </Text>
             </View>
-          </View>
+          ))}
         </View>
 
-        {/* Menu Options */}
-        <View className="gap-y-2 mb-8 ml-4">
-          {/* Settings */}
-          <TouchableOpacity
-            className="flex-row items-center py-3"
-            onPress={() => router.push("./(more)/settings")}
-          >
-            <Ionicons name="settings-outline" size={24} color={colors.text} />
-            <Text className="ml-4 text-base font-medium flex-1" style={{ color: colors.text }}>
-              Settings
+        {/* Contact Info */}
+        <View className="mb-8">
+          <Text className="text-lg font-semibold mb-4" style={{ color: colors.text }}>
+            Get in Touch
+          </Text>
+          <TouchableOpacity className="flex-row items-center py-3">
+            <Ionicons name="mail-outline" size={24} color={colors.primary} />
+            <Text className="ml-4 text-base" style={{ color: colors.primary }}>
+              support@snapnutrients.com
             </Text>
-            <Ionicons name="chevron-forward" size={20} color={colors.text} style={{ opacity: 0.5 }} />
           </TouchableOpacity>
-
-          {/* Help */}
-          <TouchableOpacity
-            className="flex-row items-center py-3"
-            onPress={() => router.push("./(more)/help")}
-          >
-            <Ionicons name="help-circle-outline" size={24} color={colors.text} />
-            <Text className="ml-4 text-base font-medium flex-1" style={{ color: colors.text }}>
-              Help
+          <TouchableOpacity className="flex-row items-center py-3">
+            <Ionicons name="globe-outline" size={24} color={colors.primary} />
+            <Text className="ml-4 text-base" style={{ color: colors.primary }}>
+              www.snapnutrient.com
             </Text>
-            <Ionicons name="chevron-forward" size={20} color={colors.text} style={{ opacity: 0.5 }} />
-          </TouchableOpacity>
-
-          {/* Privacy */}
-          <TouchableOpacity
-            className="flex-row items-center py-3"
-            onPress={() => router.push("./(more)/privacy")}
-          >
-            <MaterialIcons name="security" size={24} color={colors.text} />
-            <Text className="ml-4 text-base font-medium flex-1" style={{ color: colors.text }}>
-              Privacy
-            </Text>
-            <Ionicons name="chevron-forward" size={20} color={colors.text} style={{ opacity: 0.5 }} />
-          </TouchableOpacity>
-
-          {/* Contact */}
-          <TouchableOpacity
-            className="flex-row items-center py-3"
-            onPress={() => router.push("./(more)/contact")}
-          >
-            <Ionicons name="mail-outline" size={24} color={colors.text} />
-            <Text className="ml-4 text-base font-medium flex-1" style={{ color: colors.text }}>
-              Contact Us
-            </Text>
-            <Ionicons name="chevron-forward" size={20} color={colors.text} style={{ opacity: 0.5 }} />
-          </TouchableOpacity>
-
-          {/* Report */}
-          <TouchableOpacity
-            className="flex-row items-center py-3"
-            onPress={() => router.push("./(more)/report")}
-          >
-            <Ionicons name="alert-circle-outline" size={24} color={colors.text} />
-            <Text className="ml-4 text-base font-medium flex-1" style={{ color: colors.text }}>
-              Report a Problem
-            </Text>
-            <Ionicons name="chevron-forward" size={20} color={colors.text} style={{ opacity: 0.5 }} />
-          </TouchableOpacity>
-
-          {/* Appearance (Dark/Light) */}
-          <View className="flex-row items-center py-3">
-            <Ionicons
-              name={isDark ? "moon" : "moon-outline"}
-              size={24}
-              color={colors.text}
-            />
-            <Text
-              className="ml-4 text-base font-medium flex-1"
-              style={{ color: colors.text }}
-            >
-              Appearance
-            </Text>
-            <Switch
-              value={isDark}
-              onValueChange={toggleTheme}
-              thumbColor={isDark ? "#f4f3f4" : "#f4f3f4"}
-              trackColor={{ false: "#767577", true: "#81b0ff" }}
-            />
-          </View>
-
-          {/* About */}
-          <TouchableOpacity
-            className="flex-row items-center py-3"
-            onPress={() => router.push("./(more)/about")}
-          >
-            <Ionicons
-              name="information-circle-outline"
-              size={24}
-              color={colors.text}
-            />
-            <Text
-              className="ml-4 text-base font-medium flex-1"
-              style={{ color: colors.text }}
-            >
-              About Us
-            </Text>
-            <Ionicons
-              name="chevron-forward"
-              size={20}
-              color={colors.text}
-              style={{ opacity: 0.5 }}
-            />
           </TouchableOpacity>
         </View>
 
-        {/* Spacer */}
-        <View className="flex-1" />
-
-        {/* Logout */}
-        <View className="mt-16 mb-4">
-          <TouchableOpacity
-            className="rounded-xl py-3 border"
-            style={{ borderColor: colors.accent }}
-            onPress={handleSignOut}
-          >
-            <Text
-              className="text-center text-lg font-semibold"
-              style={{ color: colors.accent }}
-            >
-              Log Out
-            </Text>
-          </TouchableOpacity>
-          <View className="items-center mb-40 mt-4">
-            <Text
-              className="text-xs"
-              style={{ color: isDark ? "#71717A" : "#6B7280" }}
-            >
-              SnapNutrients v1.0
-            </Text>
-            <Text
-              className="text-xs"
-              style={{ color: isDark ? "#52525B" : "#9CA3AF" }}
-            >
-              © 2025 SnapNutrients. All rights reserved.
-            </Text>
-          </View>
+        {/* Copyright */}
+        <View className="items-center py-8 border-t" style={{ borderTopColor: colors.surface }}>
+          <Text className="text-sm text-center" style={{ color: colors.text, opacity: 0.6 }}>
+            © 2025 SnapNutrient. All rights reserved.
+          </Text>
+          <Text className="text-sm text-center mt-2" style={{ color: colors.text, opacity: 0.6 }}>
+            Made with ❤️ for healthier living
+          </Text>
         </View>
-      </View>
-    </View>
-  );
+      </ScrollView>
+    </SafeAreaView>
+  )
 }

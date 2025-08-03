@@ -4,7 +4,7 @@
     "slug": "SnapNutrient",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/snp.png",
     "scheme": "com.snapnutrient.app",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -13,7 +13,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/icon.png",
+        "foregroundImage": "./assets/images/snp.png",
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true
