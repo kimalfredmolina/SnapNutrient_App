@@ -29,7 +29,7 @@ export default function Privacy() {
 
       <ScrollView className="flex-1 px-4 py-6">
         <Text className="text-sm mb-4" style={{ color: colors.text, opacity: 0.7 }}>
-          Last updated: January 2025
+          Last updated: August 1, 2025
         </Text>
 
         {/* Introduction */}
