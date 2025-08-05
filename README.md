@@ -71,10 +71,10 @@ npx tailwindcss init
 npm run reset-project
 ```
 
-### 2.3 Victory Chart
+### 2.3 Chart
 
 ```bash
-npm install victory
+npx expo install react-native-svg
 ```
 
 ### 2.4 Install Firebase
