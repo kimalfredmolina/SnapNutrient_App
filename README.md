@@ -23,35 +23,41 @@ This study highlights the development and implementation of SnapNutrient, focusi
 
 ## 🚀 Getting Started
 
-### 0. Install Expo CLI (if you don't have it)
+### 1.0. Install Expo CLI (if you don't have it)
 
 ```bash
 npm install -g expo-cli
 ```
 
-### 1. Install project components (dont need to install)
+### 1.1 Install project components (dont need to install)
 
 ```bash
 npx create-expo-app@latest
 ```
 
-### 2. Install project dependencies
+### 1.2 Install project dependencies
 
 ```bash
 npm install
 ```
 
-### 3. Install project dependencies
+### 1.3 Install project dependencies
 
 ```bash
 npm install expo
+```
+
+### 1.4 For .env file for API keys (need)
+
+```bash
+npx expo install expo-constants
 ```
 
 ---
 
 ## Other Installation (Already install in our project)
 
-### 4. Install Tailwind CSS (for NativeWind) [Guide](https://www.nativewind.dev/docs/getting-started/installation).
+### 2.1 Install Tailwind CSS (for NativeWind) [Guide](https://www.nativewind.dev/docs/getting-started/installation).
 
 ```bash
 npx expo install nativewind react-native-reanimated@~3.17.4 react-native-safe-area-context@5.4.0
@@ -59,36 +65,38 @@ npx expo install tailwindcss@^3.4.17 prettier-plugin-tailwindcss@^0.5.11 -- -D
 npx tailwindcss init
 ```
 
-### 5. To remove other not neccesary files
+### 2.2 To remove other not neccesary files
 
 ```bash
 npm run reset-project
 ```
 
----
+### 2.3 Victory Chart
 
-## Other Installation (need to run the app in your devices)
+```bash
+npm install victory
+```
 
-### 6. Install Firebase
+### 2.4 Install Firebase
 
 ```bash
 npx expo install firebase
 ```
 
-### 7. EAS Account
+
+---
+
+## EAS Installation and Setup
+
+### 3.1 EAS Account
 
 ```bash
 npm install -g eas-cli
 eas login
 ```
 
-### 8. For .env file for API keys (need)
 
-```bash
-npx expo install expo-constants
-```
-
-### 8. Install this to rebuild the app after installing native modules
+### 3.2 Install this to build or rebuild the app after installing native modules
 
 ```bash
 eas build --profile development --platform android  //all
@@ -103,7 +111,7 @@ cd frontend
 npx expo start --dev-client
 ```
 
-- Scan the QR code with your integrated scanner on your phone (Android/iOS) or run on an emulator/simulator.
+- Install the APK after you build the EAS, redirect the link given from EAS or Expo build
 
 ---
 
