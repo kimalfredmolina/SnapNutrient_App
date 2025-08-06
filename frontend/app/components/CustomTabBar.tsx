@@ -18,7 +18,8 @@ export default function CustomTabBar({ state, descriptors, navigation }: BottomT
   const currentRouteName = currentRoute?.name
 
   // Hide bottom navigation on these pages
-  const hiddenRoutes = ["settings", "about", "privacy", "contact", "help", "report"]
+  //const hiddenRoutes = ["settings", "about", "privacy", "contact", "help", "report"]
+  const hiddenRoutes = ["tabSetting/settings", "tabSetting/about", "tabSetting/privacy", "tabSetting/contact", "tabSetting/help", "tabSetting/report"]
 
   // Hide the entire tab bar when on scan page
   if (currentRouteName === "scan") {
