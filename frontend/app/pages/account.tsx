@@ -78,7 +78,7 @@ export default function Account() {
           {/* Settings */}
           <TouchableOpacity
             className="flex-row items-center py-3"
-            onPress={() => router.push("/pages/settings")}
+            onPress={() => router.push("/pages/tabSetting/settings")}
           >
             <Ionicons name="settings-outline" size={24} color={colors.text} />
             <Text
@@ -98,7 +98,7 @@ export default function Account() {
           {/* Help */}
           <TouchableOpacity
             className="flex-row items-center py-3"
-            onPress={() => router.push("/pages/help")}
+            onPress={() => router.push("/pages/tabSetting/help")}
           >
             <Ionicons
               name="help-circle-outline"
@@ -122,7 +122,7 @@ export default function Account() {
           {/* Privacy */}
           <TouchableOpacity
             className="flex-row items-center py-3"
-            onPress={() => router.push("/pages/privacy")}
+            onPress={() => router.push("/pages/tabSetting/privacy")}
           >
             <MaterialIcons name="security" size={24} color={colors.text} />
             <Text
@@ -142,7 +142,7 @@ export default function Account() {
           {/* Contact */}
           <TouchableOpacity
             className="flex-row items-center py-3"
-            onPress={() => router.push("/pages/contact")}
+            onPress={() => router.push("/pages/tabSetting/contact")}
           >
             <Ionicons name="mail-outline" size={24} color={colors.text} />
             <Text
@@ -162,7 +162,7 @@ export default function Account() {
           {/* Report */}
           <TouchableOpacity
             className="flex-row items-center py-3"
-            onPress={() => router.push("/pages/report")}
+            onPress={() => router.push("/pages/tabSetting/report")}
           >
             <Ionicons
               name="alert-circle-outline"
@@ -207,7 +207,7 @@ export default function Account() {
           {/* About */}
           <TouchableOpacity
             className="flex-row items-center py-3"
-            onPress={() => router.push("/pages/about")}
+            onPress={() => router.push("/pages/tabSetting/about")}
           >
             <Ionicons
               name="information-circle-outline"
