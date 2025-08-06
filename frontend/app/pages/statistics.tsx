@@ -50,7 +50,13 @@ export default function Statistics() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
-      <ScrollView className="flex-1" style={{ backgroundColor: colors.background }}>
+      <ScrollView showsVerticalScrollIndicator={false}
+        contentContainerStyle={{
+          paddingHorizontal: 16,
+          paddingTop: 16,
+          paddingBottom: 100,
+        }}
+        className="flex-1" style={{ backgroundColor: colors.background }}>
         <View className="px-4 py-6">
           {/* Goal Progress Section */}
           <View className="mb-8">
