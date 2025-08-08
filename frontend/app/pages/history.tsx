@@ -41,6 +41,38 @@ export default function History() {
       fat: 21,
       carbs: 104,
     },
+    {
+      day: "1",
+      date: "July, 2025",
+      calories: 1144,
+      protein: 130,
+      fat: 21,
+      carbs: 104,
+    },
+    {
+      day: "1",
+      date: "July, 2025",
+      calories: 1144,
+      protein: 130,
+      fat: 21,
+      carbs: 104,
+    },
+    {
+      day: "1",
+      date: "July, 2025",
+      calories: 1144,
+      protein: 130,
+      fat: 21,
+      carbs: 104,
+    },
+    {
+      day: "1",
+      date: "July, 2025",
+      calories: 1144,
+      protein: 130,
+      fat: 21,
+      carbs: 104,
+    },
   ];
 
   return (
@@ -48,8 +80,15 @@ export default function History() {
       className="flex-1 px-4 pt-4"
       style={{ backgroundColor: colors.background }}
     >
+      <Text
+        className="text-3xl font-bold mb-2 mt-2 text-center"
+        style={{ color: colors.text }}
+      >
+        History
+      </Text>
+
       {/* Filter and Sort Buttons aligned to right */}
-      <View className="flex-row justify-end space-x-3 mb-8 mt-4">
+      <View className="flex-row justify-end space-x-3 mb-4 mt-2">
         {["Filter", "Sort"].map((label, i) => (
           <TouchableOpacity
             key={i}
