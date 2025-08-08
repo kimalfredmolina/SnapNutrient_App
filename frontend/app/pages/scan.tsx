@@ -28,7 +28,7 @@ export default function Scan() {
           console.log("Photo taken:", photo.uri)
 
           // Mock: Show success message
-          Alert.alert("Photo Captured!", "Photo taken successfully. YOLOv8 integration coming soon!", [
+          Alert.alert("Photo Captured!", "Photo taken successfully. Ai integration coming soon!", [
             { text: "Take Another", onPress: () => setCapturedPhoto(null) },
             { text: "OK" },
           ])
@@ -168,7 +168,7 @@ export default function Scan() {
                 textAlign: "center",
               }}
             >
-              🚀 Ready for YOLOv8 Integration
+              🚀 Ready for Ai Integration
             </Text>
             <Text
               style={{
@@ -179,7 +179,7 @@ export default function Scan() {
                 lineHeight: 20,
               }}
             >
-              Camera is working perfectly! Your YOLOv8 model will analyze this image to detect and classify food items.
+              Camera is working perfectly! Your Ai model will analyze this image to detect and classify food items.
             </Text>
           </View>
 
@@ -199,7 +199,7 @@ export default function Scan() {
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() => {
-                Alert.alert("Success", "Photo ready for YOLOv8 processing!", [
+                Alert.alert("Success", "Photo ready for Scanning processing!", [
                   { text: "OK", onPress: () => router.back() },
                 ])
               }}
@@ -274,109 +274,28 @@ export default function Scan() {
 
         {/* Scanning Frame Overlay */}
         <View
+          className="absolute w-[240px] h-[240px] border-4 rounded-2xl"
           style={{
-            position: "absolute",
             top: "50%",
             left: "50%",
-            transform: [{ translateX: -120 }, { translateY: -120 }],
-            width: 240,
-            height: 240,
-            borderWidth: 3,
             borderColor: colors.primary,
-            borderRadius: 20,
-            backgroundColor: "transparent",
+            transform: [{ translateX: -120 }, { translateY: -120 }],
           }}
-        >
+          >
           {/* Corner indicators */}
-          <View
-            style={{
-              position: "absolute",
-              top: -3,
-              left: -3,
-              width: 30,
-              height: 30,
-              borderTopWidth: 6,
-              borderLeftWidth: 6,
-              borderColor: colors.primary,
-              borderTopLeftRadius: 20,
-            }}
-          />
-          <View
-            style={{
-              position: "absolute",
-              top: -3,
-              right: -3,
-              width: 30,
-              height: 30,
-              borderTopWidth: 6,
-              borderRightWidth: 6,
-              borderColor: colors.primary,
-              borderTopRightRadius: 20,
-            }}
-          />
-          <View
-            style={{
-              position: "absolute",
-              bottom: -3,
-              left: -3,
-              width: 30,
-              height: 30,
-              borderBottomWidth: 6,
-              borderLeftWidth: 6,
-              borderColor: colors.primary,
-              borderBottomLeftRadius: 20,
-            }}
-          />
-          <View
-            style={{
-              position: "absolute",
-              bottom: -3,
-              right: -3,
-              width: 30,
-              height: 30,
-              borderBottomWidth: 6,
-              borderRightWidth: 6,
-              borderColor: colors.primary,
-              borderBottomRightRadius: 20,
-            }}
-          />
+          <View className="absolute w-[30px] h-[30px] border-t-[6px] border-l-[6px] rounded-tl-[20px]" style={{ top: -3, left: -3, borderColor: colors.primary }} />
+          <View className="absolute w-[30px] h-[30px] border-t-[6px] border-r-[6px] rounded-tr-[20px]" style={{ top: -3, right: -3, borderColor: colors.primary }} />
+          <View className="absolute w-[30px] h-[30px] border-b-[6px] border-l-[6px] rounded-bl-[20px]" style={{ bottom: -3, left: -3, borderColor: colors.primary }} />
+          <View className="absolute w-[30px] h-[30px] border-b-[6px] border-r-[6px] rounded-br-[20px]" style={{ bottom: -3, right: -3, borderColor: colors.primary }} />
         </View>
 
-        {/* Instructions */}
+        {/* Scan Instructions */}
         <View
-          style={{
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: [{ translateX: -100 }, { translateY: -180 }],
-            backgroundColor: "rgba(0,0,0,0.7)",
-            paddingHorizontal: 20,
-            paddingVertical: 10,
-            borderRadius: 25,
-            width: 200,
-          }}
+          className="absolute w-[200px] px-5 py-2 rounded-full bg-black/70"
+          style={{ top: "50%", left: "50%", transform: [{ translateX: -100 }, { translateY: -180 }] }}
         >
-          <Text
-            style={{
-              color: "white",
-              fontSize: 14,
-              textAlign: "center",
-              fontWeight: "500",
-            }}
-          >
-            Point camera at food
-          </Text>
-          <Text
-            style={{
-              color: "white",
-              fontSize: 12,
-              textAlign: "center",
-              opacity: 0.8,
-              marginTop: 2,
-            }}
-          >
-            YOLOv8 ready to detect!
-          </Text>
+          <Text className="text-white text-sm font-medium text-center">Point camera at food</Text>
+          <Text className="text-white text-xs opacity-80 text-center mt-1">You're ready to detect food!</Text>
         </View>
 
         {/* Bottom Controls */}
@@ -399,17 +318,9 @@ export default function Scan() {
           >
             {/* Gallery Button (placeholder) */}
             <TouchableOpacity
-              style={{
-                width: 50,
-                height: 50,
-                backgroundColor: "rgba(255,255,255,0.2)",
-                borderRadius: 25,
-                justifyContent: "center",
-                alignItems: "center",
-                borderWidth: 2,
-                borderColor: "rgba(255,255,255,0.3)",
-              }}
               onPress={() => Alert.alert("Gallery", "Gallery feature coming soon!")}
+              className="w-[50px] h-[50px] rounded-full justify-center items-center border-2"
+              style={{ backgroundColor: "rgba(255,255,255,0.2)", borderColor: "rgba(255,255,255,0.3)" }}
             >
               <Ionicons name="images" size={24} color="white" />
             </TouchableOpacity>
@@ -417,44 +328,25 @@ export default function Scan() {
             {/* Capture Button */}
             <TouchableOpacity
               onPress={takePhoto}
+              className="w-[80px] h-[80px] rounded-full justify-center items-center"
               style={{
-                width: 80,
-                height: 80,
-                borderRadius: 40,
                 backgroundColor: "white",
-                borderWidth: 6,
                 borderColor: "rgba(255,255,255,0.3)",
-                justifyContent: "center",
-                alignItems: "center",
+                borderWidth: 6,
                 shadowColor: "#000",
                 shadowOffset: { width: 0, height: 2 },
                 shadowOpacity: 0.3,
                 shadowRadius: 4,
               }}
             >
-              <View
-                style={{
-                  width: 60,
-                  height: 60,
-                  borderRadius: 30,
-                  backgroundColor: colors.primary,
-                }}
-              />
+              <View className="w-[60px] h-[60px] rounded-full" style={{ backgroundColor: colors.primary }} />
             </TouchableOpacity>
 
             {/* Flip Camera Button */}
             <TouchableOpacity
               onPress={toggleCameraFacing}
-              style={{
-                width: 50,
-                height: 50,
-                backgroundColor: "rgba(255,255,255,0.2)",
-                borderRadius: 25,
-                justifyContent: "center",
-                alignItems: "center",
-                borderWidth: 2,
-                borderColor: "rgba(255,255,255,0.3)",
-              }}
+              className="w-[50px] h-[50px] rounded-full justify-center items-center border-2"
+              style={{ backgroundColor: "rgba(255,255,255,0.2)", borderColor: "rgba(255,255,255,0.3)" }}
             >
               <Ionicons name="camera-reverse" size={24} color="white" />
             </TouchableOpacity>
