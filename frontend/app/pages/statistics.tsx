@@ -1,14 +1,23 @@
 import React, { useState } from "react";
-import { View, Text, Dimensions, TouchableOpacity, ScrollView } from "react-native";
+import {
+  View,
+  Text,
+  Dimensions,
+  TouchableOpacity,
+  ScrollView,
+} from "react-native";
 import Svg, { Rect, Line, Text as SvgText, Circle } from "react-native-svg";
 import { useTheme } from "../../contexts/ThemeContext";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { Calendar } from "react-native-calendars";
 
 export default function Statistics() {
   const { colors, isDark } = useTheme();
   const [selectedTimeRange, setSelectedTimeRange] = useState("90 Days");
-  const [selectedNutritionRange, setSelectedNutritionRange] = useState("1 Week");
+  const [selectedNutritionRange, setSelectedNutritionRange] =
+    useState("1 Week");
   const [selectedMacro, setSelectedMacro] = useState("Carbs");
+  const [selectedDate, setSelectedDate] = useState("");
 
   const screenWidth = Dimensions.get("window").width;
   const chartHeight = 200;
@@ -36,7 +45,9 @@ export default function Statistics() {
     { day: "S", protein: 650, carbs: 320, fats: 210 },
   ];
 
-  const maxTotal = Math.max(...nutritionData.map((d) => d.protein + d.carbs + d.fats));
+  const maxTotal = Math.max(
+    ...nutritionData.map((d) => d.protein + d.carbs + d.fats)
+  );
 
   const chartColors = {
     protein: "#FF6B6B",
@@ -50,20 +61,59 @@ export default function Statistics() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
-      <ScrollView showsVerticalScrollIndicator={false}
+      <ScrollView
+        showsVerticalScrollIndicator={false}
         contentContainerStyle={{
           paddingHorizontal: 16,
           paddingTop: 16,
           paddingBottom: 100,
         }}
-        className="flex-1" style={{ backgroundColor: colors.background }}>
+        className="flex-1"
+        style={{ backgroundColor: colors.background }}
+      >
         <View className="px-4 py-6">
+          <Text
+            className="text-3xl font-bold mb-12 text-center"
+            style={{ color: colors.text }}
+          >
+            Statistic Overview
+          </Text>
+
+          {/* Calendar Section */}
+          <View className="mb-8 rounded-lg overflow-hidden">
+            <Text
+              className="text-xl font-bold mb-4"
+              style={{ color: colors.text }}
+            >
+              Streak Tracker
+            </Text>
+            <Calendar
+              onDayPress={(day) => setSelectedDate(day.dateString)}
+              markedDates={{
+                [selectedDate]: {
+                  selected: true,
+                  selectedColor: colors.primary,
+                },
+              }}
+              theme={{
+                backgroundColor: colors.surface,
+                calendarBackground: colors.surface,
+                dayTextColor: colors.text,
+                monthTextColor: colors.text,
+                arrowColor: colors.primary,
+              }}
+            />
+          </View>
+
           {/* Goal Progress Section */}
           <View className="mb-8">
-            <Text className="text-2xl font-bold mb-4" style={{ color: colors.text }}>
+            <Text
+              className="text-xl font-bold mb-4"
+              style={{ color: colors.text }}
+            >
               Goal Progress
             </Text>
-            
+
             {/* Time Range Selectors */}
             <View className="flex-row space-x-2 mb-4">
               {timeRanges.map((range) => (
@@ -72,13 +122,17 @@ export default function Statistics() {
                   onPress={() => setSelectedTimeRange(range)}
                   className={`px-4 py-2 rounded-full`}
                   style={{
-                    backgroundColor: selectedTimeRange === range ? colors.primary : colors.surface,
+                    backgroundColor:
+                      selectedTimeRange === range
+                        ? colors.primary
+                        : colors.surface,
                   }}
                 >
                   <Text
                     className="font-medium"
                     style={{
-                      color: selectedTimeRange === range ? colors.text : colors.text,
+                      color:
+                        selectedTimeRange === range ? colors.text : colors.text,
                     }}
                   >
                     {range}
@@ -88,17 +142,25 @@ export default function Statistics() {
             </View>
 
             {/* Weight Tracking Graph */}
-            <View 
+            <View
               className="p-4 rounded-lg"
               style={{ backgroundColor: colors.surface }}
             >
               <Svg width={screenWidth - 80} height={150}>
                 {/* Y-axis labels */}
-                <SvgText x={10} y={20} fontSize="12" fill={colors.text}>80Kg</SvgText>
-                <SvgText x={10} y={50} fontSize="12" fill={colors.text}>70Kg</SvgText>
-                <SvgText x={10} y={80} fontSize="12" fill={colors.text}>65Kg</SvgText>
-                <SvgText x={10} y={110} fontSize="12" fill={colors.text}>60Kg</SvgText>
-                
+                <SvgText x={10} y={20} fontSize="12" fill={colors.text}>
+                  80Kg
+                </SvgText>
+                <SvgText x={10} y={50} fontSize="12" fill={colors.text}>
+                  70Kg
+                </SvgText>
+                <SvgText x={10} y={80} fontSize="12" fill={colors.text}>
+                  65Kg
+                </SvgText>
+                <SvgText x={10} y={110} fontSize="12" fill={colors.text}>
+                  60Kg
+                </SvgText>
+
                 {/* X-axis labels */}
                 {weightData.map((item, index) => (
                   <SvgText
@@ -124,12 +186,7 @@ export default function Statistics() {
                 />
 
                 {/* Current weight marker */}
-                <Circle
-                  cx={60 + 4 * 50}
-                  cy={110}
-                  r="8"
-                  fill={colors.text}
-                />
+                <Circle cx={60 + 4 * 50} cy={110} r="8" fill={colors.text} />
                 <SvgText
                   x={60 + 4 * 50}
                   y={95}
@@ -147,7 +204,10 @@ export default function Statistics() {
           <View className="mb-8">
             <View className="flex-row justify-between items-center mb-4">
               <View>
-                <Text className="text-xl font-bold" style={{ color: colors.text }}>
+                <Text
+                  className="text-xl font-bold"
+                  style={{ color: colors.text }}
+                >
                   Nutritions
                 </Text>
                 <Text className="text-green-500 font-semibold">90%</Text>
@@ -165,13 +225,19 @@ export default function Statistics() {
                   onPress={() => setSelectedNutritionRange(range)}
                   className={`px-4 py-2 rounded-full`}
                   style={{
-                    backgroundColor: selectedNutritionRange === range ? colors.primary : colors.surface,
+                    backgroundColor:
+                      selectedNutritionRange === range
+                        ? colors.primary
+                        : colors.surface,
                   }}
                 >
                   <Text
                     className="font-medium"
                     style={{
-                      color: selectedNutritionRange === range ? colors.text : colors.text,
+                      color:
+                        selectedNutritionRange === range
+                          ? colors.text
+                          : colors.text,
                     }}
                   >
                     {range}
@@ -183,7 +249,10 @@ export default function Statistics() {
             {/* Summary Statistics */}
             <View className="flex-row justify-between mb-4">
               <View className="items-center">
-                <Text className="text-2xl font-bold" style={{ color: colors.text }}>
+                <Text
+                  className="text-2xl font-bold"
+                  style={{ color: colors.text }}
+                >
                   12780
                 </Text>
                 <Text className="text-sm" style={{ color: colors.text }}>
@@ -191,7 +260,10 @@ export default function Statistics() {
                 </Text>
               </View>
               <View className="items-center">
-                <Text className="text-2xl font-bold" style={{ color: colors.text }}>
+                <Text
+                  className="text-2xl font-bold"
+                  style={{ color: colors.text }}
+                >
                   1952
                 </Text>
                 <Text className="text-sm" style={{ color: colors.text }}>
@@ -208,7 +280,8 @@ export default function Statistics() {
                   onPress={() => setSelectedMacro(macro)}
                   className={`px-6 py-3 rounded-full mx-2`}
                   style={{
-                    backgroundColor: selectedMacro === macro ? "#FFA600" : colors.surface,
+                    backgroundColor:
+                      selectedMacro === macro ? "#FFA600" : colors.surface,
                   }}
                 >
                   <Text
@@ -224,16 +297,24 @@ export default function Statistics() {
             </View>
 
             {/* Enhanced Nutrition Chart */}
-            <View 
+            <View
               className="p-4 rounded-lg"
               style={{ backgroundColor: colors.surface }}
             >
               <Svg width={screenWidth - 80} height={chartHeight + 60}>
                 {/* Y-axis labels */}
-                <SvgText x={10} y={20} fontSize="12" fill={colors.text}>2k</SvgText>
-                <SvgText x={10} y={50} fontSize="12" fill={colors.text}>1k</SvgText>
-                <SvgText x={10} y={80} fontSize="12" fill={colors.text}>500</SvgText>
-                <SvgText x={10} y={110} fontSize="12" fill={colors.text}>0</SvgText>
+                <SvgText x={10} y={20} fontSize="12" fill={colors.text}>
+                  2k
+                </SvgText>
+                <SvgText x={10} y={50} fontSize="12" fill={colors.text}>
+                  1k
+                </SvgText>
+                <SvgText x={10} y={80} fontSize="12" fill={colors.text}>
+                  500
+                </SvgText>
+                <SvgText x={10} y={110} fontSize="12" fill={colors.text}>
+                  0
+                </SvgText>
 
                 {/* X-axis labels */}
                 {nutritionData.map((item, index) => (
@@ -302,13 +383,28 @@ export default function Statistics() {
                 })}
 
                 {/* Legend */}
-                <SvgText x={screenWidth - 120} y={20} fontSize="12" fill={chartColors.protein}>
+                <SvgText
+                  x={screenWidth - 120}
+                  y={20}
+                  fontSize="12"
+                  fill={chartColors.protein}
+                >
                   Protein
                 </SvgText>
-                <SvgText x={screenWidth - 120} y={40} fontSize="12" fill={chartColors.carbs}>
+                <SvgText
+                  x={screenWidth - 120}
+                  y={40}
+                  fontSize="12"
+                  fill={chartColors.carbs}
+                >
                   Carbs
                 </SvgText>
-                <SvgText x={screenWidth - 120} y={60} fontSize="12" fill={chartColors.fats}>
+                <SvgText
+                  x={screenWidth - 120}
+                  y={60}
+                  fontSize="12"
+                  fill={chartColors.fats}
+                >
                   Fats
                 </SvgText>
 
