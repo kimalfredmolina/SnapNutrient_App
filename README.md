@@ -83,6 +83,11 @@ npx expo install react-native-svg
 npx expo install firebase
 ```
 
+### 2.5 Install Expo Camera
+
+```bash
+npx expo install expo-camera
+```
 
 ---
 
