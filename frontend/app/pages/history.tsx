@@ -5,9 +5,11 @@ import {
   EllipsisVerticalIcon,
 } from "react-native-heroicons/outline";
 import { useTheme } from "../../contexts/ThemeContext";
+import { useRouter } from "expo-router";
 
 export default function History() {
   const { colors, isDark } = useTheme();
+  const router = useRouter();
   const historyData = [
     {
       day: "1",
@@ -18,62 +20,76 @@ export default function History() {
       carbs: 104,
     },
     {
-      day: "1",
+      day: "2",
       date: "July, 2025",
-      calories: 1144,
-      protein: 130,
-      fat: 21,
-      carbs: 104,
+      calories: 1340,
+      protein: 145,
+      fat: 28,
+      carbs: 120,
     },
     {
-      day: "1",
+      day: "3",
       date: "July, 2025",
-      calories: 1144,
-      protein: 130,
-      fat: 21,
-      carbs: 104,
+      calories: 1180,
+      protein: 125,
+      fat: 25,
+      carbs: 110,
     },
     {
-      day: "1",
+      day: "4",
       date: "July, 2025",
-      calories: 1144,
-      protein: 130,
-      fat: 21,
-      carbs: 104,
+      calories: 1560,
+      protein: 160,
+      fat: 35,
+      carbs: 140,
     },
     {
-      day: "1",
+      day: "5",
       date: "July, 2025",
-      calories: 1144,
-      protein: 130,
-      fat: 21,
-      carbs: 104,
+      calories: 1420,
+      protein: 138,
+      fat: 30,
+      carbs: 125,
     },
     {
-      day: "1",
+      day: "6",
       date: "July, 2025",
-      calories: 1144,
-      protein: 130,
-      fat: 21,
-      carbs: 104,
+      calories: 1280,
+      protein: 132,
+      fat: 22,
+      carbs: 115,
     },
     {
-      day: "1",
+      day: "7",
       date: "July, 2025",
-      calories: 1144,
-      protein: 130,
-      fat: 21,
-      carbs: 104,
+      calories: 1490,
+      protein: 155,
+      fat: 32,
+      carbs: 135,
     },
     {
-      day: "1",
+      day: "8",
       date: "July, 2025",
-      calories: 1144,
-      protein: 130,
-      fat: 21,
-      carbs: 104,
+      calories: 1360,
+      protein: 140,
+      fat: 28,
+      carbs: 120,
     },
   ];
+
+  const handleHistoryCardPress = (item: any) => {
+    router.push({
+      pathname: "/pages/tabHistory/history-detail",
+      params: { 
+        day: item.day,
+        date: item.date,
+        calories: item.calories,
+        protein: item.protein,
+        fat: item.fat,
+        carbs: item.carbs
+      }
+    });
+  };
 
   return (
     <View
@@ -112,14 +128,18 @@ export default function History() {
         contentContainerStyle={{ paddingBottom: 100 }}
       >
         {historyData.map((item, index) => (
-          <View
+          <TouchableOpacity
             key={index}
-            className="flex-row items-center justify-between mb-4 rounded-2xl p-4 border"
-            style={{
-              backgroundColor: colors.surface,
-              borderColor: isDark ? "#4B5563" : "#E5E7EB",
-            }}
+            onPress={() => handleHistoryCardPress(item)}
+            activeOpacity={0.7}
           >
+            <View
+              className="flex-row items-center justify-between mb-4 rounded-2xl p-4 border"
+              style={{
+                backgroundColor: colors.surface,
+                borderColor: isDark ? "#4B5563" : "#E5E7EB",
+              }}
+            >
             {/* Date */}
             <View
               className="rounded-xl p-2 w-16 items-center mr-4 border shadow-sm"
@@ -195,7 +215,8 @@ export default function History() {
               />
             </TouchableOpacity>
           </View>
-        ))}
+            </TouchableOpacity>
+          ))}
       </ScrollView>
     </View>
   );
