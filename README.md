@@ -21,7 +21,7 @@ This study highlights the development and implementation of SnapNutrient, focusi
 
 ---
 
-## 🚀 Getting Started
+## 🚀 Getting Started Project Installation
 
 ### 1.0. Install Expo CLI (if you don't have it)
 
