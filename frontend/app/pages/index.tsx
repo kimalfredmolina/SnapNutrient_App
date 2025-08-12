@@ -6,6 +6,7 @@ import Svg, { Circle } from "react-native-svg";
 import { useTheme } from "../../contexts/ThemeContext";
 import { Redirect, router } from "expo-router";
 import { useAuth } from "../../contexts/AuthContext";
+import MacroCalculatorModal from "../../components/MacroCalculatorModal";
 
 // Constants
 const SIZE = 64;
@@ -140,12 +141,25 @@ const FoodItem = ({
 };
 
 export default function HomePage() {
+  const [user] = useState<{ name?: string } | null>(null);
   const { colors } = useTheme();
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated } = useAuth();
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [macroGoals, setMacroGoals] = useState({
+    carbs: 200,
+    protein: 150,
+    fat: 80,
+    calories: 2000,
+  });
 
   if (!isAuthenticated) {
     return <Redirect href="/(auth)/signin" />;
   }
+
+  const handleSaveMacros = (newMacros: any) => {
+    setMacroGoals(newMacros);
+    // You can also save to AsyncStorage or send to your backend here
+  };
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
@@ -271,27 +285,34 @@ export default function HomePage() {
             >
               Macros
             </Text>
-            <Ionicons name="create-outline" size={20} color={colors.text} />
+            <TouchableOpacity onPress={() => setIsModalVisible(true)}>
+              <Ionicons name="create-outline" size={20} color={colors.text} />
+            </TouchableOpacity>
           </View>
 
           <View className="flex-row justify-between">
             <MacroCircle
               label="Carbs"
               value={142}
-              total={200}
+              total={macroGoals.carbs}
               color="#ff6b6b"
             />
             <MacroCircle
               label="Protein"
               value={87}
-              total={150}
+              total={macroGoals.protein}
               color="#4ecdc4"
             />
-            <MacroCircle label="Fat" value={45} total={80} color="#45b7d1" />
+            <MacroCircle 
+              label="Fat" 
+              value={45} 
+              total={macroGoals.fat} 
+              color="#45b7d1" 
+            />
             <MacroCircle
               label="Calories"
               value={1250}
-              total={2000}
+              total={macroGoals.calories}
               color="#f9ca24"
               unit="cal"
             />
@@ -337,6 +358,13 @@ export default function HomePage() {
           </View>
         </View>
       </ScrollView>
+
+      <MacroCalculatorModal
+        visible={isModalVisible}
+        onClose={() => setIsModalVisible(false)}
+        onSave={handleSaveMacros}
+        currentMacros={macroGoals}
+      />
     </SafeAreaView>
   );
 }

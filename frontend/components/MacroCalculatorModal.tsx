@@ -1,0 +1,367 @@
+import React, { useState } from 'react';
+import {
+  Modal,
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  ScrollView,
+  Alert,
+} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { useTheme } from '../contexts/ThemeContext';
+
+interface MacroCalculatorModalProps {
+  visible: boolean;
+  onClose: () => void;
+  onSave: (macros: MacroGoals) => void;
+  currentMacros?: MacroGoals;
+}
+
+interface MacroGoals {
+  carbs: number;
+  protein: number;
+  fat: number;
+  calories: number;
+}
+
+interface PersonalInfo {
+  age: string;
+  gender: 'male' | 'female' | '';
+  height: string;
+  weight: string;
+  activityLevel: 'sedentary' | 'light' | 'moderate' | 'active' | 'very_active' | '';
+  goal: 'lose' | 'maintain' | 'gain' | '';
+}
+
+export default function MacroCalculatorModal({
+  visible,
+  onClose,
+  onSave,
+  currentMacros,
+}: MacroCalculatorModalProps) {
+  const { colors } = useTheme();
+  const [personalInfo, setPersonalInfo] = useState<PersonalInfo>({
+    age: '',
+    gender: '',
+    height: '',
+    weight: '',
+    activityLevel: '',
+    goal: '',
+  });
+
+  const calculateMacros = (): MacroGoals => {
+    const age = parseInt(personalInfo.age);
+    const height = parseFloat(personalInfo.height);
+    const weight = parseFloat(personalInfo.weight);
+
+    if (!age || !height || !weight || !personalInfo.gender || !personalInfo.activityLevel || !personalInfo.goal) {
+      Alert.alert('Error', 'Please fill in all fields');
+      return { carbs: 0, protein: 0, fat: 0, calories: 0 };
+    }
+
+    // Calculate BMR (Basal Metabolic Rate)
+    let bmr: number;
+    if (personalInfo.gender === 'male') {
+      bmr = 88.362 + (13.397 * weight) + (4.799 * height) - (5.677 * age);
+    } else {
+      bmr = 447.593 + (9.247 * weight) + (3.098 * height) - (4.330 * age);
+    }
+
+    // Activity multipliers
+    const activityMultipliers = {
+      sedentary: 1.2,
+      light: 1.375,
+      moderate: 1.55,
+      active: 1.725,
+      very_active: 1.9,
+    };
+
+    // Calculate TDEE (Total Daily Energy Expenditure)
+    const tdee = bmr * activityMultipliers[personalInfo.activityLevel];
+
+    // Adjust for goal
+    let targetCalories: number;
+    switch (personalInfo.goal) {
+      case 'lose':
+        targetCalories = tdee - 500; // 500 calorie deficit
+        break;
+      case 'gain':
+        targetCalories = tdee + 500; // 500 calorie surplus
+        break;
+      default:
+        targetCalories = tdee;
+    }
+
+    // Calculate macros (standard ratios)
+    const proteinCalories = targetCalories * 0.3; // 30% protein
+    const carbCalories = targetCalories * 0.4; // 40% carbs
+    const fatCalories = targetCalories * 0.3; // 30% fat
+
+    return {
+      calories: Math.round(targetCalories),
+      protein: Math.round(proteinCalories / 4), // 4 calories per gram
+      carbs: Math.round(carbCalories / 4), // 4 calories per gram
+      fat: Math.round(fatCalories / 9), // 9 calories per gram
+    };
+  };
+
+  const handleCalculate = () => {
+    const macros = calculateMacros();
+    if (macros.calories > 0) {
+      onSave(macros);
+      onClose();
+    }
+  };
+
+  const DropdownField = ({
+    label,
+    value,
+    options,
+    onSelect,
+  }: {
+    label: string;
+    value: string;
+    options: { label: string; value: string }[];
+    onSelect: (value: string) => void;
+  }) => {
+    const [isOpen, setIsOpen] = useState(false);
+
+    return (
+      <View className="mb-4">
+        <TouchableOpacity
+          className="border rounded-lg p-3 flex-row justify-between items-center"
+          style={{ borderColor: colors.border, backgroundColor: colors.surface }}
+          onPress={() => setIsOpen(!isOpen)}
+        >
+          <Text style={{ color: value ? colors.text : colors.text + '60' }}>
+            {value ? options.find(opt => opt.value === value)?.label : label}
+          </Text>
+          <Ionicons 
+            name={isOpen ? "chevron-up" : "chevron-down"} 
+            size={20} 
+            color={colors.text} 
+          />
+        </TouchableOpacity>
+        
+        {isOpen && (
+          <View 
+            className="border border-t-0 rounded-b-lg"
+            style={{ borderColor: colors.border, backgroundColor: colors.surface }}
+          >
+            {options.map((option) => (
+              <TouchableOpacity
+                key={option.value}
+                className="p-3 border-b"
+                style={{ borderBottomColor: colors.border }}
+                onPress={() => {
+                  onSelect(option.value);
+                  setIsOpen(false);
+                }}
+              >
+                <Text style={{ color: colors.text }}>{option.label}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
+      </View>
+    );
+  };
+
+  const RadioButton = ({
+    label,
+    selected,
+    onPress,
+  }: {
+    label: string;
+    selected: boolean;
+    onPress: () => void;
+  }) => (
+    <TouchableOpacity
+      className="flex-row items-center mb-3"
+      onPress={onPress}
+    >
+      <View
+        className="w-5 h-5 rounded-full border-2 mr-3 items-center justify-center"
+        style={{ borderColor: colors.primary }}
+      >
+        {selected && (
+          <View
+            className="w-3 h-3 rounded-full"
+            style={{ backgroundColor: colors.primary }}
+          />
+        )}
+      </View>
+      <Text style={{ color: colors.text }}>{label}</Text>
+    </TouchableOpacity>
+  );
+
+  return (
+    <Modal
+      visible={visible}
+      animationType="slide"
+      presentationStyle="pageSheet"
+      onRequestClose={onClose}
+    >
+      <View style={{ flex: 1, backgroundColor: colors.background }}>
+        {/* Header */}
+        <View
+          className="flex-row items-center justify-between p-4 border-b"
+          style={{ borderBottomColor: colors.border }}
+        >
+          <TouchableOpacity onPress={onClose}>
+            <Ionicons name="close" size={24} color={colors.text} />
+          </TouchableOpacity>
+          <Text
+            className="text-lg font-bold"
+            style={{ color: colors.text }}
+          >
+            Calculate Your Macros
+          </Text>
+          <View style={{ width: 24 }} />
+        </View>
+
+        <ScrollView className="flex-1 p-4">
+          {/* Personal Information Section */}
+          <View
+            className="rounded-xl p-4 mb-6"
+            style={{ backgroundColor: colors.surface }}
+          >
+            <Text
+              className="text-lg font-bold mb-4"
+              style={{ color: colors.primary }}
+            >
+              Personal Information
+            </Text>
+
+            <View className="flex-row space-x-3 mb-4">
+              <View className="flex-1">
+                <TextInput
+                  className="border rounded-lg p-3"
+                  style={{
+                    borderColor: colors.border,
+                    backgroundColor: colors.background,
+                    color: colors.text,
+                  }}
+                  placeholder="Age"
+                  placeholderTextColor={colors.text + '60'}
+                  value={personalInfo.age}
+                  onChangeText={(text) =>
+                    setPersonalInfo({ ...personalInfo, age: text })
+                  }
+                  keyboardType="numeric"
+                />
+              </View>
+              <View className="flex-1">
+                <DropdownField
+                  label="Gender"
+                  value={personalInfo.gender}
+                  options={[
+                    { label: 'Male', value: 'male' },
+                    { label: 'Female', value: 'female' },
+                  ]}
+                  onSelect={(value) =>
+                    setPersonalInfo({ ...personalInfo, gender: value as 'male' | 'female' })
+                  }
+                />
+              </View>
+            </View>
+
+            <View className="flex-row space-x-3 mb-4">
+              <View className="flex-1">
+                <TextInput
+                  className="border rounded-lg p-3"
+                  style={{
+                    borderColor: colors.border,
+                    backgroundColor: colors.background,
+                    color: colors.text,
+                  }}
+                  placeholder="Height (cm)"
+                  placeholderTextColor={colors.text + '60'}
+                  value={personalInfo.height}
+                  onChangeText={(text) =>
+                    setPersonalInfo({ ...personalInfo, height: text })
+                  }
+                  keyboardType="numeric"
+                />
+              </View>
+              <View className="flex-1">
+                <TextInput
+                  className="border rounded-lg p-3"
+                  style={{
+                    borderColor: colors.border,
+                    backgroundColor: colors.background,
+                    color: colors.text,
+                  }}
+                  placeholder="Weight (kg)"
+                  placeholderTextColor={colors.text + '60'}
+                  value={personalInfo.weight}
+                  onChangeText={(text) =>
+                    setPersonalInfo({ ...personalInfo, weight: text })
+                  }
+                  keyboardType="numeric"
+                />
+              </View>
+            </View>
+
+            <DropdownField
+              label="Activity Level"
+              value={personalInfo.activityLevel}
+              options={[
+                { label: 'Sedentary (little/no exercise)', value: 'sedentary' },
+                { label: 'Light (light exercise 1-3 days/week)', value: 'light' },
+                { label: 'Moderate (moderate exercise 3-5 days/week)', value: 'moderate' },
+                { label: 'Active (hard exercise 6-7 days/week)', value: 'active' },
+                { label: 'Very Active (very hard exercise, physical job)', value: 'very_active' },
+              ]}
+              onSelect={(value) =>
+                setPersonalInfo({ ...personalInfo, activityLevel: value as any })
+              }
+            />
+          </View>
+
+          {/* Goal Selection */}
+          <View
+            className="rounded-xl p-4 mb-6"
+            style={{ backgroundColor: colors.surface }}
+          >
+            <Text
+              className="text-lg font-bold mb-4"
+              style={{ color: colors.primary }}
+            >
+              Select Your Goal
+            </Text>
+
+            <RadioButton
+              label="Lose Weight"
+              selected={personalInfo.goal === 'lose'}
+              onPress={() => setPersonalInfo({ ...personalInfo, goal: 'lose' })}
+            />
+            <RadioButton
+              label="Maintain Weight"
+              selected={personalInfo.goal === 'maintain'}
+              onPress={() => setPersonalInfo({ ...personalInfo, goal: 'maintain' })}
+            />
+            <RadioButton
+              label="Gain Weight"
+              selected={personalInfo.goal === 'gain'}
+              onPress={() => setPersonalInfo({ ...personalInfo, goal: 'gain' })}
+            />
+          </View>
+
+          {/* Calculate Button */}
+          <TouchableOpacity
+            className="rounded-xl p-4 items-center"
+            style={{ backgroundColor: colors.primary }}
+            onPress={handleCalculate}
+          >
+            <View className="flex-row items-center">
+              <Ionicons name="calculator" size={20} color="white" style={{ marginRight: 8 }} />
+              <Text className="text-white font-bold text-lg">Calculate Macros</Text>
+            </View>
+          </TouchableOpacity>
+        </ScrollView>
+      </View>
+    </Modal>
+  );
+}
