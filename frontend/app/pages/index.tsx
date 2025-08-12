@@ -4,7 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Circle } from "react-native-svg";
 import { useTheme } from "../../contexts/ThemeContext";
-import { Redirect } from "expo-router";
+import { Redirect, router } from "expo-router";
 import { useAuth } from "../../contexts/AuthContext";
 
 // Constants
@@ -244,7 +244,10 @@ export default function HomePage() {
           </View>
 
           {/* Footer */}
-          <Text className="text-sm text-blue-500 text-right font-medium mt-4">
+          <Text
+            onPress={() => router.push("/pages/statistics")}
+            className="text-sm text-blue-500 text-right font-medium mt-4"
+          >
             Check Analytic &gt;
           </Text>
         </View>
