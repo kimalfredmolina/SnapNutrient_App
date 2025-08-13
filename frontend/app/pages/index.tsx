@@ -6,7 +6,7 @@ import Svg, { Circle } from "react-native-svg";
 import { useTheme } from "../../contexts/ThemeContext";
 import { Redirect, router } from "expo-router";
 import { useAuth } from "../../contexts/AuthContext";
-import MacroCalculatorModal from "../../components/MacroCalculatorModal";
+import MacroCalculatorModal from "./tabIndex/MacroCalculatorModal";
 
 // Constants
 const SIZE = 64;
