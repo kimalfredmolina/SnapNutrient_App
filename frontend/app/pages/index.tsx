@@ -141,9 +141,8 @@ const FoodItem = ({
 };
 
 export default function HomePage() {
-  const [user] = useState<{ name?: string } | null>(null);
   const { colors } = useTheme();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [macroGoals, setMacroGoals] = useState({
     carbs: 200,
@@ -303,11 +302,11 @@ export default function HomePage() {
               total={macroGoals.protein}
               color="#4ecdc4"
             />
-            <MacroCircle 
-              label="Fat" 
-              value={45} 
-              total={macroGoals.fat} 
-              color="#45b7d1" 
+            <MacroCircle
+              label="Fat"
+              value={45}
+              total={macroGoals.fat}
+              color="#45b7d1"
             />
             <MacroCircle
               label="Calories"
