@@ -3,7 +3,7 @@ module.exports = {
     name: "SnapNutrient",
     slug: "snapnutrient",
     version: "1.0.0",
-    userInterfaceStyle: "automatic", // Add this line
+    userInterfaceStyle: "automatic", 
     android: {
       package: "com.snapnutrient.app",
       versionCode: 1,
@@ -37,7 +37,7 @@ module.exports = {
     extra: { 
       eas: {
 
-        projectId:  "7506c756-aa5e-4912-925f-420f262d9581" 
+        projectId:  "7506c756-aa5e-4912-925f-420f262d9581" /*Kim "7506c756-aa5e-4912-925f-420f262d9581 ----  0948c1bf-48a5-4d19-b893-54a282c9bc9a" Nel"007b9a28-c506-4c86-a5ca-a4ad843eb51d" balik mo nalng sa ganto ayw ko ignore app.config.js o kaya wag mo accept yung changes*/
       },
       firebaseApiKey: process.env.FIREBASE_API_KEY,
       firebaseAuthDomain: process.env.FIREBASE_AUTH_DOMAIN,
