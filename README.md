@@ -89,6 +89,12 @@ npx expo install firebase
 npx expo install expo-camera
 ```
 
+### 2.6 Install React Native Calendar
+
+```bash
+npm install react-native-calendars
+```
+
 ---
 
 ## EAS Installation and Setup
