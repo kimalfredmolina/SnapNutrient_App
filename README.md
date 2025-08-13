@@ -71,7 +71,7 @@ npx tailwindcss init
 npm run reset-project
 ```
 
-### 2.3 Chart
+### 2.3 Install SVG and use for Chart
 
 ```bash
 npx expo install react-native-svg
