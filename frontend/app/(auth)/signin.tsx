@@ -137,7 +137,7 @@ export default function LoginPage() {
 
         // Extract user information
         const userData = {
-          name: firebaseUser.displayName || email.split("@")[0], // Use email prefix if no display name
+          name: firebaseUser.displayName || email.split("@")[0],
           email: firebaseUser.email || undefined,
           photoURL: firebaseUser.photoURL || undefined,
         };
@@ -145,10 +145,28 @@ export default function LoginPage() {
         login(userData);
         router.replace("/pages");
       } else {
-        Alert.alert("Error", "Please fill in all fields");
+        Alert.alert("Missing Information", "Please enter both email and password to sign in.");
       }
     } catch (error: any) {
-      Alert.alert("Error", error.message);
+      let errorMessage = "Something went wrong. Please try again.";
+      
+      if (error.code === 'auth/invalid-credential') {
+        errorMessage = "The email or password you entered is incorrect. Please check and try again.";
+      } else if (error.code === 'auth/user-not-found') {
+        errorMessage = "No account found with this email. Please check your email or sign up.";
+      } else if (error.code === 'auth/wrong-password') {
+        errorMessage = "The password you entered is incorrect. Please try again.";
+      } else if (error.code === 'auth/invalid-email') {
+        errorMessage = "Please enter a valid email address.";
+      } else if (error.code === 'auth/user-disabled') {
+        errorMessage = "This account has been disabled. Please contact support.";
+      } else if (error.code === 'auth/too-many-requests') {
+        errorMessage = "Too many failed attempts. Please wait a moment and try again.";
+      } else if (error.code === 'auth/network-request-failed') {
+        errorMessage = "Network error. Please check your connection and try again.";
+      }
+
+      Alert.alert("Sign In Failed", errorMessage);
     }
   };
 

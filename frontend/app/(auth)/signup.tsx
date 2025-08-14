@@ -29,53 +29,72 @@ export default function LoginPage({ onLogin }: { onLogin: () => void }) {
   const togglePasswordVisibility = () => setShowPassword(prev => !prev);
   const toggleConfirmPasswordVisibility = () => setShowConfirmPassword(prev => !prev);
 
-  const handleLogin = () => {
-    if (!username || !email || !password || !confirmPassword) {
-      alert("Please fill in all fields.");
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      alert("Passwords do not match.");
-      return;
-    }
-
-    onLogin();
-  };
   const handleSignUp = async () => {
     try {
-      if (!username || !email || !password || !confirmPassword) {
-        Alert.alert("Error", "Please fill in all fields.");
+      if (!email || !password || !confirmPassword) {
+        Alert.alert(
+          "Missing Information",
+          "Please fill in all fields to create your account.",
+          [{ text: "OK" }]
+        );
         return;
       }
 
       if (password !== confirmPassword) {
-        Alert.alert("Error", "Passwords do not match.");
+        Alert.alert(
+          "Password Mismatch",
+          "The passwords you entered do not match. Please try again.",
+          [{ text: "OK" }]
+        );
         return;
       }
 
-      // Create user in Firebase Authentication
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        Alert.alert(
+          "Invalid Email",
+          "Please enter a valid email address.",
+          [{ text: "OK" }]
+        );
+        return;
+      }
+
+      // Create user account
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         email,
         password
       );
-      const user = userCredential.user;
 
-      // Store additional user data in Firestore
-      await setDoc(doc(db, "users", user.uid), {
-        username,
-        email,
-        createdAt: new Date().toISOString(),
-      });
-
-      // Navigate to signin
-      router.replace("/(auth)/signin");
-      Alert.alert("Success", "Account created successfully. Please sign in.");
+      if (userCredential?.user) {
+        Alert.alert(
+          "Account Created",
+          "Your account has been created successfully!",
+          [
+            {
+              text: "OK",
+              onPress: () => {
+                router.replace("/(auth)/signin");
+              },
+            },
+          ]
+        );
+      }
     } catch (error: any) {
-      Alert.alert("Error", error.message);
+    let errorMessage = "An error occurred during signup.";
+    
+    if (error.code === 'auth/email-already-in-use') {
+      errorMessage = "This email is already registered. Please use a different email or sign in.";
+    } else if (error.code === 'auth/weak-password') {
+      errorMessage = "Please choose a stronger password (at least 6 characters).";
+    } else if (error.code === 'auth/invalid-email') {
+      errorMessage = "The email address is not valid.";
     }
-  };
+
+    console.error("Signup Error:", error);
+    Alert.alert("Sign Up Error", errorMessage, [{ text: "OK" }]);
+  }
+};
 
   return (
     <View className="flex-1" style={{ backgroundColor: colors.primary }}>
@@ -127,20 +146,6 @@ export default function LoginPage({ onLogin }: { onLogin: () => void }) {
           >
             Enter your credentials to Sign Up
           </Text>
-
-          {/* Username */}
-          <TextInput
-            className="border rounded-md px-4 py-3 mb-4"
-            style={{
-              borderColor: colors.border,
-              backgroundColor: colors.surface,
-              color: colors.text,
-            }}
-            placeholder="Username"
-            placeholderTextColor={colors.text + "80"}
-            value={username}
-            onChangeText={setUsername}
-          />
 
           {/* Email */}
           <TextInput
