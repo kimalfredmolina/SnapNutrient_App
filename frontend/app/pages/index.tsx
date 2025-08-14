@@ -267,7 +267,7 @@ export default function HomePage() {
 
         {/* Macros */}
         <View
-          className="rounded-2xl p-6 my-3 mb-6"
+          className="rounded-2xl p-6 mb-6"
           style={{
             backgroundColor: colors.surface,
             shadowColor: colors.text === "#FFFFFF" ? "#fff" : "#000",
@@ -277,9 +277,9 @@ export default function HomePage() {
             elevation: 5,
           }}
         >
-          <View className="flex-row justify-between items-center mb-8">
+          <View className="flex-row justify-between items-center mb-6">
             <Text
-              className="text-base font-bold"
+              className="text-xl font-bold"
               style={{ color: colors.text }}
             >
               Macros
@@ -291,29 +291,29 @@ export default function HomePage() {
 
           <View className="flex-row justify-between">
             <MacroCircle
-              label="Carbs"
-              value={142}
-              total={macroGoals.carbs}
-              color="#ff6b6b"
+              label="Calories"
+              value={1250}
+              total={macroGoals.calories}
+              color="#EF4444"
+              unit="cal"
             />
             <MacroCircle
               label="Protein"
               value={87}
               total={macroGoals.protein}
-              color="#4ecdc4"
+              color="#10B981"
+            />
+            <MacroCircle
+              label="Carbs"
+              value={142}
+              total={macroGoals.carbs}
+              color="#3B82F6"
             />
             <MacroCircle
               label="Fat"
               value={45}
               total={macroGoals.fat}
-              color="#45b7d1"
-            />
-            <MacroCircle
-              label="Calories"
-              value={1250}
-              total={macroGoals.calories}
-              color="#f9ca24"
-              unit="cal"
+              color="#F97316"
             />
           </View>
         </View>

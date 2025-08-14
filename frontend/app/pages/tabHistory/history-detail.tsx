@@ -7,8 +7,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Circle } from "react-native-svg";
 
 // Constants for macro circles
-const SIZE = 80;
-const STROKE_WIDTH = 8;
+const SIZE = 64;
+const STROKE_WIDTH = 6;
 const RADIUS = (SIZE - STROKE_WIDTH) / 2;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 
@@ -54,15 +54,13 @@ const MacroCircle = ({
           />
         </Svg>
         <View className="absolute inset-0 justify-center items-center">
-          <Text className="text-lg font-black text-white">
+          <Text className="text-xs font-black" style={{ color: colors.text }}>
             {value}
-          </Text>
-          <Text className="text-xs text-white">
             {unit}
           </Text>
         </View>
       </View>
-      <Text className="text-sm font-bold mt-2" style={{ color: colors.text }}>
+      <Text className="text-xs font-bold mt-2" style={{ color: colors.text }}>
         {label}
       </Text>
       <Text className="text-xs" style={{ color }}>
@@ -306,4 +304,4 @@ export default function HistoryDetail() {
       </ScrollView>
     </SafeAreaView>
   );
-} 
+}
