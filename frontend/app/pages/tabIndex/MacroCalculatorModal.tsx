@@ -125,10 +125,11 @@ export default function MacroCalculatorModal({
     options: { label: string; value: string }[];
     onSelect: (value: string) => void;
   }) => {
+    const { colors } = useTheme();
     const [isOpen, setIsOpen] = useState(false);
 
     return (
-      <View className="mb-4">
+      <View className="mb-4 relative">
         <TouchableOpacity
           className="border rounded-lg p-3 flex-row justify-between items-center"
           style={{ borderColor: colors.border, backgroundColor: colors.surface }}
@@ -146,9 +147,9 @@ export default function MacroCalculatorModal({
         
         {isOpen && (
           <View 
-            className="border border-t-0 rounded-b-lg"
+            className="absolute left-0 right-0 top-full mt-1 z-50 rounded-lg border"
             style={{ borderColor: colors.border, backgroundColor: colors.surface }}
-          >
+          ><ScrollView className="max-h-48">
             {options.map((option) => (
               <TouchableOpacity
                 key={option.value}
@@ -162,6 +163,7 @@ export default function MacroCalculatorModal({
                 <Text style={{ color: colors.text }}>{option.label}</Text>
               </TouchableOpacity>
             ))}
+            </ScrollView>
           </View>
         )}
       </View>
@@ -234,7 +236,7 @@ export default function MacroCalculatorModal({
               Personal Information
             </Text>
 
-            <View className="flex-row space-x-3 mb-4">
+            <View className="flex-row gap-3 mb-1 ">
               <View className="flex-1">
                 <TextInput
                   className="border rounded-lg p-3"
@@ -267,7 +269,7 @@ export default function MacroCalculatorModal({
               </View>
             </View>
 
-            <View className="flex-row space-x-3 mb-4">
+            <View className="flex-row gap-3 mb-4">
               <View className="flex-1">
                 <TextInput
                   className="border rounded-lg p-3"
