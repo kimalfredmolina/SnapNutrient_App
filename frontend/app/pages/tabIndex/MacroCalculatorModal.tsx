@@ -38,7 +38,7 @@ export default function MacroCalculatorModal({
     gender: "",
     height: "",
     weight: "",
-    activityLevel: "" as ActivityLevel, // Add type here
+    activityLevel: "" as ActivityLevel,
     goal: "",
   });
 
@@ -55,7 +55,6 @@ export default function MacroCalculatorModal({
     const age = parseInt(personalInfo.age);
     const height = parseFloat(personalInfo.height);
     const weight = parseFloat(personalInfo.weight);
-
     if (
       !age ||
       !height ||
@@ -97,43 +96,50 @@ export default function MacroCalculatorModal({
     // Calculate TDEE (Total Daily Energy Expenditure)
     const tdee = bmr * activityMultipliers[personalInfo.activityLevel];
 
-    // Adjust for goal
+    // Calculate target calories based on goal
     let targetCalories: number;
     switch (personalInfo.goal) {
       case "lose":
-        targetCalories = tdee - 500; // 500 calorie deficit
+        targetCalories = tdee - 500;
         break;
       case "gain":
-        targetCalories = tdee + 500; // 500 calorie surplus
+        targetCalories = tdee + 500;
         break;
       default:
         targetCalories = tdee;
     }
 
-    // Calculate macros (standard ratios)
-    const proteinCalories = targetCalories * 0.3; // 30% protein
-    const carbCalories = targetCalories * 0.4; // 40% carbs
-    const fatCalories = targetCalories * 0.3; // 30% fat
+    // Protein = 2g per kg
+    const protein = Math.round(weight * 2);
+    const proteinCalories = protein * 4;
+
+    // Fat = 1g per kg
+    const fat = Math.round(weight * 1);
+    const fatCalories = fat * 9;
+
+    // Carbs = remaining calories
+    const carbCalories = targetCalories - (proteinCalories + fatCalories);
+    const carbs = Math.round(carbCalories / 4);
 
     const result = {
       calories: Math.round(targetCalories),
-      protein: Math.round(proteinCalories / 4),
-      carbs: Math.round(carbCalories / 4),
-      fat: Math.round(fatCalories / 9),
+      protein,
+      carbs,
+      fat,
       consumedCalories: 0,
       consumedProtein: 0,
       consumedCarbs: 0,
       consumedFat: 0,
     };
 
-    console.log("Calculated result:", result); // Add this to debug
+    console.log("Calculated result:", result); // Debugging output
     return result;
   };
 
   const handleCalculate = () => {
     const macros = calculateMacros();
     if (macros.calories > 0) {
-      console.log("Calculated macros:", macros); // Add this to debug
+      console.log("Calculated macros:", macros); // Debugging output
       onSave(macros);
       onClose();
     }
@@ -244,7 +250,7 @@ export default function MacroCalculatorModal({
             <Ionicons name="close" size={24} color={colors.text} />
           </TouchableOpacity>
           <Text className="text-lg font-bold" style={{ color: colors.text }}>
-            Calculate Your Macros
+            Calculate Your Macro Nutrient Goals
           </Text>
           <View style={{ width: 24 }} />
         </View>
