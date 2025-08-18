@@ -1,3 +1,6 @@
+// types for macro goals for index.tsx 
+// for macro goals card
+
 export interface MacroGoals {
   calories: number;
   protein: number;
