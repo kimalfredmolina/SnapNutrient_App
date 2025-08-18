@@ -7,6 +7,7 @@ import { useTheme } from "../../contexts/ThemeContext";
 import { Redirect, router } from "expo-router";
 import { useAuth } from "../../contexts/AuthContext";
 import MacroCalculatorModal from "./tabIndex/MacroCalculatorModal";
+import { MacroGoals } from "../../types/macros";
 
 // Constants
 const SIZE = 64;
@@ -26,6 +27,12 @@ const weekdays = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
 const dates = [14, 15, 16, 17, 18, 19, 20]; // mock dates
 const streak = [14, 15]; // days with streak
 
+const calculatePercentage = (consumed: number, total: number): number => {
+  if (total <= 0) return 0;
+  const percentage = (consumed / total) * 100;
+  return Math.min(Math.round(percentage), 100); // Cap at 100%
+};
+
 const MacroCircle = ({
   label,
   value,
@@ -40,13 +47,14 @@ const MacroCircle = ({
   unit?: string;
 }) => {
   const { colors } = useTheme();
-  const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
+  const percentage = calculatePercentage(value, total);
   const offset = CIRCUMFERENCE - (CIRCUMFERENCE * percentage) / 100;
 
   return (
     <View className="items-center">
       <View style={{ width: SIZE, height: SIZE }}>
         <Svg width={SIZE} height={SIZE}>
+          {/* Background circle */}
           <Circle
             cx={SIZE / 2}
             cy={SIZE / 2}
@@ -55,6 +63,7 @@ const MacroCircle = ({
             strokeWidth={STROKE_WIDTH}
             fill="none"
           />
+          {/* Progress circle */}
           <Circle
             cx={SIZE / 2}
             cy={SIZE / 2}
@@ -67,18 +76,22 @@ const MacroCircle = ({
             fill="none"
           />
         </Svg>
+        {/* Center text showing goal */}
         <View className="absolute inset-0 justify-center items-center">
           <Text className="text-xs font-black" style={{ color: colors.text }}>
-            {value}
+            {total}
             {unit}
           </Text>
         </View>
       </View>
+      {/* Label */}
       <Text className="text-xs font-bold mt-2" style={{ color: colors.text }}>
         {label}
       </Text>
+      {/* Consumed percentage */}
       <Text className="text-xs" style={{ color }}>
-        {percentage}%
+        {value}
+        {unit} ({percentage}%)
       </Text>
     </View>
   );
@@ -144,21 +157,26 @@ export default function HomePage() {
   const { colors } = useTheme();
   const { isAuthenticated, user } = useAuth();
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [macroGoals, setMacroGoals] = useState({
-    carbs: 200,
-    protein: 150,
-    fat: 80,
-    calories: 2000,
+  const [macroGoals, setMacroGoals] = useState<MacroGoals>({
+    calories: 0,
+    protein: 0,
+    carbs: 0,
+    fat: 0,
+    consumedCalories: 0,
+    consumedProtein: 0,
+    consumedCarbs: 0,
+    consumedFat: 0,
   });
+
+  // for debugging purposes of macro goals
+  const handleSaveMacros = (newMacros: MacroGoals) => {
+    console.log("New macros:", newMacros);
+    setMacroGoals(newMacros);
+  };
 
   if (!isAuthenticated) {
     return <Redirect href="/(auth)/signin" />;
   }
-
-  const handleSaveMacros = (newMacros: any) => {
-    setMacroGoals(newMacros);
-    // You can also save to AsyncStorage or send to your backend here
-  };
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
@@ -278,11 +296,8 @@ export default function HomePage() {
           }}
         >
           <View className="flex-row justify-between items-center mb-6">
-            <Text
-              className="text-xl font-bold"
-              style={{ color: colors.text }}
-            >
-              Macros
+            <Text className="text-xl font-bold" style={{ color: colors.text }}>
+              Macro Nutrients Goals
             </Text>
             <TouchableOpacity onPress={() => setIsModalVisible(true)}>
               <Ionicons name="create-outline" size={20} color={colors.text} />
@@ -292,26 +307,26 @@ export default function HomePage() {
           <View className="flex-row justify-between">
             <MacroCircle
               label="Calories"
-              value={1250}
+              value={macroGoals.consumedCalories}
               total={macroGoals.calories}
               color="#EF4444"
               unit="cal"
             />
             <MacroCircle
               label="Protein"
-              value={87}
+              value={macroGoals.consumedProtein}
               total={macroGoals.protein}
               color="#10B981"
             />
             <MacroCircle
               label="Carbs"
-              value={142}
+              value={macroGoals.consumedCarbs}
               total={macroGoals.carbs}
               color="#3B82F6"
             />
             <MacroCircle
               label="Fat"
-              value={45}
+              value={macroGoals.consumedFat}
               total={macroGoals.fat}
               color="#F97316"
             />
