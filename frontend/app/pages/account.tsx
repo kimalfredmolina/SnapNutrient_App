@@ -129,7 +129,27 @@ export default function Account() {
               className="ml-4 text-base font-medium flex-1"
               style={{ color: colors.text }}
             >
-              Privacy
+              Privacy Policy
+            </Text>
+            <Ionicons
+              name="chevron-forward"
+              size={20}
+              color={colors.text}
+              style={{ opacity: 0.5 }}
+            />
+          </TouchableOpacity>
+
+          {/* Terms & Conditions */}
+          <TouchableOpacity
+            className="flex-row items-center py-3"
+            onPress={() => router.push("/pages/tabSetting/terms")}
+          >
+            <MaterialIcons name="description" size={24} color={colors.text} />
+            <Text
+              className="ml-4 text-base font-medium flex-1"
+              style={{ color: colors.text }}
+            >
+              Terms & Conditions
             </Text>
             <Ionicons
               name="chevron-forward"
@@ -233,7 +253,7 @@ export default function Account() {
         <View className="flex-1" />
 
         {/* Logout */}
-        <View className="mt-16 mb-4">
+        <View className="mt-4 mb-4">
           <TouchableOpacity
             className="rounded-xl py-3 border"
             style={{ borderColor: colors.accent }}
