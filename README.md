@@ -18,6 +18,7 @@ This study highlights the development and implementation of SnapNutrient, focusi
 - 🌍 Support for local and international cuisines
 
 ## 📚 Documentation
+- 🛠️ Expo CLI
 - 🎨 Clean and user-friendly UI ([View Figma Design](https://www.figma.com/design/l02RJEt5eMlpr21sAJeOKg/UI-design?m=auto&t=Uf2Ad1lW1D1D7KCm-1))
 - 📚 Expo Camera ([Expo Camera Documentation](https://docs.expo.dev/versions/latest/sdk/camera/))
 
