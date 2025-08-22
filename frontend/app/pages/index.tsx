@@ -187,8 +187,18 @@ export default function HomePage() {
         {/* Welcome */}
         <View className="flex-row items-center space-x-3">
           <Image
-            source={require("../../assets/images/icon.png")}
-            style={{ width: 40, height: 40, borderRadius: 999 }}
+            source={
+              user?.photoURL
+                ? { uri: user.photoURL }
+                : require("../../assets/images/icon.png")
+            }
+            style={{
+              width: 45,
+              height: 45,
+              borderRadius: 999,
+              borderWidth: 2,
+              borderColor: colors.primary
+            }}
           />
           <Text
             className="text-2xl font-bold pl-4"

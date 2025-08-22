@@ -54,9 +54,15 @@ export default function Account() {
           }}
         >
           <Image
-            source={require("../../assets/images/icon.png")}
+            source={
+              user?.photoURL
+                ? { uri: user.photoURL }
+                : require("../../assets/images/icon.png")
+            }
             className="w-16 h-16 rounded-full border-2"
-            style={{ borderColor: colors.primary }}
+            style={{
+              backgroundColor: colors.surface,
+            }}
           />
           <View className="ml-4 flex-1">
             <Text className="text-lg font-bold" style={{ color: colors.text }}>
