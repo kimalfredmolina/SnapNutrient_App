@@ -124,7 +124,7 @@ export default function Account() {
             className="flex-row items-center py-3"
             onPress={() => router.push("/pages/tabSetting/privacy")}
           >
-            <MaterialIcons name="security" size={24} color={colors.text} />
+            <Ionicons name="shield-half-outline" size={24} color={colors.text} />
             <Text
               className="ml-4 text-base font-medium flex-1"
               style={{ color: colors.text }}
@@ -144,7 +144,7 @@ export default function Account() {
             className="flex-row items-center py-3"
             onPress={() => router.push("/pages/tabSetting/terms")}
           >
-            <MaterialIcons name="description" size={24} color={colors.text} />
+            <Ionicons name="document-text-outline" size={24} color={colors.text} />
             <Text
               className="ml-4 text-base font-medium flex-1"
               style={{ color: colors.text }}
