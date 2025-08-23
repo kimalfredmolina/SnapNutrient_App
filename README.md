@@ -137,10 +137,3 @@ npx expo start --dev-client
 
 ---
 
-## 📚 Learn More
-
-- [Expo Documentation](https://docs.expo.dev/)
-- [NativeWind Documentation](https://www.nativewind.dev/)
-- [Tailwind CSS Documentation](https://tailwindcss.com/docs/installation)
-
----
