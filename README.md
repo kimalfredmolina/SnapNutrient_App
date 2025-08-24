@@ -17,7 +17,8 @@ This study highlights the development and implementation of SnapNutrient, focusi
 - 🧠 AI-powered dietary analysis
 - 🌍 Support for local and international cuisines
 
-## 📚 Documentation 
+## 📚 Documentation
+
 - 🛠️ Expo CLI ([View Documentation](https://docs.expo.dev/more/expo-cli/))
 - 🎨 Clean and user-friendly UI ([View Figma Design](https://www.figma.com/design/l02RJEt5eMlpr21sAJeOKg/UI-design?m=auto&t=Uf2Ad1lW1D1D7KCm-1))
 - 📚 Expo Camera ([Expo Camera Documentation](https://docs.expo.dev/versions/latest/sdk/camera/))
@@ -109,7 +110,6 @@ npm install -g eas-cli
 eas login
 ```
 
-
 ### 3.2 Install this to build or rebuild the app after installing native modules
 
 ```bash
@@ -137,3 +137,26 @@ npx expo start --dev-client
 
 ---
 
+to setup your own server
+
+step 1: create an environment inside the backend first. run this
+
+python -m venv .venv
+
+and then activate it using this command
+
+.\.venv\Scripts\activate
+
+then install this to apply the necessary dependencies used by the model to work
+
+pip install fastapi uvicorn ultralytics torch torchvision pillow python-multipart
+
+and then start the server by using this command
+
+uvicorn app:app --host 0.0.0.0 --port 8000 --reload
+
+then in another terminal run the app
+
+also if image picker isnt working install this dependencies
+
+import \* as ImagePicker from 'expo-image-picker';
