@@ -347,7 +347,7 @@ export default function HomePage() {
         >
           <View className="flex-row justify-between items-center mb-6">
             <Text className="text-xl font-bold" style={{ color: colors.text }}>
-              Macro Nutrients Goals
+              Your Daily Macro Goal
             </Text>
             <TouchableOpacity onPress={() => setIsModalVisible(true)}>
               <Ionicons name="create-outline" size={20} color={colors.text} />
