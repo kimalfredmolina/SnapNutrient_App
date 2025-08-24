@@ -1,7 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
-import { getAnalytics } from "firebase/analytics";
+import { getDatabase } from 'firebase/database';
 import Constants from 'expo-constants';
 
 // TODO: Add SDKs for Firebase products that you want to use
@@ -18,10 +17,10 @@ const firebaseConfig = {
   messagingSenderId: Constants.expoConfig?.extra?.firebaseMessagingSenderId ?? process.env.FIREBASE_MESSAGING_SENDER_ID,
   appId: Constants.expoConfig?.extra?.firebaseAppId ?? process.env.FIREBASE_APP_ID,
   measurementId: Constants.expoConfig?.extra?.firebaseMeasurementId ?? process.env.FIREBASE_MEASUREMENT_ID,
+  databaseURL: "https://snap-nutrient-app-default-rtdb.asia-southeast1.firebasedatabase.app", // Make sure this is correct
 };
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
 export const auth = getAuth(app);
-export const db = getFirestore(app);
+export const db = getDatabase(app);

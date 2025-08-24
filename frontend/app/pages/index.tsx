@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Text, View, ScrollView, TouchableOpacity, Image } from "react-native";
+import React, { useState, useEffect } from "react";
+import { Text, View, ScrollView, TouchableOpacity, Image, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Circle } from "react-native-svg";
@@ -8,6 +8,8 @@ import { Redirect, router } from "expo-router";
 import { useAuth } from "../../contexts/AuthContext";
 import MacroCalculatorModal from "./tabIndex/MacroCalculatorModal";
 import { MacroGoals } from "../../types/macros";
+import { db, auth } from "../../config/firebase";
+import { ref, onValue, off, set } from "firebase/database";
 
 // Constants
 const SIZE = 64;
@@ -168,10 +170,48 @@ export default function HomePage() {
     consumedFat: 0,
   });
 
-  // for debugging purposes of macro goals
+  // For debugging who's currently authenticated/signin by UID
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      console.log("Auth state changed:", user?.uid);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    const userId = auth.currentUser?.uid;
+    if (!userId) return;
+
+    const macroRef = ref(db, `users/${userId}/macroGoals`);
+
+    onValue(macroRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        setMacroGoals(data);
+        console.log("Loaded macro goals:", data);
+      }
+    });
+
+    return () => {
+      off(macroRef);
+    };
+  }, []);
+
   const handleSaveMacros = (newMacros: MacroGoals) => {
-    console.log("New macros:", newMacros);
-    setMacroGoals(newMacros);
+    const userId = auth.currentUser?.uid;
+    if (!userId) return;
+
+    // Save to Firebase
+    set(ref(db, `users/${userId}/macroGoals`), {
+      ...newMacros,
+      updatedAt: new Date().toISOString()
+    }).then(() => {
+      setMacroGoals(newMacros);
+      console.log("Saved new macros:", newMacros);
+    }).catch((error) => {
+      console.error("Error saving macros:", error);
+      Alert.alert("Error", "Failed to save macro goals");
+    });
   };
 
   if (!isAuthenticated) {

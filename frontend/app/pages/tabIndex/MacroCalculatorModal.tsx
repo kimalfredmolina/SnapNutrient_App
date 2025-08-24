@@ -11,6 +11,8 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../../../contexts/ThemeContext";
 import { MacroGoals } from "../../../types/macros";
+import { db, auth } from "../../../config/firebase";
+import { ref, set } from "firebase/database";
 
 interface MacroCalculatorModalProps {
   visible: boolean;
@@ -136,12 +138,46 @@ export default function MacroCalculatorModal({
     return result;
   };
 
-  const handleCalculate = () => {
+  const handleCalculate = async () => {
     const macros = calculateMacros();
     if (macros.calories > 0) {
-      console.log("Calculated macros:", macros); // Debugging output
-      onSave(macros);
-      onClose();
+      try {
+        const userId = auth.currentUser?.uid;
+        console.log("Current user ID:", userId); // Debug user ID
+
+        if (!userId) {
+          Alert.alert("Error", "You must be logged in to save macro goals");
+          return;
+        }
+
+        const databaseRef = ref(db, `users/${userId}/macroGoals`);
+        console.log("Database reference path:", `users/${userId}/macroGoals`); // Debug path
+
+        const dataToSave = {
+          ...macros,
+          updatedAt: new Date().toISOString(),
+        };
+        console.log("Data to save:", dataToSave); // Debug data
+
+        // Use set with error callback
+        await set(databaseRef, dataToSave)
+          .then(() => {
+            console.log("Data successfully saved to Firebase");
+            onSave(macros);
+            onClose();
+          })
+          .catch((error) => {
+            throw error; // Propagate error to outer catch block
+          });
+      } catch (error: any) {
+        console.error("Detailed error saving macros:", {
+          code: error.code,
+          message: error.message,
+          stack: error.stack,
+        });
+
+        Alert.alert("Error Saving Data", `Failed to save macro goals: ${error.message}`);
+      }
     }
   };
 
