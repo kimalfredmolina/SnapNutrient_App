@@ -228,7 +228,7 @@ export default function HistoryDetail() {
               Macros
             </Text>
             <TouchableOpacity>
-              <Ionicons name="settings-outline" size={20} color={colors.text} />
+              <Ionicons name="create-outline" size={20} color={colors.text} />
             </TouchableOpacity>
           </View>
 
