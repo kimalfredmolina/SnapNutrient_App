@@ -9,6 +9,31 @@ The application not only provides accurate data on macronutrients like proteins,
 This study highlights the development and implementation of SnapNutrient, focusing on the integration of YOLOv8 for food recognition, the design of its user-friendly interface, and its potential impact on promoting healthier dietary habits. By leveraging artificial intelligence, the project aims to contribute to global health efforts, enabling individuals to take proactive control of their nutritional intake and overall well-being.
 
 ---
+
+## To run both Frontend and Backend
+
+### Frontend
+```bash
+cd frontend
+```
+```bash
+npx expo start --dev-client
+```
+
+### Backend
+```bash
+cd backend
+```
+```bash
+python -m venv .venv
+```
+```bash
+.\.venv\Scripts\activate
+```
+```bash
+uvicorn app:app --host 0.0.0.0 --port 8000 --reload
+```
+
 # Frontend Setup
 
 ## 🌟 Key Features
