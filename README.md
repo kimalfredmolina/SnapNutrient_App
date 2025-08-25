@@ -34,8 +34,6 @@ python -m venv .venv
 uvicorn app:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-# Frontend Setup
-
 ## 🌟 Key Features
 
 - 📷 Real-time food recognition using YOLOv8
@@ -50,6 +48,8 @@ uvicorn app:app --host 0.0.0.0 --port 8000 --reload
 - 📚 Expo Camera ([Expo Camera Documentation](https://docs.expo.dev/versions/latest/sdk/camera/))
 
 ---
+
+# Frontend Setup
 
 ## 🚀 Getting Started Project Installation
 
