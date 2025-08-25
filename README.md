@@ -9,6 +9,7 @@ The application not only provides accurate data on macronutrients like proteins,
 This study highlights the development and implementation of SnapNutrient, focusing on the integration of YOLOv8 for food recognition, the design of its user-friendly interface, and its potential impact on promoting healthier dietary habits. By leveraging artificial intelligence, the project aims to contribute to global health efforts, enabling individuals to take proactive control of their nutritional intake and overall well-being.
 
 ---
+# Frontend Setup
 
 ## 🌟 Key Features
 
@@ -99,6 +100,10 @@ npx expo install expo-camera
 npm install react-native-calendars
 ```
 
+### 2.7 Install Expo Image Picker
+```bash
+npm install expo-image-picker
+```
 ---
 
 ## EAS Installation and Setup
@@ -129,34 +134,26 @@ npx expo start --dev-client
 
 ---
 
-## 🛠️ Project Structure
+# Backend Setup
 
-- `app/` — Main application code (screens, components)
-- `tailwind.config.js` — Tailwind/NativeWind configuration
-- backend
+### Step 1: Create an environment inside the backend first. run this
 
----
-
-to setup your own server
-
-step 1: create an environment inside the backend first. run this
-
+```bash
 python -m venv .venv
-
-and then activate it using this command
-
+```
+And then activate it using this command
+```bash
 .\.venv\Scripts\activate
+```
 
-then install this to apply the necessary dependencies used by the model to work
-
+### Step 2: Install this to apply the necessary dependencies used by the model to work
+```bash
 pip install fastapi uvicorn ultralytics torch torchvision pillow python-multipart
+```
 
-and then start the server by using this command
-
+### Step 3: Start the server by using this command
+```bash
 uvicorn app:app --host 0.0.0.0 --port 8000 --reload
+```
+Then in another terminal run the frontend app
 
-then in another terminal run the app
-
-also if image picker isnt working install this dependencies
-
-import \* as ImagePicker from 'expo-image-picker';
