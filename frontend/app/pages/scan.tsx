@@ -7,6 +7,7 @@ import { useRouter } from "expo-router";
 import { useTheme } from "../../contexts/ThemeContext";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as ImagePicker from "expo-image-picker";
+import CONFIG from "../../server";
 
 export default function Scan() {
   const cameraRef = useRef<CameraView>(null);
@@ -69,7 +70,7 @@ export default function Scan() {
         type: "image/jpeg",
       } as any);
 
-      const res = await fetch("http://192.168.100.7:8000/predict", {
+      const res = await fetch(`${CONFIG.API_BASE_URL}/predict`, {
         method: "POST",
         body: formData,
         headers: { "Content-Type": "multipart/form-data" },
@@ -302,16 +303,13 @@ export default function Scan() {
                       type: "image/jpeg",
                     } as any);
 
-                    const res = await fetch(
-                      "http://192.168.100.7:8000/predict",
-                      {
-                        method: "POST",
-                        body: formData,
-                        headers: {
-                          "Content-Type": "multipart/form-data",
-                        },
-                      }
-                    );
+                    const res = await fetch(`${CONFIG.API_BASE_URL}/predict`, {
+                      method: "POST",
+                      body: formData,
+                      headers: {
+                        "Content-Type": "multipart/form-data",
+                      },
+                    });
 
                     const data = await res.json();
                     console.log("AI Predictions:", data);
