@@ -28,14 +28,10 @@ export default function Scan() {
           setCapturedPhoto(photo.uri);
           console.log("Photo taken:", photo.uri);
 
-          Alert.alert(
-            "Photo Captured!",
-            "Photo taken successfully.",
-            [
-              { text: "Take Another", onPress: () => setCapturedPhoto(null) },
-              { text: "OK" },
-            ]
-          );
+          Alert.alert("Photo Captured!", "Photo taken successfully.", [
+            { text: "Take Another", onPress: () => setCapturedPhoto(null) },
+            { text: "OK" },
+          ]);
         }
       } catch (error) {
         console.error("Error taking photo:", error);
@@ -116,8 +112,12 @@ export default function Scan() {
   if (!permission) {
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
-        <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-          <Text style={{ color: colors.text, fontSize: 16 }}>Loading camera...</Text>
+        <View
+          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+        >
+          <Text style={{ color: colors.text, fontSize: 16 }}>
+            Loading camera...
+          </Text>
         </View>
       </SafeAreaView>
     );
@@ -264,7 +264,9 @@ export default function Scan() {
                 alignItems: "center",
               }}
             >
-              <Text style={{ color: colors.text, fontSize: 16, fontWeight: "600" }}>
+              <Text
+                style={{ color: colors.text, fontSize: 16, fontWeight: "600" }}
+              >
                 Retake Photo
               </Text>
             </TouchableOpacity>
@@ -297,7 +299,9 @@ export default function Scan() {
         facing={facing}
         flash={isFlashOn ? "on" : "off"}
       >
-        <SafeAreaView style={{ position: "absolute", top: 0, left: 0, right: 0 }}>
+        <SafeAreaView
+          style={{ position: "absolute", top: 0, left: 0, right: 0 }}
+        >
           <View
             style={{
               flexDirection: "row",
