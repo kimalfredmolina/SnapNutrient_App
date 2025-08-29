@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -16,6 +16,7 @@ import { createUserWithEmailAndPassword } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
 import { Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function LoginPage({ onLogin }: { onLogin: () => void }) {
   const [username, setUsername] = useState("");
@@ -28,6 +29,33 @@ export default function LoginPage({ onLogin }: { onLogin: () => void }) {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const togglePasswordVisibility = () => setShowPassword(prev => !prev);
   const toggleConfirmPasswordVisibility = () => setShowConfirmPassword(prev => !prev);
+  const [agreed, setAgreed] = useState(false);
+
+  useEffect(() => {
+    checkAgreementStatus();
+  }, []);
+
+  // Function for checking agreement status
+  const checkAgreementStatus = async () => {
+    try {
+      const hasAgreed = await AsyncStorage.getItem('hasAgreedToTerms');
+      if (hasAgreed === 'true') {
+        setAgreed(true);
+      }
+    } catch (error) {
+      console.error('Error checking agreement status:', error);
+    }
+  };
+
+  // Function for handling agreement changes
+  const handleAgreementChange = async (value: boolean) => {
+    try {
+      setAgreed(value);
+      await AsyncStorage.setItem('hasAgreedToTerms', value.toString());
+    } catch (error) {
+      console.error('Error saving agreement status:', error);
+    }
+  };
 
   const handleSignUp = async () => {
     try {
@@ -188,37 +216,39 @@ export default function LoginPage({ onLogin }: { onLogin: () => void }) {
           </View>
 
           {/* Confirm Password */}
-<View className="border rounded-md px-4 py-0 mb-4 flex-row items-center"
-  style={{
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
-  }}
->
-  <TextInput
-    className="flex-1 py-3 pr-2"
-    placeholder="Confirm Password"
-    placeholderTextColor={colors.text + "80"}
-    secureTextEntry={!showConfirmPassword}
-    value={confirmPassword}
-    onChangeText={setConfirmPassword}
-    style={{ color: colors.text }}
-  />
-  <Pressable onPress={toggleConfirmPasswordVisibility}>
-    <Ionicons
-      name={showConfirmPassword ? "eye-off" : "eye"}
-      size={24}
-      color={colors.text}
-    />
-  </Pressable>
-</View>
+          <View className="border rounded-md px-4 py-0 mb-4 flex-row items-center"
+            style={{
+              borderColor: colors.border,
+              backgroundColor: colors.surface,
+            }}
+          >
+            <TextInput
+              className="flex-1 py-3 pr-2"
+              placeholder="Confirm Password"
+              placeholderTextColor={colors.text + "80"}
+              secureTextEntry={!showConfirmPassword}
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+              style={{ color: colors.text }}
+            />
+            <Pressable onPress={toggleConfirmPasswordVisibility}>
+              <Ionicons
+                name={showConfirmPassword ? "eye-off" : "eye"}
+                size={24}
+                color={colors.text}
+              />
+            </Pressable>
+          </View>
 
 
           {/* Sign Up Button */}
           <TouchableOpacity
             onPress={handleSignUp}
+            disabled={!agreed}
             className="py-4 rounded-lg items-center mb-4"
             style={{
               backgroundColor: colors.accent,
+              opacity: agreed ? 1 : 0.5,
               shadowColor: colors.accent,
               shadowOffset: { width: 0, height: 4 },
               shadowOpacity: 0.3,
@@ -229,16 +259,40 @@ export default function LoginPage({ onLogin }: { onLogin: () => void }) {
             <Text className="text-white font-semibold text-base">Sign Up</Text>
           </TouchableOpacity>
 
-          {/* Terms & Privacy */}
-          <View className="pb-4 mt-4">
-            <Text
-              className="text-xs text-center"
-              style={{ color: colors.text, opacity: 0.6 }}
+          {/* Terms & Privacy with Checkbox */}
+          <View className="pb-4 mt-4 mx-auto flex-row items-center">
+            {/* Checkbox */}
+            <Pressable
+              onPress={() => handleAgreementChange(!agreed)}
+              className="flex-row items-center mr-2"
             >
-              By clicking continue, you agree to our{" "}
-              <Text style={{ color: colors.secondary }}>Terms of Service</Text>{" "}
+              <View
+                className="w-5 h-5 mr-2 rounded border items-center justify-center"
+                style={{
+                  borderColor: colors.border,
+                  backgroundColor: agreed ? colors.primary : colors.background,
+                }}
+              >
+                {agreed && (
+                  <Ionicons
+                    name="checkmark"
+                    size={14}
+                    color={isDark ? "#000" : "#fff"}
+                  />
+                )}
+              </View>
+            </Pressable>
+
+            {/* Text with links */}
+            <Text style={{ color: colors.text, fontSize: 12 }}>
+              I agree to the{" "}
+              <Link href="/terms" asChild>
+                <Text style={{ color: colors.secondary }}>Terms</Text>
+              </Link>{" "}
               and{" "}
-              <Text style={{ color: colors.secondary }}>Privacy Policy</Text>.
+              <Link href="/privacy" asChild>
+                <Text style={{ color: colors.secondary }}>Privacy Policy</Text>
+              </Link>
             </Text>
           </View>
 

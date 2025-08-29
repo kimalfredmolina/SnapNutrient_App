@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -23,6 +23,7 @@ import {
 import * as WebBrowser from "expo-web-browser";
 import * as Google from "expo-auth-session/providers/google";
 import * as AuthSession from "expo-auth-session";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -35,6 +36,33 @@ export default function LoginPage() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const togglePasswordVisibility = () => setShowPassword((prev) => !prev);
+  const [agreed, setAgreed] = useState(false);
+
+  useEffect(() => {
+    checkAgreementStatus();
+  }, []);
+
+  // Function for checking agreement status
+  const checkAgreementStatus = async () => {
+    try {
+      const hasAgreed = await AsyncStorage.getItem('hasAgreedToTerms');
+      if (hasAgreed === 'true') {
+        setAgreed(true);
+      }
+    } catch (error) {
+      console.error('Error checking agreement status:', error);
+    }
+  };
+
+  // Function for handling agreement changes
+  const handleAgreementChange = async (value: boolean) => {
+    try {
+      setAgreed(value);
+      await AsyncStorage.setItem('hasAgreedToTerms', value.toString());
+    } catch (error) {
+      console.error('Error saving agreement status:', error);
+    }
+  };
 
   const redirectUri = AuthSession.makeRedirectUri({
     native: "com.snapnutrient.app://",
@@ -305,9 +333,11 @@ export default function LoginPage() {
           {/* Sign In Button */}
           <TouchableOpacity
             onPress={handleLogin}
+            disabled={!agreed}
             className="py-4 rounded-lg items-center"
             style={{
               backgroundColor: colors.accent,
+              opacity: agreed ? 1 : 0.5,
               shadowColor: colors.accent,
               shadowOffset: { width: 0, height: 4 },
               shadowOpacity: 0.3,
@@ -336,9 +366,11 @@ export default function LoginPage() {
           {/* Google SignIn */}
           <TouchableOpacity
             onPress={handleGoogleSignIn}
+            disabled={!agreed}
             className="flex-row items-center justify-center rounded-lg py-3 mb-4"
             style={{
               backgroundColor: colors.surface,
+              opacity: agreed ? 1 : 0.5,
               shadowColor: colors.text === "#FFFFFF" ? "#fff" : "#000",
               shadowOffset: { width: 0, height: 1 },
               shadowOpacity: 1,
@@ -347,9 +379,7 @@ export default function LoginPage() {
             }}
           >
             <Image
-              source={{
-                uri: "https://img.icons8.com/color/48/google-logo.png",
-              }}
+              source={{ uri: "https://img.icons8.com/color/48/google-logo.png" }}
               className="w-6 h-6 mr-3"
             />
             <Text style={{ color: colors.text, fontWeight: "500" }}>
@@ -359,9 +389,11 @@ export default function LoginPage() {
 
           {/* Apple SignIn */}
           <TouchableOpacity
+            disabled={!agreed}
             className="flex-row items-center justify-center rounded-lg py-3 mb-2"
             style={{
               backgroundColor: colors.surface,
+              opacity: agreed ? 1 : 0.5,
               shadowColor: colors.text === "#FFFFFF" ? "#fff" : "#000",
               shadowOffset: { width: 0, height: 1 },
               shadowOpacity: 1,
@@ -370,9 +402,7 @@ export default function LoginPage() {
             }}
           >
             <Image
-              source={{
-                uri: "https://img.icons8.com/ios-filled/50/mac-os.png",
-              }}
+              source={{ uri: "https://img.icons8.com/ios-filled/50/mac-os.png" }}
               className="w-6 h-6 mr-3"
               style={{ tintColor: colors.text }}
             />
@@ -381,16 +411,40 @@ export default function LoginPage() {
             </Text>
           </TouchableOpacity>
 
-          {/* Terms & Privacy */}
-          <View className="pb-4 mt-4">
-            <Text
-              className="text-xs text-center"
-              style={{ color: colors.text, opacity: 0.6 }}
+          {/* Terms & Privacy with Checkbox */}
+          <View className="pb-4 mt-4 mx-auto flex-row items-center">
+            {/* Checkbox */}
+            <Pressable
+              onPress={() => handleAgreementChange(!agreed)}
+              className="flex-row items-center mr-2"
             >
-              By clicking continue, you agree to our{" "}
-              <Text style={{ color: colors.secondary }}>Terms of Service</Text>{" "}
+              <View
+                className="w-5 h-5 mr-2 rounded border items-center justify-center"
+                style={{
+                  borderColor: colors.border,
+                  backgroundColor: agreed ? colors.primary : colors.background,
+                }}
+              >
+                {agreed && (
+                  <Ionicons
+                    name="checkmark"
+                    size={14}
+                    color={isDark ? "#000" : "#fff"}
+                  />
+                )}
+              </View>
+            </Pressable>
+
+            {/* Text with links */}
+            <Text style={{ color: colors.text, fontSize: 12 }}>
+              I agree to the{" "}
+              <Link href="/terms" asChild>
+                <Text style={{ color: colors.secondary }}>Terms</Text>
+              </Link>{" "}
               and{" "}
-              <Text style={{ color: colors.secondary }}>Privacy Policy</Text>.
+              <Link href="/privacy" asChild>
+                <Text style={{ color: colors.secondary }}>Privacy Policy</Text>
+              </Link>
             </Text>
           </View>
 
