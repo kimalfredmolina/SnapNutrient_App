@@ -37,7 +37,7 @@ uvicorn app:app --host 0.0.0.0 --port 8000 --reload
 ## 🌟 Key Features
 
 - 📷 Real-time food recognition using YOLOv8
-- 🍽️ Instant macronutrient estimation (Protein, Carbs, Fats)
+- 🍽️ Instant macronutrient estimation (Calories, Protein, Carbs, Fats)
 - 🧠 AI-powered dietary analysis
 - 🌍 Support for local and international cuisines
 
