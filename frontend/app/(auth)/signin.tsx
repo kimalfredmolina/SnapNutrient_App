@@ -320,14 +320,16 @@ export default function LoginPage() {
                 Remember me
               </Text>
             </Pressable>
-            <Pressable>
-              <Text
-                className="text-sm font-medium"
-                style={{ color: colors.secondary }}
-              >
+            <Link href="/(auth)/forgot_pass" asChild>
+              <Pressable>
+                <Text
+                  className="text-sm font-medium"
+                  style={{ color: colors.secondary }}
+                >
                 Forgot password?
               </Text>
             </Pressable>
+            </Link>
           </View>
 
           {/* Sign In Button */}
