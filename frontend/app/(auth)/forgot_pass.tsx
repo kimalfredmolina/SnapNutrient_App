@@ -25,7 +25,14 @@ export default function ForgotPasswordPage() {
     }
 
     try {
-      await sendPasswordResetEmail(auth, email);
+      const actionCodeSettings = {
+        // Redirect URL after password reset
+        url: "https://snap-nutrient-app.firebaseapp.com/reset-success",
+        handleCodeInApp: true,
+      };
+
+      await sendPasswordResetEmail(auth, email, actionCodeSettings);
+
       Alert.alert(
         "Reset Link Sent",
         "Please check your email to reset your password.",
