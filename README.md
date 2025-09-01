@@ -37,7 +37,7 @@ uvicorn app:app --host 0.0.0.0 --port 8000 --reload
 ## 🌟 Key Features
 
 - 📷 Real-time food recognition using YOLOv8
-- 🍽️ Instant macronutrient estimation (Protein, Carbs, Fats)
+- 🍽️ Instant macronutrient estimation (Calories, Protein, Carbs, Fats)
 - 🧠 AI-powered dietary analysis
 - 🌍 Support for local and international cuisines
 
@@ -182,3 +182,7 @@ uvicorn app:app --host 0.0.0.0 --port 8000 --reload
 ```
 Then in another terminal run the frontend app
 
+### Lastly Change the IPv4 Server in server.ts (if you dont have create one inside the frontend folder) run this in terminal to see the IPv4
+```bash
+ipconfig
+```

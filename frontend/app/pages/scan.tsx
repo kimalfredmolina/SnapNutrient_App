@@ -514,7 +514,7 @@ export default function Scan() {
             <Text
               style={{ color: colors.text, fontSize: 16, marginBottom: 12 }}
             >
-              ⚖️ Weight (grams):
+              Weight (grams):
             </Text>
             <TextInput
               value={String(weight)}
