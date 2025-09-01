@@ -41,4 +41,8 @@ app-example
 
 .env
 
-config.ts
+server.ts
+
+.vscode/
+backend/.venv/
+backend/__pycache__/

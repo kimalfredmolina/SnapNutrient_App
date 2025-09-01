@@ -1,6 +1,12 @@
-import React from "react";
-import { useRef, useState } from "react";
-import { View, Text, TouchableOpacity, Image, Alert } from "react-native";
+import React, { useRef, useState } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  Image,
+  Alert,
+} from "react-native";
 import { CameraView, type CameraType, useCameraPermissions } from "expo-camera";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
@@ -8,6 +14,7 @@ import { useTheme } from "../../contexts/ThemeContext";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as ImagePicker from "expo-image-picker";
 import CONFIG from "../../server";
+import { foodMacros } from "../macros/dish-level-macros";
 
 export default function Scan() {
   const cameraRef = useRef<CameraView>(null);
@@ -17,6 +24,21 @@ export default function Scan() {
   const [facing, setFacing] = useState<CameraType>("back");
   const { colors } = useTheme();
   const router = useRouter();
+  const [state, setState] = useState<"preview" | "result">("preview");
+  const [predictions, setPredictions] = useState<any[]>([]);
+
+  const [weight, setweight] = useState<number>(100);
+  const detected = predictions.length > 0 ? predictions[0].class : null;
+  const macros = detected ? foodMacros[detected] : null;
+
+  const scaled = macros
+    ? {
+        carbs: (macros.carbs * weight).toFixed(1),
+        protein: (macros.protein * weight).toFixed(1),
+        fat: (macros.fat * weight).toFixed(1),
+        calories: (macros.calories * weight).toFixed(1),
+      }
+    : null;
 
   const takePhoto = async () => {
     if (cameraRef.current) {
@@ -25,19 +47,19 @@ export default function Scan() {
           quality: 0.8,
         });
 
+        // if (photo) {
+        //   setCapturedPhoto(photo.uri);
+        //   console.log("Photo taken:", photo.uri);
+
+        //   Alert.alert("Photo Captured!", "Photo taken successfully.", [
+        //     { text: "Take Another", onPress: () => setCapturedPhoto(null) },
+        //     { text: "OK" },
+        //   ]);
+        // }
         if (photo) {
           setCapturedPhoto(photo.uri);
           console.log("Photo taken:", photo.uri);
-
-          // Mock: Show success message
-          Alert.alert(
-            "Photo Captured!",
-            "Photo taken successfully. Ai integration coming soon!",
-            [
-              { text: "Take Another", onPress: () => setCapturedPhoto(null) },
-              { text: "OK" },
-            ]
-          );
+          setState("preview");
         }
       } catch (error) {
         console.error("Error taking photo:", error);
@@ -46,19 +68,20 @@ export default function Scan() {
     }
   };
 
-  // 🖼 Pick image from gallery
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       quality: 0.8,
     });
 
+    console.log("ImagePicker result:", result);
+
     if (!result.canceled) {
       setCapturedPhoto(result.assets[0].uri);
+      setState("preview"); // <-- important!
     }
   };
 
-  // 🔮 Send image to AI backend
   const processWithAI = async () => {
     if (!capturedPhoto) return;
 
@@ -70,19 +93,42 @@ export default function Scan() {
         type: "image/jpeg",
       } as any);
 
+      const startTime = Date.now();
+
       const res = await fetch(`${CONFIG.API_BASE_URL}/predict`, {
         method: "POST",
         body: formData,
         headers: { "Content-Type": "multipart/form-data" },
       });
 
+      const endTime = Date.now();
+      const duration = ((endTime - startTime) / 1000).toFixed(2);
+
       const data = await res.json();
       console.log("AI Predictions:", data);
 
+      // if (data.predictions?.length > 0) {
+      //   Alert.alert(
+      //     "AI Results",
+      //     `Analysis Time: ${duration}s\n\n${JSON.stringify(
+      //       data.predictions,
+      //       null,
+      //       2
+      //     )}`
+      //   );
+      // } else {
+      //   Alert.alert(
+      //     "No detections",
+      //     `Analysis Time: ${duration}s\n\nThe AI model found nothing.`
+      //   );
+      // }
+
       if (data.predictions?.length > 0) {
-        Alert.alert("AI Results", JSON.stringify(data.predictions, null, 2));
+        setPredictions(data.predictions); // save the AI output
+        setState("result");
       } else {
-        Alert.alert("No detections", "The AI model found nothing.");
+        setPredictions([]); // no results
+        setState("result");
       }
     } catch (error) {
       console.error(error);
@@ -102,7 +148,6 @@ export default function Scan() {
     setCapturedPhoto(null);
   };
 
-  // Loading state while checking permissions
   if (!permission) {
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
@@ -117,7 +162,6 @@ export default function Scan() {
     );
   }
 
-  // Permission denied state
   if (!permission.granted) {
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
@@ -173,10 +217,7 @@ export default function Scan() {
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => router.back()}
-            style={{
-              paddingHorizontal: 32,
-              paddingVertical: 16,
-            }}
+            style={{ paddingHorizontal: 32, paddingVertical: 16 }}
           >
             <Text style={{ color: colors.text, fontSize: 16, opacity: 0.7 }}>
               Go Back
@@ -187,162 +228,353 @@ export default function Scan() {
     );
   }
 
-  // Photo preview state
+  // if (capturedPhoto) {
+  //   return (
+  //     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
+  //       <View
+  //         style={{
+  //           flexDirection: "row",
+  //           alignItems: "center",
+  //           padding: 16,
+  //           borderBottomWidth: 1,
+  //           borderBottomColor: colors.surface,
+  //         }}
+  //       >
+  //         <TouchableOpacity onPress={retakePhoto} style={{ marginRight: 16 }}>
+  //           <Ionicons name="arrow-back" size={24} color={colors.text} />
+  //         </TouchableOpacity>
+  //         <Text style={{ color: colors.text, fontSize: 18, fontWeight: "600" }}>
+  //           Photo Preview
+  //         </Text>
+  //       </View>
+
+  //       <View style={{ flex: 1, padding: 16 }}>
+  //         <Image
+  //           source={{ uri: capturedPhoto }}
+  //           style={{
+  //             width: "100%",
+  //             height: 300,
+  //             borderRadius: 12,
+  //             marginBottom: 20,
+  //           }}
+  //           resizeMode="cover"
+  //         />
+
+  //         <View
+  //           style={{
+  //             backgroundColor: colors.surface,
+  //             padding: 20,
+  //             borderRadius: 12,
+  //             marginBottom: 20,
+  //           }}
+  //         >
+  //           <Text
+  //             style={{
+  //               color: colors.text,
+  //               fontSize: 18,
+  //               fontWeight: "600",
+  //               marginBottom: 12,
+  //               textAlign: "center",
+  //             }}
+  //           >
+  //             🚀 Ready to be analyzed by AI
+  //           </Text>
+  //           <Text
+  //             style={{
+  //               color: colors.text,
+  //               fontSize: 14,
+  //               opacity: 0.7,
+  //               textAlign: "center",
+  //               lineHeight: 20,
+  //             }}
+  //           >
+  //             Camera is working perfectly!
+  //           </Text>
+  //         </View>
+
+  //         <View style={{ flexDirection: "row", gap: 12 }}>
+  //           <TouchableOpacity
+  //             onPress={retakePhoto}
+  //             style={{
+  //               flex: 1,
+  //               backgroundColor: colors.surface,
+  //               padding: 16,
+  //               borderRadius: 12,
+  //               alignItems: "center",
+  //             }}
+  //           >
+  //             <Text
+  //               style={{ color: colors.text, fontSize: 16, fontWeight: "600" }}
+  //             >
+  //               Retake Photo
+  //             </Text>
+  //           </TouchableOpacity>
+
+  //           <TouchableOpacity
+  //             onPress={processWithAI}
+  //             style={{
+  //               flex: 1,
+  //               backgroundColor: colors.primary,
+  //               padding: 16,
+  //               borderRadius: 12,
+  //               alignItems: "center",
+  //             }}
+  //           >
+  //             <Text style={{ color: "white", fontSize: 16, fontWeight: "600" }}>
+  //               Process with AI
+  //             </Text>
+  //           </TouchableOpacity>
+  //         </View>
+  //       </View>
+  //     </SafeAreaView>
+  //   );
+  // }
+
   if (capturedPhoto) {
-    return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
-        {/* Header */}
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            padding: 16,
-            borderBottomWidth: 1,
-            borderBottomColor: colors.surface,
-          }}
-        >
-          <TouchableOpacity onPress={retakePhoto} style={{ marginRight: 16 }}>
-            <Ionicons name="arrow-back" size={24} color={colors.text} />
-          </TouchableOpacity>
-          <Text style={{ color: colors.text, fontSize: 18, fontWeight: "600" }}>
-            Photo Preview
-          </Text>
-        </View>
-
-        <View style={{ flex: 1, padding: 16 }}>
-          {/* Captured Image */}
-          <Image
-            source={{ uri: capturedPhoto }}
-            style={{
-              width: "100%",
-              height: 300,
-              borderRadius: 12,
-              marginBottom: 20,
-            }}
-            resizeMode="cover"
-          />
-
-          {/* Mock Analysis Info */}
+    if (state === "preview") {
+      return (
+        <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
           <View
             style={{
-              backgroundColor: colors.surface,
-              padding: 20,
-              borderRadius: 12,
-              marginBottom: 20,
+              flexDirection: "row",
+              alignItems: "center",
+              padding: 16,
+              borderBottomWidth: 1,
+              borderBottomColor: colors.surface,
             }}
           >
+            <TouchableOpacity onPress={retakePhoto} style={{ marginRight: 16 }}>
+              <Ionicons name="arrow-back" size={24} color={colors.text} />
+            </TouchableOpacity>
             <Text
-              style={{
-                color: colors.text,
-                fontSize: 18,
-                fontWeight: "600",
-                marginBottom: 12,
-                textAlign: "center",
-              }}
+              style={{ color: colors.text, fontSize: 18, fontWeight: "600" }}
             >
-              🚀 Ready for Ai Integration
-            </Text>
-            <Text
-              style={{
-                color: colors.text,
-                fontSize: 14,
-                opacity: 0.7,
-                textAlign: "center",
-                lineHeight: 20,
-              }}
-            >
-              Camera is working perfectly! Your Ai model will analyze this image
-              to detect and classify food items.
+              Photo Preview
             </Text>
           </View>
 
-          {/* Action Buttons */}
-          <View style={{ flexDirection: "row", gap: 12 }}>
-            <TouchableOpacity
-              onPress={retakePhoto}
+          <View style={{ flex: 1, padding: 16 }}>
+            <Image
+              source={{ uri: capturedPhoto }}
               style={{
-                flex: 1,
-                backgroundColor: colors.surface,
-                padding: 16,
+                width: "100%",
+                height: 300,
                 borderRadius: 12,
-                alignItems: "center",
+                marginBottom: 20,
+              }}
+              resizeMode="cover"
+            />
+
+            <View
+              style={{
+                backgroundColor: colors.surface,
+                padding: 20,
+                borderRadius: 12,
+                marginBottom: 20,
               }}
             >
               <Text
-                style={{ color: colors.text, fontSize: 16, fontWeight: "600" }}
+                style={{
+                  color: colors.text,
+                  fontSize: 18,
+                  fontWeight: "600",
+                  marginBottom: 12,
+                  textAlign: "center",
+                }}
               >
-                Retake Photo
+                🚀 Ready to be analyzed by AI
               </Text>
-            </TouchableOpacity>
+            </View>
 
-            {/* <TouchableOpacity
-              onPress={() => {
-                Alert.alert("Success", "Photo ready for Scanning processing!", [
-                  { text: "OK", onPress: () => router.back() },
-                ])
-              }}
-              style={{
-                flex: 1,
-                backgroundColor: colors.primary,
-                padding: 16,
-                borderRadius: 12,
-                alignItems: "center",
-              }}
-            >
-              <Text style={{ color: "white", fontSize: 16, fontWeight: "600" }}>Process with AI</Text>
-            </TouchableOpacity> */}
+            <View style={{ flexDirection: "row", gap: 12 }}>
+              <TouchableOpacity
+                onPress={retakePhoto}
+                style={{
+                  flex: 1,
+                  backgroundColor: colors.surface,
+                  padding: 16,
+                  borderRadius: 12,
+                  alignItems: "center",
+                }}
+              >
+                <Text
+                  style={{
+                    color: colors.text,
+                    fontSize: 16,
+                    fontWeight: "600",
+                  }}
+                >
+                  Retake Photo
+                </Text>
+              </TouchableOpacity>
 
-            <TouchableOpacity
-              onPress={async () => {
-                if (capturedPhoto) {
-                  try {
-                    const formData = new FormData();
-                    formData.append("file", {
-                      uri: capturedPhoto,
-                      name: "photo.jpg",
-                      type: "image/jpeg",
-                    } as any);
-
-                    const res = await fetch(`${CONFIG.API_BASE_URL}/predict`, {
-                      method: "POST",
-                      body: formData,
-                      headers: {
-                        "Content-Type": "multipart/form-data",
-                      },
-                    });
-
-                    const data = await res.json();
-                    console.log("AI Predictions:", data);
-
-                    Alert.alert(
-                      "AI Results",
-                      JSON.stringify(data.predictions, null, 2)
-                    );
-                  } catch (error) {
-                    console.error(error);
-                    Alert.alert("Error", "Failed to process with AI");
-                  }
-                }
-              }}
-              style={{
-                flex: 1,
-                backgroundColor: colors.primary,
-                padding: 16,
-                borderRadius: 12,
-                alignItems: "center",
-              }}
-            >
-              <Text style={{ color: "white", fontSize: 16, fontWeight: "600" }}>
-                Process with AI
-              </Text>
-            </TouchableOpacity>
+              <TouchableOpacity
+                onPress={processWithAI}
+                style={{
+                  flex: 1,
+                  backgroundColor: colors.primary,
+                  padding: 16,
+                  borderRadius: 12,
+                  alignItems: "center",
+                }}
+              >
+                <Text
+                  style={{ color: "white", fontSize: 16, fontWeight: "600" }}
+                >
+                  Process with AI
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
-      </SafeAreaView>
-    );
+        </SafeAreaView>
+      );
+    }
+
+    if (state === "result") {
+      return (
+        <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              padding: 16,
+              borderBottomWidth: 1,
+              borderBottomColor: colors.surface,
+            }}
+          >
+            <TouchableOpacity onPress={retakePhoto} style={{ marginRight: 16 }}>
+              <Ionicons name="arrow-back" size={24} color={colors.text} />
+            </TouchableOpacity>
+            <Text
+              style={{ color: colors.text, fontSize: 18, fontWeight: "600" }}
+            >
+              Result
+            </Text>
+          </View>
+
+          <View style={{ flex: 1, padding: 16 }}>
+            <Image
+              source={{ uri: capturedPhoto }}
+              style={{
+                width: "100%",
+                height: 250,
+                borderRadius: 12,
+                marginBottom: 20,
+              }}
+              resizeMode="cover"
+            />
+            {predictions.length > 0 && (
+              <Text
+                style={{
+                  color: colors.text,
+                  fontSize: 18,
+                  fontWeight: "600",
+                  textAlign: "center",
+                  marginBottom: 16,
+                }}
+              >
+                🍽️ Food: {predictions[0].class.replace(/_/g, " ")}
+              </Text>
+            )}
+
+            {macros ? (
+              <View
+                style={{
+                  backgroundColor: colors.surface,
+                  padding: 20,
+                  borderRadius: 12,
+                  marginBottom: 20,
+                }}
+              >
+                <Text
+                  style={{ color: colors.text, fontSize: 16, marginBottom: 8 }}
+                >
+                  🍚 Carbs: {scaled?.carbs} g
+                </Text>
+                <Text
+                  style={{ color: colors.text, fontSize: 16, marginBottom: 8 }}
+                >
+                  🍗 Protein: {scaled?.protein} g
+                </Text>
+                <Text
+                  style={{ color: colors.text, fontSize: 16, marginBottom: 8 }}
+                >
+                  🧈 Fat: {scaled?.fat} g
+                </Text>
+                <Text style={{ color: colors.text, fontSize: 16 }}>
+                  🔥 Calories: {scaled?.calories} kcal
+                </Text>
+              </View>
+            ) : (
+              <Text style={{ color: colors.text, textAlign: "center" }}>
+                No macros found for this food.
+              </Text>
+            )}
+
+            <Text
+              style={{ color: colors.text, fontSize: 16, marginBottom: 12 }}
+            >
+              ⚖️ Weight (grams):
+            </Text>
+            <TextInput
+              value={String(weight)}
+              onChangeText={(text) => setweight(Number(text) || 0)}
+              keyboardType="numeric"
+              style={{
+                borderWidth: 1,
+                borderColor: colors.primary,
+                borderRadius: 8,
+                padding: 8,
+                color: colors.text,
+                marginBottom: 20,
+              }}
+            />
+
+            <View style={{ flexDirection: "row", gap: 12 }}>
+              <TouchableOpacity
+                onPress={retakePhoto}
+                style={{
+                  flex: 1,
+                  backgroundColor: colors.surface,
+                  padding: 16,
+                  borderRadius: 12,
+                  alignItems: "center",
+                }}
+              >
+                <Text
+                  style={{
+                    color: colors.text,
+                    fontSize: 16,
+                    fontWeight: "600",
+                  }}
+                >
+                  Retake Photo
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={() => console.log("Log Food pressed")}
+                style={{
+                  flex: 1,
+                  backgroundColor: colors.primary,
+                  padding: 16,
+                  borderRadius: 12,
+                  alignItems: "center",
+                }}
+              >
+                <Text
+                  style={{ color: "white", fontSize: 16, fontWeight: "600" }}
+                >
+                  Log Food
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </SafeAreaView>
+      );
+    }
   }
 
-  //camera view
   return (
     <View style={{ flex: 1, backgroundColor: "black" }}>
       <CameraView
@@ -351,7 +583,6 @@ export default function Scan() {
         facing={facing}
         flash={isFlashOn ? "on" : "off"}
       >
-        {/* Header Controls */}
         <SafeAreaView
           style={{ position: "absolute", top: 0, left: 0, right: 0 }}
         >
@@ -364,7 +595,6 @@ export default function Scan() {
               paddingVertical: 16,
             }}
           >
-            {/* Close Button */}
             <TouchableOpacity
               onPress={() => router.back()}
               style={{
@@ -376,7 +606,6 @@ export default function Scan() {
               <Ionicons name="close" size={24} color="white" />
             </TouchableOpacity>
 
-            {/* Title */}
             <View
               style={{
                 backgroundColor: "rgba(0,0,0,0.6)",
@@ -390,7 +619,6 @@ export default function Scan() {
               </Text>
             </View>
 
-            {/* Flash Toggle */}
             <TouchableOpacity
               onPress={toggleFlash}
               style={{
@@ -408,7 +636,6 @@ export default function Scan() {
           </View>
         </SafeAreaView>
 
-        {/* Scanning Frame Overlay */}
         <View
           className="absolute w-[240px] h-[240px] border-4 rounded-2xl"
           style={{
@@ -418,7 +645,6 @@ export default function Scan() {
             transform: [{ translateX: -120 }, { translateY: -120 }],
           }}
         >
-          {/* Corner indicators */}
           <View
             className="absolute w-[30px] h-[30px] border-t-[6px] border-l-[6px] rounded-tl-[20px]"
             style={{ top: -3, left: -3, borderColor: colors.primary }}
@@ -437,7 +663,6 @@ export default function Scan() {
           />
         </View>
 
-        {/* Scan Instructions */}
         <View
           className="absolute w-[200px] px-5 py-2 rounded-full bg-black/70"
           style={{
@@ -454,7 +679,6 @@ export default function Scan() {
           </Text>
         </View>
 
-        {/* Bottom Controls */}
         <View
           style={{
             position: "absolute",
@@ -472,22 +696,8 @@ export default function Scan() {
               alignItems: "center",
             }}
           >
-            {/* Gallery Button (placeholder) */}
-            {/* <TouchableOpacity
-              onPress={() =>
-                Alert.alert("Gallery", "Gallery feature coming soon!")
-              }
-              className="w-[50px] h-[50px] rounded-full justify-center items-center border-2"
-              style={{
-                backgroundColor: "rgba(255,255,255,0.2)",
-                borderColor: "rgba(255,255,255,0.3)",
-              }}
-            >
-              <Ionicons name="images" size={24} color="white" />
-            </TouchableOpacity> */}
-
             <TouchableOpacity
-              onPress={pickImage} // ✅ Now opens gallery
+              onPress={pickImage}
               className="w-[50px] h-[50px] rounded-full justify-center items-center border-2"
               style={{
                 backgroundColor: "rgba(255,255,255,0.2)",
@@ -497,7 +707,6 @@ export default function Scan() {
               <Ionicons name="images" size={24} color="white" />
             </TouchableOpacity>
 
-            {/* Capture Button */}
             <TouchableOpacity
               onPress={takePhoto}
               className="w-[80px] h-[80px] rounded-full justify-center items-center"
@@ -517,7 +726,6 @@ export default function Scan() {
               />
             </TouchableOpacity>
 
-            {/* Flip Camera Button */}
             <TouchableOpacity
               onPress={toggleCameraFacing}
               className="w-[50px] h-[50px] rounded-full justify-center items-center border-2"
@@ -530,7 +738,6 @@ export default function Scan() {
             </TouchableOpacity>
           </View>
 
-          {/* Bottom instruction */}
           <Text
             style={{
               color: "white",
