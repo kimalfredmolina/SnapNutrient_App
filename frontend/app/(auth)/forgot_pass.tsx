@@ -35,7 +35,7 @@ export default function ForgotPasswordPage() {
 
       Alert.alert(
         "Reset Link Sent",
-        "Please check your email to reset your password.",
+        "Please check your email (including your Spam or Junk folder) to reset your password.",
         [{ text: "OK", onPress: () => router.replace("/(auth)/signin") }]
       );
     } catch (error: any) {
