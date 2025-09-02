@@ -41,13 +41,10 @@ app-example
 
 .env
 
-<<<<<<< HEAD
-server.ts
-
 .vscode/
 backend/.venv/
 backend/__pycache__/
-=======
+
+
 config.ts
 server.ts
->>>>>>> 6532c222b5aefc712b837fa93cfc796b19f6f012
