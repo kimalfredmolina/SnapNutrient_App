@@ -16,7 +16,10 @@ import { createUserWithEmailAndPassword } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
 import { Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import PolicyModal from "../components/SignInModal";
+import Terms from "../pages/tabSetting/terms";
+import Privacy from "../pages/tabSetting/privacy";
 
 export default function LoginPage({ onLogin }: { onLogin: () => void }) {
   const [username, setUsername] = useState("");
@@ -27,9 +30,12 @@ export default function LoginPage({ onLogin }: { onLogin: () => void }) {
   const { colors, isDark } = useTheme();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const togglePasswordVisibility = () => setShowPassword(prev => !prev);
-  const toggleConfirmPasswordVisibility = () => setShowConfirmPassword(prev => !prev);
+  const togglePasswordVisibility = () => setShowPassword((prev) => !prev);
+  const toggleConfirmPasswordVisibility = () =>
+    setShowConfirmPassword((prev) => !prev);
   const [agreed, setAgreed] = useState(false);
+  const [showTerms, setShowTerms] = useState(false);
+  const [showPrivacy, setShowPrivacy] = useState(false);
 
   useEffect(() => {
     checkAgreementStatus();
@@ -38,12 +44,12 @@ export default function LoginPage({ onLogin }: { onLogin: () => void }) {
   // Function for checking agreement status
   const checkAgreementStatus = async () => {
     try {
-      const hasAgreed = await AsyncStorage.getItem('hasAgreedToTerms');
-      if (hasAgreed === 'true') {
+      const hasAgreed = await AsyncStorage.getItem("hasAgreedToTerms");
+      if (hasAgreed === "true") {
         setAgreed(true);
       }
     } catch (error) {
-      console.error('Error checking agreement status:', error);
+      console.error("Error checking agreement status:", error);
     }
   };
 
@@ -51,9 +57,9 @@ export default function LoginPage({ onLogin }: { onLogin: () => void }) {
   const handleAgreementChange = async (value: boolean) => {
     try {
       setAgreed(value);
-      await AsyncStorage.setItem('hasAgreedToTerms', value.toString());
+      await AsyncStorage.setItem("hasAgreedToTerms", value.toString());
     } catch (error) {
-      console.error('Error saving agreement status:', error);
+      console.error("Error saving agreement status:", error);
     }
   };
 
@@ -79,11 +85,9 @@ export default function LoginPage({ onLogin }: { onLogin: () => void }) {
 
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(email)) {
-        Alert.alert(
-          "Invalid Email",
-          "Please enter a valid email address.",
-          [{ text: "OK" }]
-        );
+        Alert.alert("Invalid Email", "Please enter a valid email address.", [
+          { text: "OK" },
+        ]);
         return;
       }
 
@@ -109,20 +113,22 @@ export default function LoginPage({ onLogin }: { onLogin: () => void }) {
         );
       }
     } catch (error: any) {
-    let errorMessage = "An error occurred during signup.";
-    
-    if (error.code === 'auth/email-already-in-use') {
-      errorMessage = "This email is already registered. Please use a different email or sign in.";
-    } else if (error.code === 'auth/weak-password') {
-      errorMessage = "Please choose a stronger password (at least 6 characters).";
-    } else if (error.code === 'auth/invalid-email') {
-      errorMessage = "The email address is not valid.";
-    }
+      let errorMessage = "An error occurred during signup.";
 
-    console.error("Signup Error:", error);
-    Alert.alert("Sign Up Error", errorMessage, [{ text: "OK" }]);
-  }
-};
+      if (error.code === "auth/email-already-in-use") {
+        errorMessage =
+          "This email is already registered. Please use a different email or sign in.";
+      } else if (error.code === "auth/weak-password") {
+        errorMessage =
+          "Please choose a stronger password (at least 6 characters).";
+      } else if (error.code === "auth/invalid-email") {
+        errorMessage = "The email address is not valid.";
+      }
+
+      console.error("Signup Error:", error);
+      Alert.alert("Sign Up Error", errorMessage, [{ text: "OK" }]);
+    }
+  };
 
   return (
     <View className="flex-1" style={{ backgroundColor: colors.primary }}>
@@ -191,7 +197,8 @@ export default function LoginPage({ onLogin }: { onLogin: () => void }) {
           />
 
           {/* Password */}
-          <View className="border rounded-md px-4 py-0 mb-4 flex-row items-center"
+          <View
+            className="border rounded-md px-4 py-0 mb-4 flex-row items-center"
             style={{
               borderColor: colors.border,
               backgroundColor: colors.surface,
@@ -216,7 +223,8 @@ export default function LoginPage({ onLogin }: { onLogin: () => void }) {
           </View>
 
           {/* Confirm Password */}
-          <View className="border rounded-md px-4 py-0 mb-4 flex-row items-center"
+          <View
+            className="border rounded-md px-4 py-0 mb-4 flex-row items-center"
             style={{
               borderColor: colors.border,
               backgroundColor: colors.surface,
@@ -239,7 +247,6 @@ export default function LoginPage({ onLogin }: { onLogin: () => void }) {
               />
             </Pressable>
           </View>
-
 
           {/* Sign Up Button */}
           <TouchableOpacity
@@ -286,13 +293,19 @@ export default function LoginPage({ onLogin }: { onLogin: () => void }) {
             {/* Text with links */}
             <Text style={{ color: colors.text, fontSize: 12 }}>
               I agree to the{" "}
-              <Link href="/terms" asChild>
-                <Text style={{ color: colors.secondary }}>Terms</Text>
-              </Link>{" "}
+              <Text
+                style={{ color: colors.secondary }}
+                onPress={() => setShowTerms(true)}
+              >
+                Terms
+              </Text>{" "}
               and{" "}
-              <Link href="/privacy" asChild>
-                <Text style={{ color: colors.secondary }}>Privacy Policy</Text>
-              </Link>
+              <Text
+                style={{ color: colors.secondary }}
+                onPress={() => setShowPrivacy(true)}
+              >
+                Privacy Policy
+              </Text>
             </Text>
           </View>
 
@@ -311,6 +324,14 @@ export default function LoginPage({ onLogin }: { onLogin: () => void }) {
           </View>
         </View>
       </View>
+
+      <PolicyModal visible={showTerms} onClose={() => setShowTerms(false)}>
+        <Terms isModal />
+      </PolicyModal>
+
+      <PolicyModal visible={showPrivacy} onClose={() => setShowPrivacy(false)}>
+        <Privacy isModal />
+      </PolicyModal>
     </View>
   );
 }

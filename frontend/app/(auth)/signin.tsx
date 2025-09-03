@@ -23,7 +23,10 @@ import {
 import * as WebBrowser from "expo-web-browser";
 import * as Google from "expo-auth-session/providers/google";
 import * as AuthSession from "expo-auth-session";
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import PolicyModal from "../components/SignInModal";
+import Terms from "../pages/tabSetting/terms";
+import Privacy from "../pages/tabSetting/privacy";
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -37,6 +40,8 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const togglePasswordVisibility = () => setShowPassword((prev) => !prev);
   const [agreed, setAgreed] = useState(false);
+  const [showTerms, setShowTerms] = useState(false);
+  const [showPrivacy, setShowPrivacy] = useState(false);
 
   useEffect(() => {
     checkAgreementStatus();
@@ -45,12 +50,12 @@ export default function LoginPage() {
   // Function for checking agreement status
   const checkAgreementStatus = async () => {
     try {
-      const hasAgreed = await AsyncStorage.getItem('hasAgreedToTerms');
-      if (hasAgreed === 'true') {
+      const hasAgreed = await AsyncStorage.getItem("hasAgreedToTerms");
+      if (hasAgreed === "true") {
         setAgreed(true);
       }
     } catch (error) {
-      console.error('Error checking agreement status:', error);
+      console.error("Error checking agreement status:", error);
     }
   };
 
@@ -58,9 +63,9 @@ export default function LoginPage() {
   const handleAgreementChange = async (value: boolean) => {
     try {
       setAgreed(value);
-      await AsyncStorage.setItem('hasAgreedToTerms', value.toString());
+      await AsyncStorage.setItem("hasAgreedToTerms", value.toString());
     } catch (error) {
-      console.error('Error saving agreement status:', error);
+      console.error("Error saving agreement status:", error);
     }
   };
 
@@ -173,25 +178,34 @@ export default function LoginPage() {
         login(userData);
         router.replace("/pages");
       } else {
-        Alert.alert("Missing Information", "Please enter both email and password to sign in.");
+        Alert.alert(
+          "Missing Information",
+          "Please enter both email and password to sign in."
+        );
       }
     } catch (error: any) {
       let errorMessage = "Something went wrong. Please try again.";
-      
-      if (error.code === 'auth/invalid-credential') {
-        errorMessage = "The email or password you entered is incorrect. Please check and try again.";
-      } else if (error.code === 'auth/user-not-found') {
-        errorMessage = "No account found with this email. Please check your email or sign up.";
-      } else if (error.code === 'auth/wrong-password') {
-        errorMessage = "The password you entered is incorrect. Please try again.";
-      } else if (error.code === 'auth/invalid-email') {
+
+      if (error.code === "auth/invalid-credential") {
+        errorMessage =
+          "The email or password you entered is incorrect. Please check and try again.";
+      } else if (error.code === "auth/user-not-found") {
+        errorMessage =
+          "No account found with this email. Please check your email or sign up.";
+      } else if (error.code === "auth/wrong-password") {
+        errorMessage =
+          "The password you entered is incorrect. Please try again.";
+      } else if (error.code === "auth/invalid-email") {
         errorMessage = "Please enter a valid email address.";
-      } else if (error.code === 'auth/user-disabled') {
-        errorMessage = "This account has been disabled. Please contact support.";
-      } else if (error.code === 'auth/too-many-requests') {
-        errorMessage = "Too many failed attempts. Please wait a moment and try again.";
-      } else if (error.code === 'auth/network-request-failed') {
-        errorMessage = "Network error. Please check your connection and try again.";
+      } else if (error.code === "auth/user-disabled") {
+        errorMessage =
+          "This account has been disabled. Please contact support.";
+      } else if (error.code === "auth/too-many-requests") {
+        errorMessage =
+          "Too many failed attempts. Please wait a moment and try again.";
+      } else if (error.code === "auth/network-request-failed") {
+        errorMessage =
+          "Network error. Please check your connection and try again.";
       }
 
       Alert.alert("Sign In Failed", errorMessage);
@@ -326,9 +340,9 @@ export default function LoginPage() {
                   className="text-sm font-medium"
                   style={{ color: colors.secondary }}
                 >
-                Forgot password?
-              </Text>
-            </Pressable>
+                  Forgot password?
+                </Text>
+              </Pressable>
             </Link>
           </View>
 
@@ -381,7 +395,9 @@ export default function LoginPage() {
             }}
           >
             <Image
-              source={{ uri: "https://img.icons8.com/color/48/google-logo.png" }}
+              source={{
+                uri: "https://img.icons8.com/color/48/google-logo.png",
+              }}
               className="w-6 h-6 mr-3"
             />
             <Text style={{ color: colors.text, fontWeight: "500" }}>
@@ -404,7 +420,9 @@ export default function LoginPage() {
             }}
           >
             <Image
-              source={{ uri: "https://img.icons8.com/ios-filled/50/mac-os.png" }}
+              source={{
+                uri: "https://img.icons8.com/ios-filled/50/mac-os.png",
+              }}
               className="w-6 h-6 mr-3"
               style={{ tintColor: colors.text }}
             />
@@ -440,13 +458,19 @@ export default function LoginPage() {
             {/* Text with links */}
             <Text style={{ color: colors.text, fontSize: 12 }}>
               I agree to the{" "}
-              <Link href="/terms" asChild>
-                <Text style={{ color: colors.secondary }}>Terms</Text>
-              </Link>{" "}
+              <Text
+                style={{ color: colors.secondary }}
+                onPress={() => setShowTerms(true)}
+              >
+                Terms
+              </Text>{" "}
               and{" "}
-              <Link href="/privacy" asChild>
-                <Text style={{ color: colors.secondary }}>Privacy Policy</Text>
-              </Link>
+              <Text
+                style={{ color: colors.secondary }}
+                onPress={() => setShowPrivacy(true)}
+              >
+                Privacy Policy
+              </Text>
             </Text>
           </View>
 
@@ -461,6 +485,18 @@ export default function LoginPage() {
               </TouchableOpacity>
             </Link>
           </View>
+
+          {/* Modals for Terms and Privacy Policy */}
+          <PolicyModal visible={showTerms} onClose={() => setShowTerms(false)}>
+            <Terms isModal />
+          </PolicyModal>
+
+          <PolicyModal
+            visible={showPrivacy}
+            onClose={() => setShowPrivacy(false)}
+          >
+            <Privacy isModal />
+          </PolicyModal>
         </View>
       </View>
     </View>
