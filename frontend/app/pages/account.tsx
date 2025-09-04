@@ -36,14 +36,14 @@ export default function Account() {
         className="flex-1"
         style={{
           flexGrow: 1,
-          paddingHorizontal: 16,
+          paddingHorizontal: 8,
           paddingTop: 12,
           paddingBottom: 24,
         }}
       >
         {/* Profile Card */}
         <View
-          className="flex-row items-center rounded-2xl p-4 mb-8 shadow-md mt-4"
+          className="flex-row items-center rounded-2xl p-4 mb-8 mx-4 shadow-md mt-4"
           style={{
             backgroundColor: colors.surface,
             shadowColor: colors.text === "#FFFFFF" ? "#fff" : "#000",

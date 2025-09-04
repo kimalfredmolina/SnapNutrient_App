@@ -14,7 +14,7 @@ export default function Settings() {
       style={{
         backgroundColor: colors.background,
         flexGrow: 1,
-        paddingHorizontal: 16,
+        paddingHorizontal: 8,
         paddingTop: 12,
         paddingBottom: 24,
       }}
@@ -48,6 +48,7 @@ export default function Settings() {
           <TouchableOpacity
             className="flex-row items-center py-4 border-b"
             style={{ borderBottomColor: colors.surface }}
+            onPress={() => router.push("../tabSetting/tabProfile/editProfile")}
           >
             <Ionicons name="person-outline" size={24} color={colors.text} />
             <Text
@@ -67,6 +68,7 @@ export default function Settings() {
           <TouchableOpacity
             className="flex-row items-center py-4 border-b"
             style={{ borderBottomColor: colors.surface }}
+            onPress={() => router.push("../tabSetting/tabProfile/changePass")}
           >
             <Ionicons name="key-outline" size={24} color={colors.text} />
             <Text
