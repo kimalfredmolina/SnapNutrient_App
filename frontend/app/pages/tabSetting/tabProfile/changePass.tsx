@@ -5,7 +5,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../../../../contexts/ThemeContext";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-// ✅ Memoized PasswordInput Component
 const PasswordInput = memo(
   ({
     label,
@@ -30,7 +29,7 @@ const PasswordInput = memo(
       </Text>
       <View className="relative">
         <TextInput
-          key={showPassword ? "text" : "password"} // 👈 Fix secureTextEntry bug
+          key={showPassword ? "text" : "password"} 
           value={value}
           onChangeText={onChangeText}
           placeholder={placeholder}
@@ -62,7 +61,6 @@ export default function ChangePassword() {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  // ✅ Password requirement checks
   const hasMinLength = newPassword.length >= 8;
   const hasUppercase = /[A-Z]/.test(newPassword);
   const hasLowercase = /[a-z]/.test(newPassword);
