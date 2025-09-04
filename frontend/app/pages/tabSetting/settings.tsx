@@ -141,7 +141,7 @@ export default function Settings() {
             />
           </TouchableOpacity>
 
-          <TouchableOpacity
+          {/*<TouchableOpacity
             className="flex-row items-center py-4 border-b"
             style={{ borderBottomColor: colors.surface }}
           >
@@ -164,7 +164,7 @@ export default function Settings() {
               color={colors.text}
               style={{ opacity: 0.5 }}
             />
-          </TouchableOpacity>
+          </TouchableOpacity>*/}
         </View>
 
         {/* Data Section */}
