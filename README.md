@@ -143,7 +143,7 @@ eas login
 ### 3.2 Install this to build or rebuild the app after installing native modules
 
 ```bash
-eas build --profile development --platform android  //all
+eas build --profile development --platform android  //"all" change all for both ios and android development
 ```
 
 ---
@@ -182,7 +182,16 @@ uvicorn app:app --host 0.0.0.0 --port 8000 --reload
 ```
 Then in another terminal run the frontend app
 
-### Lastly Change the IPv4 Server in server.ts (if you dont have create one inside the frontend folder) run this in terminal to see the IPv4
+### Step 4: To check what is your IPv4 run this command in terminal and look for the IPv4
 ```bash
 ipconfig
+```
+
+### Step 5: Add a new file inside the frontend folder and name it "server.ts" and copy paste this code and change your IPv4
+```typescript
+const CONFIG = {
+  API_BASE_URL: "http://add ur IPv4 here:8000", //Your IPv4 Address in your IPCONFIG
+};
+
+export default CONFIG;
 ```
