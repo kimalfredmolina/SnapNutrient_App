@@ -1,4 +1,3 @@
-import React from "react";
 import {
   View,
   Text,
@@ -6,12 +5,15 @@ import {
   ScrollView,
   TextInput,
   Alert,
+  Linking,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../../../contexts/ThemeContext";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useState } from "react";
+import axios from "axios";
+import { sendEmail } from "@/services/emailService";
 
 export default function Contact() {
   const router = useRouter();
@@ -21,17 +23,22 @@ export default function Contact() {
   const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!name || !email || !subject || !message) {
       Alert.alert("Error", "Please fill in all fields");
       return;
     }
 
-    Alert.alert(
-      "Message Sent",
-      "Thank you for contacting us! We'll get back to you soon.",
-      [{ text: "OK", onPress: () => router.back() }]
-    );
+    try {
+      await sendEmail(name, email, subject, message);
+      Alert.alert(
+        "Message Sent",
+        "Thank you for contacting us! We'll get back to you soon.",
+        [{ text: "OK", onPress: () => router.back() }]
+      );
+    } catch (error) {
+      Alert.alert("Error", "Failed to send message. Please try again later.");
+    }
   };
 
   return (
@@ -144,6 +151,7 @@ export default function Contact() {
             Send us a Message
           </Text>
 
+          {/* Name */}
           <View className="mb-4">
             <Text
               className="text-base font-medium mb-2"
@@ -165,6 +173,7 @@ export default function Contact() {
             />
           </View>
 
+          {/* Email */}
           <View className="mb-4">
             <Text
               className="text-base font-medium mb-2"
@@ -188,6 +197,7 @@ export default function Contact() {
             />
           </View>
 
+          {/* Subject */}
           <View className="mb-4">
             <Text
               className="text-base font-medium mb-2"
@@ -209,6 +219,7 @@ export default function Contact() {
             />
           </View>
 
+          {/* Message */}
           <View className="mb-6">
             <Text
               className="text-base font-medium mb-2"
@@ -234,6 +245,7 @@ export default function Contact() {
             />
           </View>
 
+          {/* Submit */}
           <TouchableOpacity
             onPress={handleSubmit}
             className="rounded-lg py-4"

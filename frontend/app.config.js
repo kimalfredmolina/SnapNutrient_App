@@ -55,6 +55,9 @@ module.exports = {
       EXPO_PUBLIC_WEB_CLIENT_ID: process.env.EXPO_PUBLIC_WEB_CLIENT_ID,
       EXPO_PUBLIC_GOOGLE_CLIENT_SECRET:
         process.env.EXPO_PUBLIC_GOOGLE_CLIENT_SECRET,
+      SENDGRID_API_KEY: process.env.SENDGRID_API_KEY,
+      SENDGRID_API_URL: process.env.SENDGRID_API_URL,
+      SENDGRID_FROM_EMAIL: process.env.SENDGRID_FROM_EMAIL,
     },
   },
 };
