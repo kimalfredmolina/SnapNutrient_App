@@ -83,63 +83,6 @@ export default function Contact() {
             We'd love to hear from you! Send us a message and we'll respond as
             soon as possible.
           </Text>
-
-          {/* Contact Methods */}
-          <View className="mb-6">
-            <TouchableOpacity
-              className="flex-row items-center py-3 border-b"
-              style={{ borderBottomColor: colors.surface }}
-            >
-              <Ionicons name="mail-outline" size={24} color={colors.primary} />
-              <View className="ml-4">
-                <Text
-                  className="text-base font-medium"
-                  style={{ color: colors.text }}
-                >
-                  Email
-                </Text>
-                <Text className="text-sm" style={{ color: colors.primary }}>
-                  snapnutrientapp@gmail.com
-                </Text>
-              </View>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              className="flex-row items-center py-3 border-b"
-              style={{ borderBottomColor: colors.surface }}
-            >
-              <Ionicons name="call-outline" size={24} color={colors.primary} />
-              <View className="ml-4">
-                <Text
-                  className="text-base font-medium"
-                  style={{ color: colors.text }}
-                >
-                  Phone
-                </Text>
-                <Text className="text-sm" style={{ color: colors.primary }}>
-                  +63 9277 324 896
-                </Text>
-              </View>
-            </TouchableOpacity>
-
-            <TouchableOpacity className="flex-row items-center py-3">
-              <Ionicons name="time-outline" size={24} color={colors.primary} />
-              <View className="ml-4">
-                <Text
-                  className="text-base font-medium"
-                  style={{ color: colors.text }}
-                >
-                  Support Hours
-                </Text>
-                <Text
-                  className="text-sm"
-                  style={{ color: colors.text, opacity: 0.7 }}
-                >
-                  Mon-Fri: 9AM-6PM UTC
-                </Text>
-              </View>
-            </TouchableOpacity>
-          </View>
         </View>
 
         {/* Contact Form */}

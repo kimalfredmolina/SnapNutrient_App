@@ -12,35 +12,74 @@ import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../../../contexts/ThemeContext";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useState } from "react";
+import { sendEmail } from "@/services/emailService";
+import Constants from "expo-constants";
+import { Platform } from "react-native";
 
 export default function Report() {
   const router = useRouter();
   const { colors } = useTheme();
   const [selectedType, setSelectedType] = useState("");
   const [description, setDescription] = useState("");
+  const [email, setEmail] = useState("");
 
   const reportTypes = [
     { id: "bug", label: "Bug Report", icon: "bug-outline" },
     { id: "crash", label: "App Crash", icon: "warning-outline" },
-    { id: "feature", label: "Feature Request", icon: "bulb-outline" },
     { id: "content", label: "Incorrect Food Data", icon: "nutrition-outline" },
     { id: "other", label: "Other", icon: "help-circle-outline" },
   ];
 
-  const handleSubmit = () => {
-    if (!selectedType || !description.trim()) {
-      Alert.alert(
-        "Error",
-        "Please select a report type and provide a description"
-      );
+  const handleSubmit = async () => {
+    if (!selectedType || !description.trim() || !email.trim()) {
+      Alert.alert("Error", "Please fill in all fields including your email");
       return;
     }
 
-    Alert.alert(
-      "Report Submitted",
-      "Thank you for your feedback! We'll investigate this issue and get back to you if needed.",
-      [{ text: "OK", onPress: () => router.push("..\\account") }]
-    );
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      Alert.alert("Error", "Please enter a valid email address");
+      return;
+    }
+
+    try {
+      const reportTypeLabel = reportTypes.find(
+        (type) => type.id === selectedType
+      )?.label;
+
+      const formattedMessage = `
+      Report Type: ${reportTypeLabel}
+      Description:
+      ${description}
+
+      Device Information:
+      App Version: ${Constants.expoConfig?.version}
+      Platform: ${Platform.OS}
+      OS Version: ${Platform.Version}
+      `;
+
+      await sendEmail(
+        email.split("@")[0], // Use first part of email as name
+        email, // Use provided email
+        "Problem Report",
+        formattedMessage
+      );
+
+      Alert.alert(
+        "Report Submitted",
+        "Thank you for your feedback! We'll investigate this issue and get back to you if needed.",
+        [{ text: "OK", onPress: () => router.push("..\\account") }]
+      );
+
+      // Clear form
+      setSelectedType("");
+      setDescription("");
+      setEmail("");
+    } catch (error) {
+      Alert.alert("Error", "Failed to submit report. Please try again later.");
+      console.error("Report submission error:", error);
+    }
   };
 
   return (
@@ -161,6 +200,36 @@ export default function Report() {
           />
         </View>
 
+        {/* Email Input */}
+        <View className="mb-6">
+          <Text
+            className="text-lg font-semibold mb-4"
+            style={{ color: colors.text }}
+          >
+            Your Email
+          </Text>
+          <Text
+            className="text-sm mb-3"
+            style={{ color: colors.text, opacity: 0.7 }}
+          >
+            We may need to contact you for additional information
+          </Text>
+          <TextInput
+            value={email}
+            onChangeText={setEmail}
+            placeholder="Enter your email address"
+            placeholderTextColor={colors.text + "60"}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            className="border rounded-lg px-4 py-3 text-base"
+            style={{
+              borderColor: colors.surface,
+              backgroundColor: colors.surface,
+              color: colors.text,
+            }}
+          />
+        </View>
+
         {/* Additional Info */}
         <View
           className="mb-8 p-4 rounded-lg"
@@ -177,8 +246,7 @@ export default function Report() {
             style={{ color: colors.text, opacity: 0.7 }}
           >
             • Device information and app version will be automatically included
-            {"\n"}• Screenshots can help us understand the issue better{"\n"}•
-            We may contact you for additional details if needed
+            {"\n"}• We may contact you for additional details if needed
           </Text>
         </View>
 
@@ -188,11 +256,11 @@ export default function Report() {
           className="rounded-lg py-4 mb-4"
           style={{
             backgroundColor:
-              selectedType && description.trim()
+              selectedType && description.trim() && email.trim()
                 ? colors.primary
                 : colors.text + "40",
           }}
-          disabled={!selectedType || !description.trim()}
+          disabled={!selectedType || !description.trim() || !email.trim()}
         >
           <Text className="text-center text-lg font-semibold text-white">
             Submit Report
@@ -207,7 +275,9 @@ export default function Report() {
           >
             Need immediate assistance?
           </Text>
-          <TouchableOpacity onPress={() => router.push("..\\tabSetting//contact")}>
+          <TouchableOpacity
+            onPress={() => router.push("..\\tabSetting//contact")}
+          >
             <Text
               className="text-base font-medium mb-8"
               style={{ color: colors.primary }}
