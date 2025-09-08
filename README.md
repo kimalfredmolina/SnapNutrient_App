@@ -34,6 +34,19 @@ python -m venv .venv
 uvicorn app:app --host 0.0.0.0 --port 8000 --reload
 ```
 
+## Unit Testing
+
+### Frontend
+```bash
+npm test
+```
+
+
+### Backend
+```bash
+pytest --cov=.
+```
+
 ## 🌟 Key Features
 
 - 📷 Real-time food recognition using YOLOv8
@@ -47,6 +60,7 @@ uvicorn app:app --host 0.0.0.0 --port 8000 --reload
 - 🎨 Clean and user-friendly UI ([View Figma Design](https://www.figma.com/design/l02RJEt5eMlpr21sAJeOKg/UI-design?m=auto&t=Uf2Ad1lW1D1D7KCm-1))
 - 📚 Expo Camera ([Expo Camera Documentation](https://docs.expo.dev/versions/latest/sdk/camera/))
 - 📧 Mailer ([SendGrid](https://app.sendgrid.com/))
+- 🛠️ Unit Testing (Jest)
 
 ---
 
