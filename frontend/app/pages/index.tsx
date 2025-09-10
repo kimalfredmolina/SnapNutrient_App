@@ -1,5 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { Text, View, ScrollView, TouchableOpacity, Image, Alert } from "react-native";
+import {
+  Text,
+  View,
+  ScrollView,
+  TouchableOpacity,
+  Image,
+  Alert,
+  BackHandler,
+} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Circle } from "react-native-svg";
@@ -204,14 +212,16 @@ export default function HomePage() {
     // Save to Firebase
     set(ref(db, `users/${userId}/macroGoals`), {
       ...newMacros,
-      updatedAt: new Date().toISOString()
-    }).then(() => {
-      setMacroGoals(newMacros);
-      console.log("Saved new macros:", newMacros);
-    }).catch((error) => {
-      console.error("Error saving macros:", error);
-      Alert.alert("Error", "Failed to save macro goals");
-    });
+      updatedAt: new Date().toISOString(),
+    })
+      .then(() => {
+        setMacroGoals(newMacros);
+        console.log("Saved new macros:", newMacros);
+      })
+      .catch((error) => {
+        console.error("Error saving macros:", error);
+        Alert.alert("Error", "Failed to save macro goals");
+      });
   };
 
   if (!isAuthenticated) {
@@ -237,7 +247,7 @@ export default function HomePage() {
               height: 45,
               borderRadius: 999,
               borderWidth: 2,
-              borderColor: colors.primary
+              borderColor: colors.primary,
             }}
           />
           <Text
