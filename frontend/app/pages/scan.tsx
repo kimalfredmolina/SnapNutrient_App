@@ -14,7 +14,9 @@ import { useTheme } from "../../contexts/ThemeContext";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as ImagePicker from "expo-image-picker";
 import CONFIG from "../../server";
-import { foodMacros } from "../macros/dish-level-macros";
+import { ingredientMacros } from "../macros/ingredient-level-macros";
+import { dishMacros } from "../macros/dish-level-macros";
+import { computeDishMacros } from "../macros/compute_dish";
 
 export default function Scan() {
   const cameraRef = useRef<CameraView>(null);
@@ -29,17 +31,21 @@ export default function Scan() {
 
   const [weight, setweight] = useState<number>(100);
   const detected = predictions.length > 0 ? predictions[0].class : null;
-  const macros = detected ? foodMacros[detected] : null;
+  // const macros = detected ? ingredientMacros[detected] : null;
 
-  const scaled = macros
-    ? {
-        carbs: (macros.carbs * weight).toFixed(1),
-        protein: (macros.protein * weight).toFixed(1),
-        fat: (macros.fat * weight).toFixed(1),
-        calories: (macros.calories * weight).toFixed(1),
-      }
-    : null;
-
+  const macros =
+    detected && computeDishMacros(detected, weight / 100) // if it's a dish
+      ? computeDishMacros(detected, weight / 100)
+      : detected && ingredientMacros[detected]
+        ? {
+            carbs: +(ingredientMacros[detected].carbs * weight).toFixed(1),
+            protein: +(ingredientMacros[detected].protein * weight).toFixed(1),
+            fats: +(ingredientMacros[detected].fats * weight).toFixed(1),
+            calories: +(ingredientMacros[detected].calories * weight).toFixed(
+              1
+            ),
+          }
+        : null;
   const takePhoto = async () => {
     if (cameraRef.current) {
       try {
@@ -489,20 +495,20 @@ export default function Scan() {
                 <Text
                   style={{ color: colors.text, fontSize: 16, marginBottom: 8 }}
                 >
-                  🍚 Carbs: {scaled?.carbs} g
+                  🍚 Carbs: {macros?.carbs} g
                 </Text>
                 <Text
                   style={{ color: colors.text, fontSize: 16, marginBottom: 8 }}
                 >
-                  🍗 Protein: {scaled?.protein} g
+                  🍗 Protein: {macros?.protein} g
                 </Text>
                 <Text
                   style={{ color: colors.text, fontSize: 16, marginBottom: 8 }}
                 >
-                  🧈 Fat: {scaled?.fat} g
+                  🧈 Fat: {macros?.fats} g
                 </Text>
                 <Text style={{ color: colors.text, fontSize: 16 }}>
-                  🔥 Calories: {scaled?.calories} kcal
+                  🔥 Calories: {macros?.calories} kcal
                 </Text>
               </View>
             ) : (
