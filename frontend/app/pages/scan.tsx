@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   Image,
   Alert,
+  ScrollView,
 } from "react-native";
 import { CameraView, type CameraType, useCameraPermissions } from "expo-camera";
 import { Ionicons } from "@expo/vector-icons";
@@ -28,14 +29,20 @@ export default function Scan() {
   const router = useRouter();
   const [state, setState] = useState<"preview" | "result">("preview");
   const [predictions, setPredictions] = useState<any[]>([]);
+  const dishname = predictions.length > 0 ? predictions[0].class : null;
+  const ingredients = dishMacros[dishname];
+  const [editMode, setEditMode] = useState(false);
+  const [editedIngredients, setEditedIngredients] = useState<
+    Record<string, number>
+  >({});
 
   const [weight, setweight] = useState<number>(100);
   const detected = predictions.length > 0 ? predictions[0].class : null;
   // const macros = detected ? ingredientMacros[detected] : null;
 
   const macros =
-    detected && computeDishMacros(detected, weight / 100) // if it's a dish
-      ? computeDishMacros(detected, weight / 100)
+    detected && computeDishMacros(detected, weight / 100, editedIngredients)
+      ? computeDishMacros(detected, weight / 100, editedIngredients)
       : detected && ingredientMacros[detected]
         ? {
             carbs: +(ingredientMacros[detected].carbs * weight).toFixed(1),
@@ -458,124 +465,245 @@ export default function Scan() {
             </Text>
           </View>
 
-          <View style={{ flex: 1, padding: 16 }}>
-            <Image
-              source={{ uri: capturedPhoto }}
-              style={{
-                width: "100%",
-                height: 250,
-                borderRadius: 12,
-                marginBottom: 20,
-              }}
-              resizeMode="cover"
-            />
-            {predictions.length > 0 && (
-              <Text
+          <ScrollView>
+            <View style={{ flex: 1, padding: 16 }}>
+              <Image
+                source={{ uri: capturedPhoto }}
                 style={{
-                  color: colors.text,
-                  fontSize: 18,
-                  fontWeight: "600",
-                  textAlign: "center",
-                  marginBottom: 16,
-                }}
-              >
-                🍽️ Food: {predictions[0].class.replace(/_/g, " ")}
-              </Text>
-            )}
-
-            {macros ? (
-              <View
-                style={{
-                  backgroundColor: colors.surface,
-                  padding: 20,
+                  width: "100%",
+                  height: 250,
                   borderRadius: 12,
                   marginBottom: 20,
                 }}
-              >
-                <Text
-                  style={{ color: colors.text, fontSize: 16, marginBottom: 8 }}
-                >
-                  🍚 Carbs: {macros?.carbs} g
-                </Text>
-                <Text
-                  style={{ color: colors.text, fontSize: 16, marginBottom: 8 }}
-                >
-                  🍗 Protein: {macros?.protein} g
-                </Text>
-                <Text
-                  style={{ color: colors.text, fontSize: 16, marginBottom: 8 }}
-                >
-                  🧈 Fat: {macros?.fats} g
-                </Text>
-                <Text style={{ color: colors.text, fontSize: 16 }}>
-                  🔥 Calories: {macros?.calories} kcal
-                </Text>
-              </View>
-            ) : (
-              <Text style={{ color: colors.text, textAlign: "center" }}>
-                No macros found for this food.
-              </Text>
-            )}
-
-            <Text
-              style={{ color: colors.text, fontSize: 16, marginBottom: 12 }}
-            >
-              Weight (grams):
-            </Text>
-            <TextInput
-              value={String(weight)}
-              onChangeText={(text) => setweight(Number(text) || 0)}
-              keyboardType="numeric"
-              style={{
-                borderWidth: 1,
-                borderColor: colors.primary,
-                borderRadius: 8,
-                padding: 8,
-                color: colors.text,
-                marginBottom: 20,
-              }}
-            />
-
-            <View style={{ flexDirection: "row", gap: 12 }}>
-              <TouchableOpacity
-                onPress={retakePhoto}
-                style={{
-                  flex: 1,
-                  backgroundColor: colors.surface,
-                  padding: 16,
-                  borderRadius: 12,
-                  alignItems: "center",
-                }}
-              >
+                resizeMode="cover"
+              />
+              {predictions.length > 0 && (
                 <Text
                   style={{
                     color: colors.text,
-                    fontSize: 16,
+                    fontSize: 18,
                     fontWeight: "600",
+                    textAlign: "center",
+                    marginBottom: 16,
                   }}
                 >
-                  Retake Photo
+                  🍽️ Food: {predictions[0].class.replace(/_/g, " ")}
                 </Text>
-              </TouchableOpacity>
+              )}
 
-              <TouchableOpacity
-                onPress={() => console.log("Log Food pressed")}
-                style={{
-                  flex: 1,
-                  backgroundColor: colors.primary,
-                  padding: 16,
-                  borderRadius: 12,
-                  alignItems: "center",
-                }}
-              >
-                <Text
-                  style={{ color: "white", fontSize: 16, fontWeight: "600" }}
+              {macros ? (
+                <View
+                  style={{
+                    backgroundColor: colors.surface,
+                    padding: 20,
+                    borderRadius: 12,
+                    marginBottom: 20,
+                  }}
                 >
-                  Log Food
+                  <Text
+                    style={{
+                      color: colors.text,
+                      fontSize: 16,
+                      marginBottom: 8,
+                    }}
+                  >
+                    🍚 Carbs: {macros?.carbs} g
+                  </Text>
+                  <Text
+                    style={{
+                      color: colors.text,
+                      fontSize: 16,
+                      marginBottom: 8,
+                    }}
+                  >
+                    🍗 Protein: {macros?.protein} g
+                  </Text>
+                  <Text
+                    style={{
+                      color: colors.text,
+                      fontSize: 16,
+                      marginBottom: 8,
+                    }}
+                  >
+                    🧈 Fat: {macros?.fats} g
+                  </Text>
+                  <Text style={{ color: colors.text, fontSize: 16 }}>
+                    🔥 Calories: {macros?.calories} kcal
+                  </Text>
+                </View>
+              ) : (
+                <Text style={{ color: colors.text, textAlign: "center" }}>
+                  No macros found for this food.
                 </Text>
-              </TouchableOpacity>
+              )}
+
+              {ingredients ? (
+                <View
+                  style={{
+                    backgroundColor: colors.surface,
+                    padding: 20,
+                    borderRadius: 12,
+                    marginBottom: 20,
+                    maxHeight: 200, // prevents it from taking entire screen
+                  }}
+                >
+                  <TouchableOpacity
+                    onPress={() => {
+                      if (editMode) {
+                        console.log("Recomputing with:", editedIngredients);
+                      }
+                      setEditMode(!editMode);
+                    }}
+                    style={{ alignSelf: "flex-end", marginBottom: 10 }}
+                  >
+                    <Text style={{ color: colors.primary, fontWeight: "bold" }}>
+                      {editMode ? "Done" : "Edit"}
+                    </Text>
+                  </TouchableOpacity>
+
+                  <Text
+                    style={{
+                      color: colors.text,
+                      fontSize: 16,
+                      fontWeight: "600",
+                      marginBottom: 12,
+                    }}
+                  >
+                    🥘 Ingredients
+                  </Text>
+
+                  <ScrollView nestedScrollEnabled={true}>
+                    {Object.entries(ingredients).map(
+                      ([ingredient, weight], index) => {
+                        const currentValue =
+                          editedIngredients[ingredient] ?? weight;
+
+                        return editMode ? (
+                          // EDIT MODE → Show TextInput
+                          <View
+                            key={`${ingredient}-${index}`}
+                            style={{
+                              flexDirection: "row",
+                              alignItems: "center",
+                              marginBottom: 6,
+                            }}
+                          >
+                            <Text
+                              style={{
+                                color: colors.text,
+                                fontSize: 15,
+                                flex: 1,
+                              }}
+                            >
+                              {ingredient.replace(/_/g, " ")}
+                            </Text>
+                            <TextInput
+                              value={String(currentValue)}
+                              keyboardType="numeric"
+                              onChangeText={(text) => {
+                                const newWeight = Number(text) || 0;
+                                setEditedIngredients((prev) => ({
+                                  ...prev,
+                                  [ingredient]: newWeight,
+                                }));
+                              }}
+                              style={{
+                                borderWidth: 1,
+                                borderColor: colors.primary,
+                                borderRadius: 6,
+                                paddingHorizontal: 8,
+                                width: 60,
+                                textAlign: "center",
+                                color: colors.text,
+                              }}
+                            />
+                            <Text style={{ color: colors.text, marginLeft: 4 }}>
+                              g
+                            </Text>
+                          </View>
+                        ) : (
+                          // VIEW MODE → Show plain text
+                          <Text
+                            key={`${ingredient}-${index}`}
+                            style={{
+                              color: colors.text,
+                              fontSize: 15,
+                              marginBottom: 6,
+                            }}
+                          >
+                            {ingredient.replace(/_/g, " ")} – {currentValue} g
+                          </Text>
+                        );
+                      }
+                    )}
+                  </ScrollView>
+                </View>
+              ) : (
+                <Text style={{ color: colors.text, textAlign: "center" }}>
+                  No ingredients found for this dish.
+                </Text>
+              )}
+
+              <Text
+                style={{ color: colors.text, fontSize: 16, marginBottom: 12 }}
+              >
+                Weight (grams):
+              </Text>
+              <TextInput
+                value={String(weight)}
+                onChangeText={(text) => setweight(Number(text) || 0)}
+                keyboardType="numeric"
+                style={{
+                  borderWidth: 1,
+                  borderColor: colors.primary,
+                  borderRadius: 8,
+                  padding: 8,
+                  color: colors.text,
+                  marginBottom: 20,
+                }}
+              />
+
+              <View style={{ flexDirection: "row", gap: 12 }}>
+                <TouchableOpacity
+                  onPress={retakePhoto}
+                  style={{
+                    flex: 1,
+                    backgroundColor: colors.surface,
+                    padding: 16,
+                    borderRadius: 12,
+                    alignItems: "center",
+                  }}
+                >
+                  <Text
+                    style={{
+                      color: colors.text,
+                      fontSize: 16,
+                      fontWeight: "600",
+                    }}
+                  >
+                    Retake Photo
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={() => console.log("Log Food pressed")}
+                  style={{
+                    flex: 1,
+                    backgroundColor: colors.primary,
+                    padding: 16,
+                    borderRadius: 12,
+                    alignItems: "center",
+                  }}
+                >
+                  <Text
+                    style={{ color: "white", fontSize: 16, fontWeight: "600" }}
+                  >
+                    Log Food
+                  </Text>
+                </TouchableOpacity>
+              </View>
             </View>
-          </View>
+          </ScrollView>
         </SafeAreaView>
       );
     }
