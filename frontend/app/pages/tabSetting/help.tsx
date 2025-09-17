@@ -1,13 +1,13 @@
 import React from "react";
-import { View, Text, TouchableOpacity, ScrollView } from "react-native"
-import { useRouter } from "expo-router"
-import { Ionicons } from "@expo/vector-icons"
-import { useTheme } from "../../../contexts/ThemeContext"
-import { SafeAreaView } from "react-native-safe-area-context"
+import { View, Text, TouchableOpacity, ScrollView } from "react-native";
+import { useRouter } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
+import { useTheme } from "../../../contexts/ThemeContext";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function Help() {
-  const router = useRouter()
-  const { colors } = useTheme()
+  const router = useRouter();
+  const { colors } = useTheme();
 
   const faqData = [
     {
@@ -28,31 +28,34 @@ export default function Help() {
     {
       question: "How do I set my nutrition goals?",
       answer:
-        "Go to Settings > Nutrition Goals to set your daily calorie, protein, carb, and fat targets based on your personal health objectives.",
-    },
-    {
-      question: "Can I export my nutrition data?",
-      answer:
-        "Yes, you can export your nutrition history from Settings > Data & Storage > Export Data. This will generate a CSV file with all your tracked meals and nutrition information.",
+        "Go to Homepage > Macro Goals > Edit, then calculate your macro goals to set your daily calorie, protein, carbohydrate, and fat targets based on your computed macros.",
     },
     {
       question: "What if the app doesn't recognize my food?",
       answer:
-        "If our AI doesn't recognize a food item, you can manually search our database or add custom foods with their nutritional information.",
+        "If our AI doesn't recognize a Filipino dish, you can manually add it and include its nutritional information so you can still track your macros accurately.",
     },
-  ]
+  ];
 
   return (
-    <SafeAreaView style={{ 
-      backgroundColor: colors.background,
-      flexGrow: 1,
-      paddingHorizontal: 16,
-      paddingTop: 12,
-      paddingBottom: 24, 
-    }}>
+    <SafeAreaView
+      style={{
+        backgroundColor: colors.background,
+        flexGrow: 1,
+        paddingHorizontal: 16,
+        paddingTop: 12,
+        paddingBottom: 24,
+      }}
+    >
       {/* Header */}
-      <View className="flex-row items-center px-4 py-3 border-b" style={{ borderBottomColor: colors.surface }}>
-        <TouchableOpacity onPress={() => router.push("..\\account")} className="mr-4">
+      <View
+        className="flex-row items-center px-4 py-3 border-b"
+        style={{ borderBottomColor: colors.surface }}
+      >
+        <TouchableOpacity
+          onPress={() => router.push("..\\account")}
+          className="mr-4"
+        >
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text className="text-xl font-bold" style={{ color: colors.text }}>
@@ -63,7 +66,10 @@ export default function Help() {
       <ScrollView className="flex-1 px-4 py-6">
         {/* Quick Actions */}
         <View className="mb-8">
-          <Text className="text-lg font-semibold mb-4" style={{ color: colors.text }}>
+          <Text
+            className="text-lg font-semibold mb-4"
+            style={{ color: colors.text }}
+          >
             Quick Actions
           </Text>
 
@@ -73,10 +79,18 @@ export default function Help() {
             onPress={() => router.push("..\\tabSetting//contact")} // Navigate to Contact Support "\\" this back "//" use to go in to the contact page
           >
             <Ionicons name="mail-outline" size={24} color={colors.primary} />
-            <Text className="ml-4 text-base flex-1" style={{ color: colors.text }}>
+            <Text
+              className="ml-4 text-base flex-1"
+              style={{ color: colors.text }}
+            >
               Contact Support
             </Text>
-            <Ionicons name="chevron-forward" size={20} color={colors.text} style={{ opacity: 0.5 }} />
+            <Ionicons
+              name="chevron-forward"
+              size={20}
+              color={colors.text}
+              style={{ opacity: 0.5 }}
+            />
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -85,24 +99,43 @@ export default function Help() {
             onPress={() => router.push("..\\tabSetting//report")}
           >
             <Ionicons name="bug-outline" size={24} color={colors.primary} />
-            <Text className="ml-4 text-base flex-1" style={{ color: colors.text }}>
+            <Text
+              className="ml-4 text-base flex-1"
+              style={{ color: colors.text }}
+            >
               Report a Bug
             </Text>
-            <Ionicons name="chevron-forward" size={20} color={colors.text} style={{ opacity: 0.5 }} />
+            <Ionicons
+              name="chevron-forward"
+              size={20}
+              color={colors.text}
+              style={{ opacity: 0.5 }}
+            />
           </TouchableOpacity>
 
           <TouchableOpacity className="flex-row items-center py-4">
             <Ionicons name="star-outline" size={24} color={colors.primary} />
-            <Text className="ml-4 text-base flex-1" style={{ color: colors.text }}>
+            <Text
+              className="ml-4 text-base flex-1"
+              style={{ color: colors.text }}
+            >
               Rate Our App
             </Text>
-            <Ionicons name="chevron-forward" size={20} color={colors.text} style={{ opacity: 0.5 }} />
+            <Ionicons
+              name="chevron-forward"
+              size={20}
+              color={colors.text}
+              style={{ opacity: 0.5 }}
+            />
           </TouchableOpacity>
         </View>
 
         {/* FAQ Section */}
         <View className="mb-8">
-          <Text className="text-lg font-semibold mb-4" style={{ color: colors.text }}>
+          <Text
+            className="text-lg font-semibold mb-4"
+            style={{ color: colors.text }}
+          >
             Frequently Asked Questions
           </Text>
 
@@ -115,10 +148,16 @@ export default function Help() {
                 borderColor: colors.surface,
               }}
             >
-              <Text className="text-base font-medium mb-2" style={{ color: colors.text }}>
+              <Text
+                className="text-base font-medium mb-2"
+                style={{ color: colors.text }}
+              >
                 {faq.question}
               </Text>
-              <Text className="text-sm leading-5" style={{ color: colors.text, opacity: 0.8 }}>
+              <Text
+                className="text-sm leading-5"
+                style={{ color: colors.text, opacity: 0.8 }}
+              >
                 {faq.answer}
               </Text>
             </View>
@@ -127,39 +166,62 @@ export default function Help() {
 
         {/* Getting Started */}
         <View className="mb-8">
-          <Text className="text-lg font-semibold mb-4" style={{ color: colors.text }}>
+          <Text
+            className="text-lg font-semibold mb-4"
+            style={{ color: colors.text }}
+          >
             Getting Started
           </Text>
 
           <View className="mb-4">
-            <Text className="text-base font-medium mb-2" style={{ color: colors.text }}>
+            <Text
+              className="text-base font-medium mb-2"
+              style={{ color: colors.text }}
+            >
               1. Create Your Profile
             </Text>
-            <Text className="text-sm leading-5 mb-4" style={{ color: colors.text, opacity: 0.8 }}>
-              Set up your account with basic information and nutrition goals to get personalized recommendations.
+            <Text
+              className="text-sm leading-5 mb-4"
+              style={{ color: colors.text, opacity: 0.8 }}
+            >
+              Set up your account with basic information and nutrition goals to
+              get personalized recommendations.
             </Text>
           </View>
 
           <View className="mb-4">
-            <Text className="text-base font-medium mb-2" style={{ color: colors.text }}>
+            <Text
+              className="text-base font-medium mb-2"
+              style={{ color: colors.text }}
+            >
               2. Start Scanning
             </Text>
-            <Text className="text-sm leading-5 mb-4" style={{ color: colors.text, opacity: 0.8 }}>
-              Use the camera to scan your meals. Our AI will identify the food and provide detailed nutrition
-              information.
+            <Text
+              className="text-sm leading-5 mb-4"
+              style={{ color: colors.text, opacity: 0.8 }}
+            >
+              Use the camera to scan your meals. Our AI will identify the food
+              and provide detailed nutrition information.
             </Text>
           </View>
 
           <View className="mb-4">
-            <Text className="text-base font-medium mb-2" style={{ color: colors.text }}>
+            <Text
+              className="text-base font-medium mb-2"
+              style={{ color: colors.text }}
+            >
               3. Track Your Progress
             </Text>
-            <Text className="text-sm leading-5" style={{ color: colors.text, opacity: 0.8 }}>
-              Monitor your daily nutrition intake and view your progress over time in the Statistics tab.
+            <Text
+              className="text-sm leading-5"
+              style={{ color: colors.text, opacity: 0.8 }}
+            >
+              Monitor your daily nutrition intake and view your progress over
+              time in the Statistics tab.
             </Text>
           </View>
         </View>
       </ScrollView>
     </SafeAreaView>
-  )
+  );
 }
