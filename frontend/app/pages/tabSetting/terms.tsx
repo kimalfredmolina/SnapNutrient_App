@@ -25,7 +25,6 @@ export default function Terms({ isModal }: TermsProps) {
         paddingBottom: 60,
       }}
     >
-      {/* Only show header when not in modal */}
       {!isModal && (
         <View
           className="flex-row items-center px-4 py-3 border-b"
@@ -48,7 +47,7 @@ export default function Terms({ isModal }: TermsProps) {
           className="text-sm mb-4"
           style={{ color: colors.text, opacity: 0.7 }}
         >
-          Last updated: August 1, 2025
+          Last updated: September 1, 2025
         </Text>
 
         {/* Introduction */}
@@ -63,9 +62,10 @@ export default function Terms({ isModal }: TermsProps) {
             className="text-base leading-6"
             style={{ color: colors.text, opacity: 0.8 }}
           >
-            Please read these Terms and Conditions carefully before using the
-            SnapNutrients mobile application. By accessing or using the app, you
-            agree to be bound by these terms.
+            Welcome to SnapNutrients! These Terms and Conditions govern your use
+            of our mobile app. By downloading, accessing, or using SnapNutrients
+            from Google Play, you agree to comply with these Terms and with the
+            Google Play Terms of Service.
           </Text>
         </View>
 
@@ -81,48 +81,46 @@ export default function Terms({ isModal }: TermsProps) {
             className="text-base leading-6"
             style={{ color: colors.text, opacity: 0.8 }}
           >
-            By accessing or using SnapNutrients, you acknowledge that you have
-            read, understood, and agree to be bound by these terms. If you do
-            not agree with any part of these terms, you must not use our
-            application.
+            By installing or using this app, you confirm that you have read,
+            understood, and agree to these Terms and Google Play policies. If
+            you do not agree, please uninstall and do not use SnapNutrients.
           </Text>
         </View>
 
-        {/* User Account */}
+        {/* User Accounts */}
         <View className="mb-6">
           <Text
             className="text-lg font-semibold mb-3"
             style={{ color: colors.text }}
           >
-            User Account
+            User Accounts
           </Text>
           <Text
             className="text-base leading-6"
             style={{ color: colors.text, opacity: 0.8 }}
           >
-            • You must provide accurate and complete information when creating
-            an account{"\n"}• You are responsible for maintaining the security
-            of your account{"\n"}• You must notify us immediately of any
-            unauthorized access{"\n"}• We reserve the right to terminate
-            accounts at our discretion
+            • Provide accurate and updated information when creating an account
+            {"\n"}• Keep your login credentials secure and confidential{"\n"}•
+            Notify us immediately if you suspect unauthorized use{"\n"}• We may
+            suspend or terminate accounts that violate these Terms
           </Text>
         </View>
 
-        {/* Use License */}
+        {/* App Use & License */}
         <View className="mb-6">
           <Text
             className="text-lg font-semibold mb-3"
             style={{ color: colors.text }}
           >
-            Use License
+            License to Use
           </Text>
           <Text
             className="text-base leading-6"
             style={{ color: colors.text, opacity: 0.8 }}
           >
-            We grant you a limited, non-exclusive, non-transferable license to
-            use SnapNutrients for personal, non-commercial purposes. This
-            license is subject to these Terms and Conditions.
+            We grant you a limited, personal, non-commercial, non-transferable
+            license to use SnapNutrients in accordance with these Terms and
+            Google Play’s Developer Distribution Agreement.
           </Text>
         </View>
 
@@ -138,10 +136,47 @@ export default function Terms({ isModal }: TermsProps) {
             className="text-base leading-6"
             style={{ color: colors.text, opacity: 0.8 }}
           >
-            You agree not to:{"\n"}• Use the app for any illegal purpose{"\n"}•
-            Attempt to gain unauthorized access{"\n"}• Upload malicious code
-            {"\n"}• Interfere with the app's functionality{"\n"}• Copy or modify
-            the app's software
+            You agree not to:{"\n"}• Violate Google Play policies or local laws
+            {"\n"}• Attempt to hack, reverse engineer, or disrupt the app{"\n"}•
+            Upload viruses, malicious code, or harmful content{"\n"}• Use the
+            app to harass, abuse, or harm others{"\n"}• Copy, redistribute, or
+            sell the app’s code or content
+          </Text>
+        </View>
+
+        {/* Content & Intellectual Property */}
+        <View className="mb-6">
+          <Text
+            className="text-lg font-semibold mb-3"
+            style={{ color: colors.text }}
+          >
+            Content and Intellectual Property
+          </Text>
+          <Text
+            className="text-base leading-6"
+            style={{ color: colors.text, opacity: 0.8 }}
+          >
+            All content within SnapNutrients is protected by copyright and other
+            intellectual property laws. You may not use our branding, logos, or
+            content without written permission.
+          </Text>
+        </View>
+
+        {/* Data Privacy */}
+        <View className="mb-6">
+          <Text
+            className="text-lg font-semibold mb-3"
+            style={{ color: colors.text }}
+          >
+            Privacy & Data
+          </Text>
+          <Text
+            className="text-base leading-6"
+            style={{ color: colors.text, opacity: 0.8 }}
+          >
+            Your data is handled according to our Privacy Policy and Google Play
+            User Data policies. We do not sell your personal information. You
+            may request data deletion by contacting us.
           </Text>
         </View>
 
@@ -157,9 +192,26 @@ export default function Terms({ isModal }: TermsProps) {
             className="text-base leading-6"
             style={{ color: colors.text, opacity: 0.8 }}
           >
-            SnapNutrients is provided "as is" without any warranties. We do not
-            guarantee the accuracy of nutrition information. Consult healthcare
-            professionals for medical advice.
+            SnapNutrients is provided “as is.” We do not guarantee complete
+            accuracy of nutritional data. Always consult a qualified healthcare
+            professional before making health-related decisions.
+          </Text>
+        </View>
+
+        {/* Termination */}
+        <View className="mb-6">
+          <Text
+            className="text-lg font-semibold mb-3"
+            style={{ color: colors.text }}
+          >
+            Suspension or Termination
+          </Text>
+          <Text
+            className="text-base leading-6"
+            style={{ color: colors.text, opacity: 0.8 }}
+          >
+            We reserve the right to suspend or terminate your access at any time
+            if you violate these Terms or Google Play’s policies.
           </Text>
         </View>
 
@@ -175,7 +227,8 @@ export default function Terms({ isModal }: TermsProps) {
             className="text-base leading-6 mb-4"
             style={{ color: colors.text, opacity: 0.8 }}
           >
-            For questions about these Terms and Conditions, please contact us:
+            For questions or concerns about these Terms and Conditions, contact
+            us:
           </Text>
           <TouchableOpacity className="flex-row items-center">
             <Ionicons name="mail-outline" size={20} color={colors.primary} />
