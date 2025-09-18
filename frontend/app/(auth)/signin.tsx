@@ -79,12 +79,95 @@ export default function LoginPage() {
     redirectUri,
   });
 
+  // Function to check previous sign-in status on component mount
+  useEffect(() => {
+    checkPreviousSignIn();
+  }, []);
+
+  const checkPreviousSignIn = async () => {
+    try {
+      const isLoggedOut = await AsyncStorage.getItem("isLoggedOut");
+      if (isLoggedOut === "true") {
+        return;
+      }
+
+      const savedAuth = await AsyncStorage.getItem("savedAuth");
+      const savedUser = await AsyncStorage.getItem("savedUser");
+
+      if (!savedAuth || !savedUser) return;
+
+      const parsedUser = JSON.parse(savedUser);
+
+      if (parsedUser.isGoogleUser) {
+        try {
+          // Re-authenticate with Google credentials
+          if (parsedUser.credential) {
+            const credential = GoogleAuthProvider.credential(
+              parsedUser.credential.idToken,
+              parsedUser.credential.accessToken
+            );
+
+            await signInWithCredential(auth, credential);
+
+            const userData = {
+              name: parsedUser.name,
+              email: parsedUser.email,
+              photoURL: parsedUser.photoURL,
+            };
+
+            await login(userData);
+            router.replace("/pages");
+          }
+        } catch (error) {
+          console.log("Google auto-login failed:", error);
+          await AsyncStorage.multiRemove([
+            "savedAuth",
+            "savedUser",
+            "isLoggedOut",
+          ]);
+        }
+      } else {
+        // Email/Password login remains the same
+        if (parsedUser.email && parsedUser.password) {
+          try {
+            const userCredential = await signInWithEmailAndPassword(
+              auth,
+              parsedUser.email,
+              parsedUser.password
+            );
+
+            const userData = {
+              name:
+                userCredential.user.displayName ||
+                parsedUser.email.split("@")[0],
+              email: userCredential.user.email || undefined,
+              photoURL: userCredential.user.photoURL || undefined,
+            };
+
+            await login(userData);
+            router.replace("/pages");
+          } catch (error) {
+            console.log("Email/Password auto-login failed:", error);
+            await AsyncStorage.multiRemove([
+              "savedAuth",
+              "savedUser",
+              "isLoggedOut",
+            ]);
+          }
+        }
+      }
+    } catch (error) {
+      console.log("Error checking previous sign-in:", error);
+      await AsyncStorage.multiRemove(["savedAuth", "savedUser", "isLoggedOut"]);
+    }
+  };
+
   const handleGoogleSignIn = async () => {
     try {
       const result = await promptAsync();
 
       if (result?.type === "success" && result.params?.code) {
-        console.log("Authorization code received, exchanging for tokens...");
+        console.log("Google Auth: Authorization code received");
         const { code } = result.params;
 
         const tokenResponse = await AuthSession.exchangeCodeAsync(
@@ -106,58 +189,45 @@ export default function LoginPage() {
             tokenResponse.idToken,
             tokenResponse.accessToken
           );
+
           const userCredential = await signInWithCredential(auth, credential);
           const firebaseUser = userCredential.user;
 
-          // Extract user information
           const userData = {
-            name: firebaseUser.displayName || undefined,
+            name: firebaseUser.displayName || firebaseUser.email?.split("@")[0],
             email: firebaseUser.email || undefined,
             photoURL: firebaseUser.photoURL || undefined,
           };
 
-          await login(userData);
+          // Save Google auth state for auto-login
+          await AsyncStorage.multiSet([
+            ["savedAuth", "true"],
+            ["isLoggedOut", "false"],
+            [
+              "savedUser",
+              JSON.stringify({
+                ...userData,
+                isGoogleUser: true,
+                credential: {
+                  idToken: tokenResponse.idToken,
+                  accessToken: tokenResponse.accessToken,
+                },
+              }),
+            ],
+          ]);
 
-          setTimeout(() => {
-            try {
-              router.push("/pages");
-            } catch (error) {}
-          }, 500);
-        } else {
-          Alert.alert(
-            "Error",
-            "Failed to get ID token from Google. Please check your Google Cloud Console configuration."
-          );
+          await login(userData);
+          console.log("Google Auth: Navigation to homepage");
+          await router.replace("/pages");
         }
-      } else {
-        console.error("Google sign-in failed or was cancelled:", result);
-        Alert.alert("Error", "Google Sign-In was cancelled or failed");
       }
     } catch (error: any) {
       console.error("Google Sign-In Error:", error);
-      console.error("Error details:", {
-        message: error.message,
-        code: error.code,
-        stack: error.stack,
-      });
-
-      let errorMessage = "Google Sign-In failed";
-      if (error.message?.includes("invalid_grant")) {
-        errorMessage = "Authorization failed. Please try again.";
-      } else if (error.message?.includes("redirect_uri_mismatch")) {
-        errorMessage = "Configuration error. Please contact support.";
-      } else if (error.message?.includes("client_id")) {
-        errorMessage =
-          "Invalid client configuration. Please check your Google Cloud Console settings.";
-      } else if (error.message?.includes("unauthorized_client")) {
-        errorMessage =
-          "Client not authorized. Please check your Google Cloud Console OAuth settings.";
-      }
-
-      Alert.alert("Error", errorMessage);
+      Alert.alert("Error", "Failed to sign in with Google. Please try again.");
     }
   };
 
+  // Modify handleLogin to save credentials when "Remember Me" is checked
   const handleLogin = async () => {
     try {
       if (email && password) {
@@ -168,14 +238,31 @@ export default function LoginPage() {
         );
         const firebaseUser = userCredential.user;
 
-        // Extract user information
         const userData = {
           name: firebaseUser.displayName || email.split("@")[0],
           email: firebaseUser.email || undefined,
           photoURL: firebaseUser.photoURL || undefined,
         };
 
-        login(userData);
+        // Save credentials only if "Remember Me" is checked
+        if (rememberMe) {
+          await AsyncStorage.multiSet([
+            ["savedAuth", "true"],
+            ["isLoggedOut", "false"],
+            [
+              "savedUser",
+              JSON.stringify({
+                password, // Include password
+                ...userData,
+              }),
+            ],
+          ]);
+        } else {
+          // Clear any saved credentials if "Remember Me" is not checked
+          await AsyncStorage.multiRemove(["savedAuth", "savedUser"]);
+        }
+
+        await login(userData);
         router.replace("/pages");
       } else {
         Alert.alert(
