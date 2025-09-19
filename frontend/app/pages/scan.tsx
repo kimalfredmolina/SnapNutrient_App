@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -18,6 +18,8 @@ import CONFIG from "../../server";
 import { ingredientMacros } from "../macros/ingredient-level-macros";
 import { dishMacros } from "../macros/dish-level-macros";
 import { computeDishMacros } from "../macros/compute_dish";
+import { logFoodForUser } from "../macros/foodLogs";
+import { getAuth } from "firebase/auth";
 
 export default function Scan() {
   const cameraRef = useRef<CameraView>(null);
@@ -38,7 +40,8 @@ export default function Scan() {
 
   const [weight, setweight] = useState<number>(100);
   const detected = predictions.length > 0 ? predictions[0].class : null;
-  // const macros = detected ? ingredientMacros[detected] : null;
+
+  const [isLogging, setIsLogging] = useState(false);
 
   const macros =
     detected && computeDishMacros(detected, weight / 100, editedIngredients)
@@ -159,6 +162,43 @@ export default function Scan() {
 
   const retakePhoto = () => {
     setCapturedPhoto(null);
+  };
+
+  const handleLogFood = async () => {
+    if (!macros) {
+      Alert.alert("Error", "No macros available to log.");
+      return;
+    }
+
+    const auth = getAuth();
+    const user = auth.currentUser;
+
+    if (!user) {
+      Alert.alert("Error", "You must be logged in to log food.");
+      return;
+    }
+
+    setIsLogging(true);
+
+    try {
+      await logFoodForUser(user.uid, {
+        foodName: predictions[0]?.class || "Unknown",
+        weight,
+        carbs: macros.carbs,
+        protein: macros.protein,
+        fats: macros.fats,
+        calories: macros.calories,
+      });
+
+      Alert.alert("Success", "Food logged successfully!", [
+        { text: "OK", onPress: () => router.push("/") },
+      ]);
+    } catch (error) {
+      console.error("Error logging food:", error);
+      Alert.alert("Error", "Failed to log food. Please try again.");
+    } finally {
+      setIsLogging(false);
+    }
   };
 
   if (!permission) {
@@ -686,10 +726,11 @@ export default function Scan() {
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                  onPress={() => console.log("Log Food pressed")}
+                  onPress={handleLogFood}
+                  disabled={isLogging}
                   style={{
                     flex: 1,
-                    backgroundColor: colors.primary,
+                    backgroundColor: isLogging ? "gray" : colors.primary,
                     padding: 16,
                     borderRadius: 12,
                     alignItems: "center",
@@ -698,7 +739,7 @@ export default function Scan() {
                   <Text
                     style={{ color: "white", fontSize: 16, fontWeight: "600" }}
                   >
-                    Log Food
+                    {isLogging ? "Logging..." : "Log Food"}
                   </Text>
                 </TouchableOpacity>
               </View>

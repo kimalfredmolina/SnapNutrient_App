@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 type User = {
+  uid?: string;
   name?: string;
   email?: string;
   photoURL?: string;
@@ -34,10 +35,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         const authState = await AsyncStorage.getItem("authState");
         if (authState) {
-          const { isAuthenticated: savedAuth, user: savedUser } = JSON.parse(authState);
+          const { isAuthenticated: savedAuth, user: savedUser } =
+            JSON.parse(authState);
           setIsAuthenticated(savedAuth);
           setUser(savedUser);
-          console.log("AuthContext: Loaded saved auth state:", { savedAuth, savedUser });
+          console.log("AuthContext: Loaded saved auth state:", {
+            savedAuth,
+            savedUser,
+          });
         }
       } catch (error) {
         console.error("Error loading auth state:", error);
@@ -55,26 +60,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (userData) {
       setUser(userData);
     }
-    
+
     // Save to AsyncStorage
     try {
-      await AsyncStorage.setItem("authState", JSON.stringify({
-        isAuthenticated: true,
-        user: userData
-      }));
+      await AsyncStorage.setItem(
+        "authState",
+        JSON.stringify({
+          isAuthenticated: true,
+          user: userData,
+        })
+      );
       console.log("AuthContext: Auth state saved to storage");
     } catch (error) {
       console.error("Error saving auth state:", error);
     }
-    
+
     console.log("AuthContext: isAuthenticated set to true");
   };
-  
+
   const logout = async () => {
     console.log("AuthContext: logout called");
     setIsAuthenticated(false);
     setUser(null);
-    
+
     // Clear from AsyncStorage
     try {
       await AsyncStorage.removeItem("authState");
@@ -82,12 +90,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (error) {
       console.error("Error clearing auth state:", error);
     }
-    
+
     console.log("AuthContext: isAuthenticated set to false, user cleared");
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, user, login, logout, isLoading }}>
+    <AuthContext.Provider
+      value={{ isAuthenticated, user, login, logout, isLoading }}
+    >
       {children}
     </AuthContext.Provider>
   );
