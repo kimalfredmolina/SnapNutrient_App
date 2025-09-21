@@ -86,13 +86,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // Clear from AsyncStorage
     try {
-      await AsyncStorage.removeItem("authState");
-      console.log("AuthContext: Auth state cleared from storage");
+      await auth.signOut();
+      // Set logged out state and clear credentials
+      await AsyncStorage.multiSet([
+        ["isLoggedOut", "true"],
+        ["savedAuth", ""],
+        ["savedUser", ""],
+      ]);
+      setIsAuthenticated(false);
+      setUser(null);
     } catch (error) {
       console.error("Logout error:", error);
     }
-
-    console.log("AuthContext: isAuthenticated set to false, user cleared");
   };
 
   return (
