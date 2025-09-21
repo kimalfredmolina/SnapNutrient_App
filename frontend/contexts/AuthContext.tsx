@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { auth } from "@/config/firebase";
 
 type User = {
   uid?: string;
@@ -88,7 +89,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await AsyncStorage.removeItem("authState");
       console.log("AuthContext: Auth state cleared from storage");
     } catch (error) {
-      console.error("Error clearing auth state:", error);
+      console.error("Logout error:", error);
     }
 
     console.log("AuthContext: isAuthenticated set to false, user cleared");

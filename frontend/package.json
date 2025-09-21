@@ -46,7 +46,7 @@
     "nativewind": "^4.1.23",
     "prettier-plugin-tailwindcss": "0.5.11",
     "react": "^19.0.0",
-    "react-dom": "19.0.0",
+    "react-dom": "^19.0.0",
     "react-native": "0.79.4",
     "react-native-calendars": "^1.1313.0",
     "react-native-dotenv": "^3.4.11",
