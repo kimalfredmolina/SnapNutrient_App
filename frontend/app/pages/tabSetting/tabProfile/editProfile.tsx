@@ -118,9 +118,7 @@ export default function EditProfile() {
             </Text>
             <TextInput
               value={email}
-              onChangeText={setEmail}
-              placeholder="Enter your email"
-              placeholderTextColor={colors.text + "60"}
+              editable={false}   // 👈 makes it read-only
               keyboardType="email-address"
               autoCapitalize="none"
               className="border rounded-lg px-4 py-3 text-base"
@@ -132,46 +130,6 @@ export default function EditProfile() {
             />
           </View>
 
-          <View className="mb-4">
-            <Text className="text-base font-medium mb-2" style={{ color: colors.text }}>
-              Phone Number
-            </Text>
-            <TextInput
-              value={phone}
-              onChangeText={setPhone}
-              placeholder="Enter your phone number"
-              placeholderTextColor={colors.text + "60"}
-              keyboardType="phone-pad"
-              className="border rounded-lg px-4 py-3 text-base"
-              style={{
-                borderColor: colors.surface,
-                backgroundColor: colors.surface,
-                color: colors.text,
-              }}
-            />
-          </View>
-
-          <View className="mb-4">
-            <Text className="text-base font-medium mb-2" style={{ color: colors.text }}>
-              Bio
-            </Text>
-            <TextInput
-              value={bio}
-              onChangeText={setBio}
-              placeholder="Tell us about yourself"
-              placeholderTextColor={colors.text + "60"}
-              multiline
-              numberOfLines={3}
-              textAlignVertical="top"
-              className="border rounded-lg px-4 py-3 text-base"
-              style={{
-                borderColor: colors.surface,
-                backgroundColor: colors.surface,
-                color: colors.text,
-                minHeight: 80,
-              }}
-            />
-          </View>
         </View>
 
         {/* Health Information */}
