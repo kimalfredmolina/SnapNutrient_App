@@ -87,22 +87,34 @@ export default function Statistics() {
             >
               Streak Tracker
             </Text>
-            <Calendar
-              onDayPress={(day) => setSelectedDate(day.dateString)}
-              markedDates={{
-                [selectedDate]: {
-                  selected: true,
-                  selectedColor: colors.primary,
-                },
+
+            <View
+              style={{
+                backgroundColor: isDark ? colors.surface : "#FFFFFF", 
+                borderWidth: 1,
+                borderColor: isDark ? colors.bgray : "#E5E7EB", 
+                borderRadius: 12,
+                overflow: "hidden",
               }}
-              theme={{
-                backgroundColor: colors.surface,
-                calendarBackground: colors.surface,
-                dayTextColor: colors.text,
-                monthTextColor: colors.text,
-                arrowColor: colors.primary,
-              }}
-            />
+            >
+              <Calendar
+                onDayPress={(day) => setSelectedDate(day.dateString)}
+                markedDates={{
+                  [selectedDate]: {
+                    selected: true,
+                    selectedColor: colors.primary,
+                  },
+                }}
+                theme={{
+                  backgroundColor: isDark ? colors.surface : "#FFFFFF",
+                  calendarBackground: isDark ? colors.surface : "#FFFFFF",
+                  dayTextColor: isDark ? colors.text : "#000000",
+                  monthTextColor: isDark ? colors.text : "#000000",
+                  arrowColor: colors.primary,
+                  todayTextColor: colors.primary,
+                }}
+              />
+            </View>
           </View>
 
           {/* Goal Progress Section */}
