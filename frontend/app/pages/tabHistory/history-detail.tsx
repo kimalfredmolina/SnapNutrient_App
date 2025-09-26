@@ -110,10 +110,7 @@ const FoodItem = ({
         >
           {time}
         </Text>
-        <Text
-          className="text-sm font-medium"
-          style={{ color: colors.primary }}
-        >
+        <Text className="text-sm font-medium" style={{ color: colors.primary }}>
           {calories}
         </Text>
       </View>
@@ -128,40 +125,23 @@ export default function HistoryDetail() {
   const { colors } = useTheme();
   const router = useRouter();
   const params = useLocalSearchParams();
+  const foodLogs = JSON.parse(params.logs as string);
 
-  // Mock food data for the selected day
-  const foodLog = [
-    {
-      name: "Salmon",
-      time: "11:45",
-      image: require("../../../assets/images/icon.png"),
-      calories: "280 cal",
-    },
-    {
-      name: "Donut",
-      time: "11:48",
-      image: require("../../../assets/images/icon.png"),
-      calories: "320 cal",
-    },
-    {
-      name: "Burger and Fries",
-      time: "11:50",
-      image: require("../../../assets/images/icon.png"),
-      calories: "450 cal",
-    },
-    {
-      name: "Fried Rice",
-      time: "11:53",
-      image: require("../../../assets/images/icon.png"),
-      calories: "220 cal",
-    },
-    {
-      name: "Yogurt",
-      time: "11:59",
-      image: require("../../../assets/images/icon.png"),
-      calories: "150 cal",
-    },
-  ];
+  // Calculate total targets (you might want to fetch these from user preferences)
+  const targets = {
+    calories: 2500,
+    protein: 130,
+    carbs: 300,
+    fat: 50,
+  };
+
+  const formatTime = (timestamp: string) => {
+    return new Date(timestamp).toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    });
+  };
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
@@ -176,10 +156,7 @@ export default function HistoryDetail() {
         >
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text
-          className="text-xl font-bold"
-          style={{ color: colors.text }}
-        >
+        <Text className="text-xl font-bold" style={{ color: colors.text }}>
           {params.date}
         </Text>
       </View>
@@ -198,7 +175,8 @@ export default function HistoryDetail() {
             className="text-3xl font-bold mb-2"
             style={{ color: colors.text }}
           >
-            July {params.day}, 2025
+            {new Date().toLocaleString("default", { month: "long" })}{" "}
+            {params.day}, 2025
           </Text>
           <Text
             className="text-lg text-opacity-60"
@@ -215,48 +193,36 @@ export default function HistoryDetail() {
             backgroundColor: colors.surface,
             shadowColor: colors.text === "#FFFFFF" ? "#fff" : "#000",
             shadowOffset: { width: 0, height: 1 },
-            shadowOpacity: 1,
-            shadowRadius: 5,
-            elevation: 5,
+            shadowOpacity: 0.1,
+            shadowRadius: 3,
+            elevation: 3,
           }}
         >
-          <View className="flex-row justify-between items-center mb-6">
-            <Text
-              className="text-xl font-bold"
-              style={{ color: colors.text }}
-            >
-              Macros
-            </Text>
-            <TouchableOpacity>
-              <Ionicons name="create-outline" size={20} color={colors.text} />
-            </TouchableOpacity>
-          </View>
-
           <View className="flex-row justify-between">
             <MacroCircle
               label="Calories"
               value={Number(params.calories)}
-              total={3000}
+              total={targets.calories}
               color="#EF4444"
               unit="cal"
             />
             <MacroCircle
               label="Protein"
               value={Number(params.protein)}
-              total={130}
+              total={targets.protein}
               color="#10B981"
-            />
-            <MacroCircle
-              label="Carbs"
-              value={Number(params.carbs)}
-              total={300}
-              color="#3B82F6"
             />
             <MacroCircle
               label="Fat"
               value={Number(params.fat)}
-              total={50}
+              total={targets.fat}
               color="#F97316"
+            />
+            <MacroCircle
+              label="Carbs"
+              value={Number(params.carbs)}
+              total={targets.carbs}
+              color="#3B82F6"
             />
           </View>
         </View>
@@ -269,13 +235,13 @@ export default function HistoryDetail() {
           >
             Food Log
           </Text>
-          {foodLog.map((food, index) => (
+          {foodLogs.map((food: any, index: number) => (
             <FoodItem
               key={index}
-              name={food.name}
-              time={food.time}
-              image={food.image}
-              calories={food.calories}
+              name={food.foodName}
+              time={formatTime(food.createdAt)}
+              image={require("../../../assets/images/icon.png")}
+              calories={`${food.calories} cal`}
             />
           ))}
         </View>
@@ -296,9 +262,12 @@ export default function HistoryDetail() {
             Daily Summary
           </Text>
           <Text style={{ color: colors.text, lineHeight: 22 }}>
-            You've consumed {params.calories} calories today. Your protein intake is 
-            {Number(params.protein) >= 130 ? " excellent" : " below target"}. 
-            Consider adding more protein-rich foods if needed.
+            You've consumed {params.calories} calories today. Your protein
+            intake is
+            {Number(params.protein) >= targets.protein
+              ? " excellent"
+              : " below target"}
+            . Consider adding more protein-rich foods if needed.
           </Text>
         </View>
       </ScrollView>
