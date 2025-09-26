@@ -75,16 +75,19 @@ const FoodItem = ({
   time,
   image,
   calories,
+  onPress,
 }: {
   name: string;
   time: string;
   image: any;
   calories: string;
+  onPress: () => void;  
 }) => {
   const { colors, isDark } = useTheme();
 
   return (
-    <View
+    <TouchableOpacity
+      onPress={onPress} 
       className="flex-row items-center mb-4 p-4 rounded-2xl"
       style={{
         backgroundColor: colors.surface,
@@ -114,10 +117,8 @@ const FoodItem = ({
           {calories}
         </Text>
       </View>
-      <TouchableOpacity className="p-2">
-        <Ionicons name="ellipsis-vertical" size={20} color={colors.text} />
-      </TouchableOpacity>
-    </View>
+      <Ionicons name="ellipsis-vertical" size={20} color={colors.text} />
+    </TouchableOpacity>
   );
 };
 
@@ -141,6 +142,11 @@ export default function HistoryDetail() {
       minute: "2-digit",
       hour12: true,
     });
+  };
+
+  const navigateToFoodDetails = (foodName: string) => {
+    // Navigate to the detailed food log screen
+    router.push("../tabHistory/history-foodlog-card");
   };
 
   return (
@@ -242,6 +248,7 @@ export default function HistoryDetail() {
               time={formatTime(food.createdAt)}
               image={require("../../../assets/images/icon.png")}
               calories={`${food.calories} cal`}
+              onPress={() => navigateToFoodDetails(food.foodName)} // Pass the onPress handler
             />
           ))}
         </View>
@@ -266,8 +273,7 @@ export default function HistoryDetail() {
             intake is
             {Number(params.protein) >= targets.protein
               ? " excellent"
-              : " below target"}
-            . Consider adding more protein-rich foods if needed.
+              : " below target"}. Consider adding more protein-rich foods if needed.
           </Text>
         </View>
       </ScrollView>
