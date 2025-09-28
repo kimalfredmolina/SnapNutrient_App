@@ -61,4 +61,83 @@ export const ingredientMacros: Record<
   green_peas: { carbs: 0.14, protein: 0.05, fats: 0.0, calories: 0.81 },
   bell_pepper: { carbs: 0.06, protein: 0.01, fats: 0.0, calories: 0.26 },
   cabbage: { carbs: 0.06, protein: 0.01, fats: 0.0, calories: 0.25 },
+
+  all_purpose_flour:        { carbs: 0.754, protein: 0.129, fats: 0.012, calories: 3.62 },
+  ampalaya:                 { carbs: 0.029, protein: 0.011, fats: 0.001, calories: 0.17 }, // bitter gourd, raw
+  annatto_oil:              { carbs: 0.000, protein: 0.000, fats: 1.000, calories: 9.00 }, // approximate (oil = ~9 kcal/g)
+  annatto_powder:           { carbs: 0.300, protein: 0.100, fats: 0.150, calories: 3.50 }, // seed-derived spice (approx)
+  annatto_seeds:            { carbs: 0.300, protein: 0.120, fats: 0.150, calories: 3.60 },
+  bagoong:                  { carbs: 0.050, protein: 0.120, fats: 0.020, calories: 0.90 }, // fermented shrimp/paste — varies by brand
+  bagoong_alamang:          { carbs: 0.050, protein: 0.120, fats: 0.020, calories: 0.90 },
+  banana_flower_bud:        { carbs: 0.040, protein: 0.015, fats: 0.001, calories: 0.23 },
+  barbecue_skewers:         { carbs: 0.000, protein: 0.000, fats: 0.000, calories: 0.00 }, // inedible wooden/skewer utensil
+  bay_leaves:               { carbs: 0.700, protein: 0.070, fats: 0.120, calories: 3.00 }, // dried bay leaf (small use amounts)
+  beef_generic_raw:         { carbs: 0.000, protein: 0.26,  fats: 0.20,  calories: 3.80 }, // generic raw beef per g (cut-dependent)
+  beef_bouillon_cube:       { carbs: 0.050, protein: 0.080, fats: 0.040, calories: 0.90 }, // approx brand average
+  beef_shank_raw:           { carbs: 0.000, protein: 0.20,  fats: 0.12,  calories: 2.52 },
+  birds_eye_chilies:        { carbs: 0.043, protein: 0.020, fats: 0.010, calories: 0.40 }, // Thai chilis
+  boiled_egg:               { carbs: 0.007, protein: 0.125, fats: 0.105, calories: 1.58 }, // boiled whole egg
+  boiled_kidney_beans:      { carbs: 0.209, protein: 0.085, fats: 0.005, calories: 1.24 }, // cooked
+  bok_choy:                 { carbs: 0.036, protein: 0.014, fats: 0.001, calories: 0.13 },
+  brown_sugar:              { carbs: 0.977, protein: 0.000, fats: 0.000, calories: 3.89 },
+  burnt_coconut:            { carbs: 0.150, protein: 0.080, fats: 0.40,  calories: 3.80 }, // depends on char and oil content
+  burnt_coconut_meat_powder: { carbs: 0.150, protein: 0.080, fats: 0.40, calories: 3.80 },
+  calamansi_lemon_juice:    { carbs: 0.027, protein: 0.001, fats: 0.000, calories: 0.15 }, // juice, raw
+  canola_oil:               { carbs: 0.000, protein: 0.000, fats: 1.000, calories: 9.00 },
+  cayenne_pepper_powder:    { carbs: 0.500, protein: 0.150, fats: 0.050, calories: 3.00 },
+  celery_leaves:            { carbs: 0.140, protein: 0.020, fats: 0.010, calories: 0.69 },
+  chicken_generic_raw:      { carbs: 0.000, protein: 0.23,  fats: 0.02,  calories: 1.06 }, // skinless breast baseline
+  chicken_bouillon_cubes:   { carbs: 0.040, protein: 0.090, fats: 0.050, calories: 1.00 },
+  chicken_broth:        { carbs: 0.010, protein: 0.020, fats: 0.005, calories: 0.12 },
+  chicken_powder:       { carbs: 0.300, protein: 0.550, fats: 0.090, calories: 3.90 },
+  chicken_wings_raw:    { carbs: 0.000, protein: 0.180, fats: 0.230, calories: 2.61 },
+  chinese_eggplant:     { carbs: 0.060, protein: 0.008, fats: 0.002, calories: 0.25 },
+  cilantro_stems:       { carbs: 0.095, protein: 0.027, fats: 0.007, calories: 0.49 },
+  cocoa_powder:          { carbs: 0.400, protein: 0.200, fats: 0.220, calories: 2.40 },
+  coconut_cream:         { carbs: 0.035, protein: 0.020, fats: 0.310, calories: 2.90 },
+  coconut_gel:           { carbs: 0.095, protein: 0.005, fats: 0.000, calories: 0.38 },
+  condensed_milk:        { carbs: 0.545, protein: 0.085, fats: 0.080, calories: 3.45 },
+  cooking_oil:           { carbs: 0.000, protein: 0.000, fats: 1.000, calories: 9.00 },
+  corn:                   { carbs: 0.190, protein: 0.030, fats: 0.020, calories: 0.96 },
+  cornstarch:             { carbs: 0.910, protein: 0.005, fats: 0.000, calories: 3.64 },
+  coarse_sea_salt:        { carbs: 0.000, protein: 0.000, fats: 0.000, calories: 0.00 },
+  cow_trotters_raw:       { carbs: 0.000, protein: 0.180, fats: 0.125, calories: 2.45 },
+  cracked_peppercorn:     { carbs: 0.640, protein: 0.110, fats: 0.030, calories: 2.85 },
+  curry_powder:            { carbs: 0.500, protein: 0.150, fats: 0.050, calories: 3.00 },
+  daikon_radish:           { carbs: 0.040, protein: 0.010, fats: 0.000, calories: 0.18 },
+  dried_oregano:            { carbs: 0.690, protein: 0.140, fats: 0.040, calories: 3.50 },
+  eggplant:                   { carbs: 0.060, protein: 0.010, fats: 0.002, calories: 0.25 },
+  finger_chilies:            { carbs: 0.055, protein: 0.020, fats: 0.003, calories: 0.26 },
+  fish_sauce:                { carbs: 0.010, protein: 0.100, fats: 0.005, calories: 0.50 },
+  garlic_powder:             { carbs: 0.720, protein: 0.130, fats: 0.000, calories: 3.50 },
+  ginger:                      { carbs: 0.180, protein: 0.020, fats: 0.020, calories: 0.86 },
+   green_onion:         { carbs: 0.072, protein: 0.020, fats: 0.001, calories: 0.32 },
+  green_onions:        { carbs: 0.072, protein: 0.020, fats: 0.001, calories: 0.32 },
+  ground_black_pepper: { carbs: 0.640, protein: 0.100, fats: 0.020, calories: 2.85 },
+  ground_peanuts:      { carbs: 0.160, protein: 0.260, fats: 0.490, calories: 5.80 },
+  hot_pepper_leaves:   { carbs: 0.060, protein: 0.020, fats: 0.003, calories: 0.30 },
+  hot_red_chili:        { carbs: 0.060, protein: 0.020, fats: 0.002, calories: 0.27 },
+  jasmine_rice_raw:     { carbs: 0.798, protein: 0.071, fats: 0.014, calories: 3.51 },
+  japanese_taro:        { carbs: 0.260, protein: 0.009, fats: 0.002, calories: 1.16 },
+  jalapeño_pepper:      { carbs: 0.066, protein: 0.020, fats: 0.015, calories: 0.34 },
+  kamote:               { carbs: 0.205, protein: 0.017, fats: 0.001, calories: 0.86 },
+  kangkong_leaves:      { carbs: 0.025, protein: 0.030, fats: 0.003, calories: 0.20 },
+  kalabasa:             { carbs: 0.070, protein: 0.010, fats: 0.001, calories: 0.33 },
+  lechon_kawali:         { carbs: 0.000, protein: 0.150, fats: 0.450, calories: 5.40 },
+  lemongrass:            { carbs: 0.190, protein: 0.020, fats: 0.010, calories: 0.96 },
+  long_green_chili:       { carbs: 0.060, protein: 0.020, fats: 0.003, calories: 0.25 },
+  long_green_pepper:      { carbs: 0.060, protein: 0.020, fats: 0.003, calories: 0.25 },
+  lumpia_wrapper:         { carbs: 0.600, protein: 0.060, fats: 0.020, calories: 2.80 },
+  turmeric: { carbs: 0.150, protein: 0.020, fats: 0.040, calories: 0.90 },
+  water:               { carbs: 0.000, protein: 0.000, fats: 0.000, calories: 0.00 },
+  macapuno:                { carbs: 0.180, protein: 0.020, fats: 0.020, calories: 0.90 },
+  malunggay_leaves:        { carbs: 0.083, protein: 0.086, fats: 0.036, calories: 0.64 },
+  miki_noodles:             { carbs: 0.790, protein: 0.080, fats: 0.020, calories: 3.60 },
+  milkfish_raw:              { carbs: 0.000, protein: 0.180, fats: 0.100, calories: 2.26 },
+  onion_powder:             { carbs: 0.750, protein: 0.100, fats: 0.030, calories: 3.40 },
+  pork_ears: { carbs: 0.000, protein: 0.262, fats: 0.138, calories: 2.36 },  
+  soy_sauce: { carbs: 0.0493, protein: 0.0814, fats: 0.0057, calories: 0.53 },
+  pork_blood: { carbs: 0.020,  protein: 0.0700, fats: 0.000,  calories: 0.35 },
+  plum_tomato_whole: { carbs: 0.038, protein: 0.010, fats: 0.001, calories: 0.18 }
+  
 };

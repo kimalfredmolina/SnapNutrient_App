@@ -3,6 +3,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { auth } from "@/config/firebase";
 
 type User = {
+  uid?: string;
   name?: string;
   email?: string;
   photoURL?: string;
@@ -79,6 +80,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const logout = async () => {
+    console.log("AuthContext: logout called");
+    setIsAuthenticated(false);
+    setUser(null);
+
+    // Clear from AsyncStorage
     try {
       await auth.signOut();
       // Set logged out state and clear credentials

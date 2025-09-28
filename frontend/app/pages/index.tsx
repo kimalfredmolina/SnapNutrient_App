@@ -7,6 +7,7 @@ import {
   Image,
   Alert,
   BackHandler,
+  StatusBar,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -229,7 +230,15 @@ export default function HomePage() {
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
+    <SafeAreaView 
+    style={{ flex: 1, backgroundColor: colors.background }}
+    edges={["top", "left", "right"]}
+    >
+      <StatusBar
+      barStyle="dark-content" 
+      backgroundColor={colors.primary} 
+      translucent={false}
+      />
       <View
         className="flex-row items-center justify-between px-5 py-4"
         style={{ backgroundColor: colors.primary }}
