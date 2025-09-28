@@ -19,6 +19,7 @@ import MacroCalculatorModal from "./tabIndex/MacroCalculatorModal";
 import { MacroGoals } from "../../types/macros";
 import { db, auth } from "../../config/firebase";
 import { ref, onValue, off, set } from "firebase/database";
+import { isSameDay, isBeforeMidnight } from "../../utils/dateUtils";
 
 // Constants
 const SIZE = 64;
@@ -178,6 +179,16 @@ export default function HomePage() {
     consumedCarbs: 0,
     consumedFat: 0,
   });
+  const [dailyMacros, setDailyMacros] = useState<MacroGoals>({
+    calories: 0,
+    protein: 0,
+    carbs: 0,
+    fat: 0,
+    consumedCalories: 0,
+    consumedProtein: 0,
+    consumedCarbs: 0,
+    consumedFat: 0,
+  });
 
   // For debugging who's currently authenticated/signin by UID
   useEffect(() => {
@@ -206,6 +217,81 @@ export default function HomePage() {
     };
   }, []);
 
+  // Add this useEffect to fetch today's food logs and calculate macros
+  useEffect(() => {
+    const userId = auth.currentUser?.uid;
+    if (!userId) return;
+
+    const fetchTodaysMacros = async () => {
+      const today = new Date();
+      const foodLogsRef = ref(db, `foodLogs/${userId}`);
+
+      onValue(foodLogsRef, (snapshot) => {
+        const logs = snapshot.val();
+        if (!logs) return;
+
+        // Reset consumed values
+        let consumed = {
+          calories: 0,
+          protein: 0,
+          carbs: 0,
+          fat: 0,
+        };
+
+        // Calculate today's consumed macros
+        Object.values(logs).forEach((log: any) => {
+          const logDate = new Date(log.createdAt);
+          if (isSameDay(today, logDate)) {
+            consumed.calories += Number(log.calories) || 0;
+            consumed.protein += Number(log.protein) || 0;
+            consumed.carbs += Number(log.carbs) || 0;
+            consumed.fat += Number(log.fats) || 0;
+          }
+        });
+
+        // Update daily macros
+        setDailyMacros((prev) => ({
+          ...prev,
+          consumedCalories: consumed.calories,
+          consumedProtein: consumed.protein,
+          consumedCarbs: consumed.carbs,
+          consumedFat: consumed.fat,
+        }));
+      });
+    };
+
+    fetchTodaysMacros();
+
+    // Set up midnight reset
+    const setupMidnightReset = () => {
+      const now = new Date();
+      const midnight = new Date(now);
+      midnight.setHours(24, 0, 0, 0);
+      const timeUntilMidnight = midnight.getTime() - now.getTime();
+
+      const resetTimer = setTimeout(() => {
+        // Reset consumed values at midnight
+        setDailyMacros((prev) => ({
+          ...prev,
+          consumedCalories: 0,
+          consumedProtein: 0,
+          consumedCarbs: 0,
+          consumedFat: 0,
+        }));
+
+        // Set up next day's timer
+        setupMidnightReset();
+      }, timeUntilMidnight);
+
+      return () => clearTimeout(resetTimer);
+    };
+
+    const cleanup = setupMidnightReset();
+    return () => {
+      cleanup();
+    };
+  }, []);
+
   const handleSaveMacros = (newMacros: MacroGoals) => {
     const userId = auth.currentUser?.uid;
     if (!userId) return;
@@ -230,14 +316,14 @@ export default function HomePage() {
   }
 
   return (
-    <SafeAreaView 
-    style={{ flex: 1, backgroundColor: colors.background }}
-    edges={["top", "left", "right"]}
+    <SafeAreaView
+      style={{ flex: 1, backgroundColor: colors.background }}
+      edges={["top", "left", "right"]}
     >
       <StatusBar
-      barStyle="dark-content" 
-      backgroundColor={colors.primary} 
-      translucent={false}
+        barStyle="dark-content"
+        backgroundColor={colors.primary}
+        translucent={false}
       />
       <View
         className="flex-row items-center justify-between px-5 py-4"
@@ -376,28 +462,28 @@ export default function HomePage() {
           <View className="flex-row justify-between">
             <MacroCircle
               label="Calories"
-              value={macroGoals.consumedCalories}
+              value={dailyMacros.consumedCalories}
               total={macroGoals.calories}
               color="#EF4444"
               unit="cal"
             />
             <MacroCircle
               label="Protein"
-              value={macroGoals.consumedProtein}
+              value={dailyMacros.consumedProtein}
               total={macroGoals.protein}
               color="#10B981"
             />
             <MacroCircle
-              label="Carbs"
-              value={macroGoals.consumedCarbs}
-              total={macroGoals.carbs}
-              color="#3B82F6"
-            />
-            <MacroCircle
               label="Fat"
-              value={macroGoals.consumedFat}
+              value={dailyMacros.consumedFat}
               total={macroGoals.fat}
               color="#F97316"
+            />
+            <MacroCircle
+              label="Carbs"
+              value={dailyMacros.consumedCarbs}
+              total={macroGoals.carbs}
+              color="#3B82F6"
             />
           </View>
         </View>
@@ -428,15 +514,26 @@ export default function HomePage() {
             Today's Nutrition
           </Text>
           <View
-            className="rounded-xl p-4"
+            className="rounded-2xl p-6 mb-6"
             style={{
               backgroundColor: colors.secondary + "20",
               borderColor: colors.secondary + "30",
               borderWidth: 1,
             }}
           >
-            <Text style={{ color: colors.text, lineHeight: 20 }}>
-              You've consumed 1,250 calories today. Keep up the good work!
+            <Text
+              className="text-lg font-bold mb-3"
+              style={{ color: colors.text }}
+            >
+              Daily Summary
+            </Text>
+            <Text style={{ color: colors.text, lineHeight: 22 }}>
+              You've consumed {dailyMacros.consumedCalories} calories today.
+              Your protein intake is
+              {dailyMacros.consumedProtein >= macroGoals.protein
+                ? " excellent"
+                : " below target"}
+              . Consider adding more protein-rich foods if needed.
             </Text>
           </View>
         </View>
