@@ -71,4 +71,10 @@ jest.mock('expo-auth-session/providers/google', () => ({
   ]),
 }));
 
+jest.mock('../../server', () => ({
+  __esModule: true,
+  default: { API_BASE_URL: "http://localhost:8000" },
+}));
+
+
 
