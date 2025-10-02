@@ -36,9 +36,30 @@ jest.mock('firebase/app', () => ({
 jest.mock('firebase/auth', () => ({
   getAuth: jest.fn(),
 }));
-jest.mock('firebase/database', () => ({
-  getDatabase: jest.fn(),
-}));
+jest.mock('firebase/database', () => {
+  const mockRef = {
+    off: jest.fn(),
+    on: jest.fn(),
+  };
+
+  return {
+    getDatabase: jest.fn(),
+    ref: jest.fn(() => mockRef),
+    set: jest.fn(),
+    get: jest.fn(() => Promise.resolve({ val: () => ({}) })),
+    child: jest.fn(() => mockRef),
+    push: jest.fn(),
+    onValue: jest.fn((_, callback) => {
+      callback({ val: () => ({}) });
+      return jest.fn();
+    }),
+    query: jest.fn(),
+    orderByChild: jest.fn(),
+    off: jest.fn(),
+    startAt: jest.fn(),
+    endAt: jest.fn(),
+  };
+});
 jest.mock('expo-auth-session/providers/google', () => ({
   useAuthRequest: jest.fn(() => [
     {}, // mock request
@@ -48,10 +69,10 @@ jest.mock('expo-auth-session/providers/google', () => ({
 }));
 
 // Mock the server config
-jest.mock('./server', () => ({
+jest.mock('../server', () => ({
   default: {
     API_URL: 'http://mock-api-url',
-    // Add any other config properties your app needs
+    // Add other config properties
   }
-}));
+}), { virtual: true }); 
 
