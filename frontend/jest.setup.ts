@@ -47,3 +47,11 @@ jest.mock('expo-auth-session/providers/google', () => ({
   ]),
 }));
 
+// Mock the server config
+jest.mock('./server', () => ({
+  default: {
+    API_URL: 'http://mock-api-url',
+    // Add any other config properties your app needs
+  }
+}));
+

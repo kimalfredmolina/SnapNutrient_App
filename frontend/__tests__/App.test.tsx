@@ -10,8 +10,6 @@ import StatisticsPage from "../app/pages/statistics";
 import { ThemeProvider } from "../contexts/ThemeContext";
 
 // ---------- TEST ENV MOCKS ----------
-
-// Mock AsyncStorage
 jest.mock("@react-native-async-storage/async-storage", () => ({
   setItem: jest.fn(),
   getItem: jest.fn(),
@@ -19,61 +17,97 @@ jest.mock("@react-native-async-storage/async-storage", () => ({
   clear: jest.fn(),
 }));
 
-// Mock vector icons safely (no React reference outside)
-jest.mock("@expo/vector-icons", () => {
-  const Dummy = (props: any) => null;
-  return {
-    Ionicons: Dummy,
-    AntDesign: Dummy,
-    MaterialIcons: Dummy,
-    default: { Ionicons: Dummy },
-  };
-});
+jest.mock("@expo/vector-icons", () => ({
+  Ionicons: "Ionicons",
+  AntDesign: "AntDesign",
+  MaterialIcons: "MaterialIcons",
+}));
 
-// Mock expo-router
 jest.mock("expo-router", () => ({
-  Link: ({ children }: any) => children,
+  Link: jest.fn(({ children }) => children),
   useRouter: () => ({ push: jest.fn(), replace: jest.fn(), back: jest.fn() }),
-  Redirect: () => null,
+  Redirect: jest.fn(),
   useLocalSearchParams: () => ({}),
   useSegments: () => [],
 }));
 
-// Mock firebase auth
-jest.mock("firebase/auth", () => ({
-  getAuth: () => ({
-    currentUser: { uid: "test-user", email: "test@example.com" },
-  }),
-  onAuthStateChanged: jest.fn(),
-}));
+jest.mock("firebase/auth", () => {
+  interface MockUser {
+    uid: string;
+    email: string;
+  }
 
-// Mock reanimated (avoid Babel crash)
+  interface MockAuth {
+    currentUser: MockUser;
+    onAuthStateChanged: (callback: (user: MockUser) => void) => jest.Mock;
+  }
+
+  const mockAuth: MockAuth = {
+    currentUser: { uid: "test-user", email: "test@example.com" },
+    onAuthStateChanged: (callback: (user: MockUser) => void) => {
+      callback({ uid: "test-user", email: "test@example.com" });
+      return jest.fn();
+    },
+  };
+  return {
+    getAuth: () => mockAuth,
+    onAuthStateChanged: jest.fn(),
+  };
+});
+
+jest.mock("firebase/database", () => {
+  const mockDb = {
+    val: jest.fn(() => ({})),
+  };
+  return {
+    getDatabase: jest.fn(),
+    ref: jest.fn(),
+    set: jest.fn(),
+    get: jest.fn(() => Promise.resolve(mockDb)),
+    child: jest.fn(),
+    push: jest.fn(),
+    onValue: jest.fn((_, callback) => {
+      callback(mockDb);
+      return jest.fn();
+    }),
+  };
+});
+
 jest.mock("react-native-reanimated", () => {
   const Reanimated = require("react-native-reanimated/mock");
   Reanimated.default.call = () => {};
   return Reanimated;
 });
 
-// Mock css interop (avoid _ReactNativeCSSInterop errors)
-jest.mock("react-native-css-interop", () => ({}));
+jest.mock("react-native-calendars", () => ({
+  Calendar: "Calendar",
+  CalendarList: "CalendarList",
+  Agenda: "Agenda",
+}));
 
-// Mock expo-constants
 jest.mock("expo-constants", () => ({
   manifest: { extra: {} },
   expoConfig: {},
 }));
 
-// ---------- HELPERS ----------
+jest.mock("react-native-css-interop", () => {
+  return {
+    createElement: jest.fn().mockImplementation((type, props, ...children) => {
+      return require("react").createElement(type, props, ...children);
+    }),
+  };
+});
 
-const renderWithProviders = (ui: React.ReactNode) =>
-  render(
+// ---------- HELPERS ----------
+const renderWithProviders = (ui: React.ReactNode) => {
+  return render(
     <NavigationContainer>
       <ThemeProvider>{ui}</ThemeProvider>
     </NavigationContainer>
   );
+};
 
 // ---------- TESTS ----------
-
 describe("App", () => {
   it("renders correctly", () => {
     const { toJSON } = render(
@@ -86,6 +120,16 @@ describe("App", () => {
 });
 
 describe("Main Pages", () => {
+  it("renders Index page correctly", () => {
+    const { toJSON } = renderWithProviders(<IndexPage />);
+    expect(toJSON()).toBeTruthy();
+  });
+
+  it("renders Statistics page correctly", () => {
+    const { toJSON } = renderWithProviders(<StatisticsPage />);
+    expect(toJSON()).toBeTruthy();
+  });
+
   it("renders Account page correctly", () => {
     const { toJSON } = renderWithProviders(<AccountPage />);
     expect(toJSON()).toBeTruthy();
@@ -96,18 +140,8 @@ describe("Main Pages", () => {
     expect(toJSON()).toBeTruthy();
   });
 
-  it("renders Index page correctly", () => {
-    const { toJSON } = renderWithProviders(<IndexPage />);
-    expect(toJSON()).toBeTruthy();
-  });
-
   it("renders Scan page correctly", () => {
     const { toJSON } = renderWithProviders(<ScanPage />);
-    expect(toJSON()).toBeTruthy();
-  });
-
-  it("renders Statistics page correctly", () => {
-    const { toJSON } = renderWithProviders(<StatisticsPage />);
     expect(toJSON()).toBeTruthy();
   });
 });
