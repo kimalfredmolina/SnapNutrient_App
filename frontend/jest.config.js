@@ -8,9 +8,9 @@ module.exports = {
     "node_modules/(?!((jest-)?react-native|@react-native|expo(nent)?|@expo(nent)?/.*|expo-web-browser|@expo-google-fonts/.*|react-clone-referenced-element|@react-navigation/.*))"
   ],
   moduleNameMapper: {
-    "^../../server$": "<rootDir>/server.ts",
-    "^../server$": "<rootDir>/server.ts",
-    "./server": "<rootDir>/server.ts"
+    "^../../servers$": "<rootDir>/__mocks__/server.ts",
+    "^../servers$": "<rootDir>/__mocks__/server.ts",
+    "./servers": "<rootDir>/__mocks__/server.ts"
   },
   testEnvironment: "node",
   globals: {

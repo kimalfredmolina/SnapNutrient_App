@@ -4,7 +4,6 @@ module.exports = function (api) {
     presets: [
       ["babel-preset-expo", { 
         jsxImportSource: "nativewind",
-        platform: process.env.EXPO_OS || 'web' // Add this line
       }],
       "nativewind/babel",
     ],
