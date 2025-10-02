@@ -9,6 +9,6 @@ module.exports = {
     "^.+\\.mjs$": "babel-jest", // <── transform ESM .mjs files
   },
   transformIgnorePatterns: [
-    "node_modules/(?!((jest-)?react-native|@react-native|react-native-.*|@react-navigation/.*|@expo/.*|expo-.*|expo|expo-router|react-native-worklets|firebase|@firebase)/)"
+    "node_modules/(?!((jest-)?react-native|@react-native|expo(nent)?|@expo(nent)?/.*|expo-web-browser|@expo-google-fonts/.*|react-clone-referenced-element|@react-navigation/.*))"
   ],
 };
