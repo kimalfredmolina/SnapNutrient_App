@@ -4,13 +4,6 @@ import '@testing-library/jest-native/extend-expect';
 // Set EXPO_OS environment variable
 process.env.EXPO_OS = 'web';
 
-// Mock server configuration
-jest.mock('../server', () => ({
-  default: {
-    API_BASE_URL: "http://localhost:3000",
-  }
-}));
-
 // ✅ Mock AsyncStorage
 jest.mock('@react-native-async-storage/async-storage', () => ({
   setItem: jest.fn(),

@@ -7,11 +7,6 @@ module.exports = {
   transformIgnorePatterns: [
     "node_modules/(?!((jest-)?react-native|@react-native|expo(nent)?|@expo(nent)?/.*|expo-web-browser|@expo-google-fonts/.*|react-clone-referenced-element|@react-navigation/.*))"
   ],
-  moduleNameMapper: {
-    "^../../server$": "<rootDir>/__mocks__/server.ts",
-    "^./server$": "<rootDir>/__mocks__/server.ts",
-    "^../server$": "<rootDir>/__mocks__/server.ts"
-  },
   testEnvironment: "node",
   globals: {
     "process.env.EXPO_OS": "web"
