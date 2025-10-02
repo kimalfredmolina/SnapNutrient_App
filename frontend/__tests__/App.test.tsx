@@ -8,6 +8,7 @@ import IndexPage from "../app/pages/index";
 import ScanPage from "../app/pages/scan";
 import StatisticsPage from "../app/pages/statistics";
 import { ThemeProvider } from "../contexts/ThemeContext";
+import CONFIG from "../server";
 
 // ---------- TEST ENV MOCKS ----------
 jest.mock("@react-native-async-storage/async-storage", () => ({
