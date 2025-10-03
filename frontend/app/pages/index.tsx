@@ -165,6 +165,72 @@ const FoodItem = ({
   );
 };
 
+// Update the getWeekDates function
+const getWeekDates = () => {
+  const curr = new Date();
+  // Start from Monday of previous week to show a full week
+  const monday = new Date(curr);
+  monday.setDate(curr.getDate() - curr.getDay() + 1);
+
+  const weekDays = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"];
+  const week = Array(7)
+    .fill(0)
+    .map((_, i) => {
+      const day = new Date(monday);
+      day.setDate(monday.getDate() + i);
+      return {
+        date: day.getDate(),
+        weekday: weekDays[i],
+        fullDate: day.toISOString(),
+        isToday:
+          new Date().getDate() === day.getDate() &&
+          new Date().getMonth() === day.getMonth(),
+      };
+    });
+
+  return week;
+};
+
+// Function to calculate streak based on food logs
+const calculateStreak = (foodLogs: any[]): number => {
+  if (!foodLogs || foodLogs.length === 0) return 0;
+
+  // Sort logs by date
+  const sortedLogs = [...foodLogs].sort(
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  );
+
+  let streak = 0;
+  let currentDate = new Date();
+  currentDate.setHours(0, 0, 0, 0);
+
+  // Get the last log date
+  let lastLogDate = new Date(sortedLogs[0].createdAt);
+  lastLogDate.setHours(0, 0, 0, 0);
+
+  // If the last log is not from today or yesterday, streak is broken
+  const daysDiff = Math.floor(
+    (currentDate.getTime() - lastLogDate.getTime()) / (1000 * 60 * 60 * 24)
+  );
+  if (daysDiff > 1) return 0;
+
+  // Calculate streak
+  let checkDate = new Date(currentDate);
+  for (let i = 0; i < sortedLogs.length; i++) {
+    const logDate = new Date(sortedLogs[i].createdAt);
+    logDate.setHours(0, 0, 0, 0);
+
+    if (checkDate.getTime() === logDate.getTime()) {
+      streak++;
+      checkDate.setDate(checkDate.getDate() - 1);
+    } else if (checkDate.getTime() > logDate.getTime()) {
+      break;
+    }
+  }
+
+  return streak;
+};
+
 export default function HomePage() {
   const { colors } = useTheme();
   const { isAuthenticated, user } = useAuth();
@@ -189,6 +255,9 @@ export default function HomePage() {
     consumedCarbs: 0,
     consumedFat: 0,
   });
+  const [weekDates, setWeekDates] = useState(getWeekDates());
+  const [foodLogs, setFoodLogs] = useState<any[]>([]);
+  const [streak, setStreak] = useState(0);
 
   // For debugging who's currently authenticated/signin by UID
   useEffect(() => {
@@ -217,7 +286,7 @@ export default function HomePage() {
     };
   }, []);
 
-  // Add this useEffect to fetch today's food logs and calculate macros
+  // Fetch today's consumed macros and set up midnight reset
   useEffect(() => {
     const userId = auth.currentUser?.uid;
     if (!userId) return;
@@ -311,9 +380,52 @@ export default function HomePage() {
       });
   };
 
+  // Fetch food logs and calculate streak
+  useEffect(() => {
+    const userId = auth.currentUser?.uid;
+    if (!userId) return;
+
+    const foodLogsRef = ref(db, `foodLogs/${userId}`);
+
+    onValue(foodLogsRef, (snapshot) => {
+      const logs = snapshot.val();
+      if (logs) {
+        // Convert object to array and sort by date
+        const logsArray = Object.values(logs).sort(
+          (a: any, b: any) =>
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
+        setFoodLogs(logsArray);
+
+        // Calculate streak
+        const currentStreak = calculateStreak(logsArray);
+        setStreak(currentStreak);
+
+        // Update weekDates to reflect current data
+        setWeekDates(getWeekDates());
+      }
+    });
+
+    return () => off(foodLogsRef);
+  }, []);
+
   if (!isAuthenticated) {
     return <Redirect href="/(auth)/signin" />;
   }
+
+  // Function to check if there's activity on a given date
+  const hasActivity = (fullDate: string, foodLogs: any[]) => {
+    if (!foodLogs || foodLogs.length === 0) return false;
+
+    const checkDate = new Date(fullDate);
+    checkDate.setHours(0, 0, 0, 0);
+
+    return foodLogs.some((log) => {
+      const logDate = new Date(log.createdAt);
+      logDate.setHours(0, 0, 0, 0);
+      return logDate.getTime() === checkDate.getTime();
+    });
+  };
 
   return (
     <SafeAreaView
@@ -388,41 +500,58 @@ export default function HomePage() {
             {formatDate(currentDate)}
           </Text>
           <Text className="text-sm font-medium text-red-500 mb-3">
-            Streak <Text className="font-bold">2 Days</Text>
+            Streak <Text className="font-bold">{streak} Days</Text>
           </Text>
 
           {/* Streak Days */}
           <View className="flex-row justify-between items-center mb-2">
-            {dates.map((date) => {
-              const isStreak = streak.includes(date);
-              const day = weekdays[new Date(2025, 6, date).getDay()];
+            {weekDates.map((day) => {
+              const hasStreak = hasActivity(day.fullDate, foodLogs);
+              const isActive = hasStreak || day.isToday;
+
               return (
-                <View key={date} className="items-center mx-1">
-                  {/* Circle */}
+                <View key={day.fullDate} className="items-center mx-1">
                   <View
                     style={{
-                      backgroundColor: isStreak ? colors.accent : colors.bgray,
-                      borderWidth: isStreak ? 2 : 0,
-                      borderColor: isStreak ? colors.accent : "transparent",
+                      backgroundColor: hasStreak
+                        ? "#FF4B4B"
+                        : day.isToday
+                          ? colors.primary
+                          : colors.bgray,
+                      borderWidth: 2,
+                      borderColor: hasStreak
+                        ? "#FF4B4B"
+                        : day.isToday
+                          ? colors.primary
+                          : "transparent",
                     }}
                     className="w-10 h-10 rounded-full items-center justify-center"
                   >
-                    {isStreak ? (
-                      <Text style={{ color: colors.text, fontSize: 18 }}>
-                        ⚡
-                      </Text>
+                    {hasStreak ? (
+                      <Text style={{ color: "#FFFFFF", fontSize: 18 }}>⚡</Text>
                     ) : (
-                      <Text className="text-sm" style={{ color: colors.text }}>
-                        {day}
+                      <Text
+                        className="text-sm"
+                        style={{
+                          color: day.isToday ? "#FFFFFF" : colors.text,
+                          fontWeight: "bold",
+                        }}
+                      >
+                        {day.weekday}
                       </Text>
                     )}
                   </View>
-                  {/* Date under circle */}
                   <Text
                     className="text-xs mt-1 font-semibold"
-                    style={{ color: colors.text }}
+                    style={{
+                      color: hasStreak
+                        ? "#FF4B4B"
+                        : day.isToday
+                          ? colors.primary
+                          : colors.text,
+                    }}
                   >
-                    {date}
+                    {day.date}
                   </Text>
                 </View>
               );
