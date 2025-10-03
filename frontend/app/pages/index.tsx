@@ -35,9 +35,6 @@ const formatDate = (date: Date) =>
   });
 
 const currentDate = new Date();
-const weekdays = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
-const dates = [14, 15, 16, 17, 18, 19, 20]; // mock dates
-const streak = [14, 15]; // days with streak
 
 const calculatePercentage = (consumed: number, total: number): number => {
   if (total <= 0) return 0;
