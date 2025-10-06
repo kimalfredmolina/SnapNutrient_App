@@ -191,7 +191,7 @@ export default function Scan() {
       });
 
       Alert.alert("Success", "Food logged successfully!", [
-        { text: "OK", onPress: () => router.push("/") },
+        { text: "OK", onPress: () => router.push("/pages") },
       ]);
     } catch (error) {
       console.error("Error logging food:", error);
