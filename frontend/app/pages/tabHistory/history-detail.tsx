@@ -304,7 +304,7 @@ export default function HistoryDetail() {
             Daily Summary
           </Text>
           <Text style={{ color: colors.text, lineHeight: 22 }}>
-            You've consumed {params.calories} calories today. Your protein
+            You've consumed {params.calories} calories this day. Your protein
             intake is
             {Number(params.protein) >= targets.protein
               ? " excellent"
