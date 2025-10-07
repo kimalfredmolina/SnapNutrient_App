@@ -9,7 +9,7 @@ import { useRouter } from "expo-router";
 import { getAuth } from "firebase/auth";
 import { getDatabase, ref, query, orderByChild, get } from "firebase/database";
 
-// First, let's define our interfaces
+// Define types for food log and history item
 interface FoodLog {
   createdAt: string;
   calories: number;
@@ -27,15 +27,26 @@ interface HistoryItem {
   fat: number;
   carbs: number;
   logs: FoodLog[];
+  timestamp?: number;
 }
 
-// Update the component with proper types
 export default function History() {
   const [historyData, setHistoryData] = React.useState<HistoryItem[]>([]);
+  const [sortOrder, setSortOrder] = React.useState<"newest" | "oldest">(
+    "newest"
+  );
+  const [filterBy, setFilterBy] = React.useState<
+    "calories" | "protein" | "fat" | "carbs" | null
+  >(null);
+  const [filterOrder, setFilterOrder] = React.useState<"highest" | "lowest">(
+    "highest"
+  );
+  const [showSortDropdown, setShowSortDropdown] = React.useState(false);
+  const [showFilterDropdown, setShowFilterDropdown] = React.useState(false);
   const { colors, isDark } = useTheme();
   const router = useRouter();
 
-  // Fetch food logs and group them by date
+  // Fetch food logs and group them by date (use ISO date key + timestamp for reliable sorting)
   React.useEffect(() => {
     const fetchFoodLogs = async () => {
       try {
@@ -59,52 +70,56 @@ export default function History() {
         }
 
         const logs = snapshot.val();
-        const groupedLogs: { [key: string]: HistoryItem } = {};
+        const groupedLogs: { [isoDate: string]: HistoryItem } = {};
 
-        // Process each log entry with modified date key
         Object.entries(logs).forEach(([key, value]: [string, any]) => {
           const foodLog = value as FoodLog;
-          const date = new Date(foodLog.createdAt);
+          const dateObj = new Date(foodLog.createdAt);
 
-          // Create a date key that includes day, month, and year
-          const dateKey = date.toLocaleDateString("en-US", {
+          // Display string for UI
+          const dateDisplay = dateObj.toLocaleDateString("en-US", {
             month: "short",
             day: "numeric",
             year: "numeric",
           });
 
-          const day = date.getDate().toString();
+          // ISO date key (reliable grouping) and start-of-day timestamp
+          const isoKey = dateObj.toISOString().split("T")[0]; // "2025-09-28"
+          const dayStart = new Date(
+            dateObj.getFullYear(),
+            dateObj.getMonth(),
+            dateObj.getDate()
+          ).getTime();
 
-          if (!groupedLogs[dateKey]) {
-            groupedLogs[dateKey] = {
+          const day = dateObj.getDate().toString();
+
+          if (!groupedLogs[isoKey]) {
+            groupedLogs[isoKey] = {
               day,
-              date: dateKey,
+              date: dateDisplay,
               calories: 0,
               protein: 0,
               fat: 0,
               carbs: 0,
               logs: [],
+              timestamp: dayStart,
             };
           }
 
-          // Add values to the grouped logs
-          groupedLogs[dateKey].calories += Number(foodLog.calories) || 0;
-          groupedLogs[dateKey].protein += Number(foodLog.protein) || 0;
-          groupedLogs[dateKey].fat += Number(foodLog.fats) || 0;
-          groupedLogs[dateKey].carbs += Number(foodLog.carbs) || 0;
-          groupedLogs[dateKey].logs.push(foodLog);
+          groupedLogs[isoKey].calories += Number(foodLog.calories) || 0;
+          groupedLogs[isoKey].protein += Number(foodLog.protein) || 0;
+          groupedLogs[isoKey].fat += Number(foodLog.fats) || 0;
+          groupedLogs[isoKey].carbs += Number(foodLog.carbs) || 0;
+          groupedLogs[isoKey].logs.push(foodLog);
         });
 
-        console.log("Grouped logs:", groupedLogs);
-
-        // Convert to array and sort by date
+        // Convert to array and sort by timestamp (newest first by default)
         const historyArray = Object.values(groupedLogs).sort((a, b) => {
-          const dateA = new Date(a.date).getTime();
-          const dateB = new Date(b.date).getTime();
-          return dateB - dateA;
+          const ta = a.timestamp ?? new Date(a.date).getTime();
+          const tb = b.timestamp ?? new Date(b.date).getTime();
+          return tb - ta;
         });
 
-        console.log("History array:", historyArray);
         setHistoryData(historyArray);
       } catch (error) {
         console.error("Error fetching food logs:", error);
@@ -119,10 +134,64 @@ export default function History() {
       pathname: "/pages/tabHistory/history-detail",
       params: {
         ...item,
-        logs: JSON.stringify(item.logs), // Pass the food logs for this day
+        logs: JSON.stringify(item.logs),
       },
     });
   };
+
+  // Sort by timestamp (newest | oldest)
+  const sortData = (data: HistoryItem[]) => {
+    return [...data].sort((a, b) => {
+      const ta = (a as any).timestamp ?? new Date(a.date).getTime();
+      const tb = (b as any).timestamp ?? new Date(b.date).getTime();
+      return sortOrder === "newest" ? tb - ta : ta - tb;
+    });
+  };
+
+  // Filter by nutrient (highest | lowest)
+  const filterData = (data: HistoryItem[]) => {
+    if (!filterBy) return data;
+    return [...data].sort((a, b) => {
+      const valueA = Number((a as any)[filterBy]) || 0;
+      const valueB = Number((b as any)[filterBy]) || 0;
+      return filterOrder === "highest" ? valueB - valueA : valueA - valueB;
+    });
+  };
+
+  const handleFilter = (
+    nutrient: "calories" | "protein" | "fat" | "carbs" | null
+  ) => {
+    if (nutrient === null) {
+      setFilterBy(null);
+      return;
+    }
+
+    if (filterBy === nutrient) {
+      setFilterOrder((prev) => (prev === "highest" ? "lowest" : "highest"));
+    } else {
+      setFilterBy(nutrient);
+      setFilterOrder("highest");
+    }
+    setShowFilterDropdown(false);
+  };
+
+  // Close dropdowns when clicking outside (guard for non-web env)
+  React.useEffect(() => {
+    if (typeof document === "undefined") return;
+
+    const handleClickOutside = () => {
+      setShowSortDropdown(false);
+      setShowFilterDropdown(false);
+    };
+
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
+  }, []);
+
+  // Use displayedData so we apply either date sort or nutrient filter (filter keeps working)
+  const displayedData = filterBy
+    ? filterData(historyData)
+    : sortData(historyData);
 
   return (
     <View
@@ -138,21 +207,111 @@ export default function History() {
 
       {/* Filter and Sort Buttons aligned to right */}
       <View className="flex-row justify-end space-x-3 mb-4 mt-2">
-        {["Filter", "Sort"].map((label, i) => (
+        {/* Sort Dropdown */}
+        <View>
           <TouchableOpacity
-            key={i}
-            className="flex-row items-center rounded-xl ml-2 px-4 py-2 shadow-md"
+            onPress={() => setShowSortDropdown(!showSortDropdown)}
+            className="flex-row items-center rounded-xl px-4 py-2 shadow-md"
             style={{ backgroundColor: colors.surface }}
           >
             <Text
               className="font-semibold text-sm mr-1"
               style={{ color: colors.text }}
             >
-              {label}
+              {`Sort: ${sortOrder}`}
             </Text>
             <ChevronDownIcon size={18} color={isDark ? "#9CA3AF" : "#6B7280"} />
           </TouchableOpacity>
-        ))}
+
+          {showSortDropdown && (
+            <View
+              className="absolute top-12 right-0 rounded-xl shadow-lg z-50 w-32"
+              style={{ backgroundColor: colors.surface }}
+            >
+              <TouchableOpacity
+                onPress={() => {
+                  setSortOrder("newest");
+                  setShowSortDropdown(false);
+                }}
+                className="p-3 border-b"
+                style={{ borderColor: isDark ? "#4B5563" : "#E5E7EB" }}
+              >
+                <Text style={{ color: colors.text }}>Newest</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => {
+                  setSortOrder("oldest");
+                  setShowSortDropdown(false);
+                }}
+                className="p-3"
+              >
+                <Text style={{ color: colors.text }}>Oldest</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+        </View>
+
+        {/* Filter Dropdown */}
+        <View>
+          <TouchableOpacity
+            onPress={() => setShowFilterDropdown(!showFilterDropdown)}
+            className="flex-row items-center rounded-xl px-4 py-2 shadow-md"
+            style={{ backgroundColor: colors.surface }}
+          >
+            <Text
+              className="font-semibold text-sm mr-1"
+              style={{ color: colors.text }}
+            >
+              {filterBy ? `${filterBy} (${filterOrder})` : "Filter"}
+            </Text>
+            <ChevronDownIcon size={18} color={isDark ? "#9CA3AF" : "#6B7280"} />
+          </TouchableOpacity>
+
+          {showFilterDropdown && (
+            <View
+              className="absolute top-12 right-0 rounded-xl shadow-lg z-50 w-36"
+              style={{ backgroundColor: colors.surface }}
+            >
+              <TouchableOpacity
+                className="p-3 border-b"
+                style={{ borderColor: isDark ? "#4B5563" : "#E5E7EB" }}
+                onPress={() => {
+                  handleFilter(null); // clear filter
+                }}
+              >
+                <Text style={{ color: colors.text }}>Clear Filter</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                className="p-3 border-b"
+                onPress={() => handleFilter("calories")}
+              >
+                <Text style={{ color: colors.text }}>Calories</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                className="p-3 border-b"
+                onPress={() => handleFilter("protein")}
+              >
+                <Text style={{ color: colors.text }}>Protein</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                className="p-3 border-b"
+                onPress={() => handleFilter("fat")}
+              >
+                <Text style={{ color: colors.text }}>Fat</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                className="p-3"
+                onPress={() => handleFilter("carbs")}
+              >
+                <Text style={{ color: colors.text }}>Carbs</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+        </View>
       </View>
 
       {/* History Cards */}
@@ -160,7 +319,7 @@ export default function History() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 100 }}
       >
-        {historyData.map((item, index) => (
+        {displayedData.map((item, index) => (
           <TouchableOpacity
             key={index}
             onPress={() => handleHistoryCardPress(item)}
