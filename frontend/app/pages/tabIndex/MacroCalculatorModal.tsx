@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Modal,
   View,
@@ -12,7 +12,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../../../contexts/ThemeContext";
 import { MacroGoals } from "../../../types/macros";
 import { db, auth } from "../../../config/firebase";
-import { ref, set } from "firebase/database";
+import { ref, set, get, update, onValue, off } from "firebase/database";
 
 interface MacroCalculatorModalProps {
   visible: boolean;
@@ -28,6 +28,7 @@ export default function MacroCalculatorModal({
   currentMacros,
 }: MacroCalculatorModalProps) {
   const { colors } = useTheme();
+
   type ActivityLevel =
     | "sedentary"
     | "light"
@@ -43,8 +44,9 @@ export default function MacroCalculatorModal({
     activityLevel: "" as ActivityLevel,
     goal: "",
   });
+  const [hasExisting, setHasExisting] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  // Update the activity multipliers type
   const activityMultipliers: Record<ActivityLevel, number> = {
     sedentary: 1.2,
     light: 1.375,
@@ -53,10 +55,84 @@ export default function MacroCalculatorModal({
     very_active: 1.9,
   };
 
+  // Subscribe to user's data so it persists and updates live across app reloads.
+  useEffect(() => {
+    let userId = auth.currentUser?.uid;
+    if (!userId) {
+      // If not logged in now, also listen for auth changes (fallback)
+      const unsubscribeAuth = auth.onAuthStateChanged((user) => {
+        if (user) {
+          userId = user.uid;
+          attachListener(user.uid);
+        }
+      });
+      return () => unsubscribeAuth();
+    } else {
+      attachListener(userId);
+      return () => detachListener(userId);
+    }
+
+    function attachListener(uid: string) {
+      setLoading(true);
+      const userRef = ref(db, `users/${uid}`);
+      // onValue will fetch initial data and fire on updates (keeps UI in sync)
+      onValue(
+        userRef,
+        (snapshot) => {
+          const data = snapshot.val();
+          if (data) {
+            // Load healthInfo first (preferred)
+            const health = data.healthInfo;
+            const mg = data.macroGoals;
+            if (health) {
+              setPersonalInfo((prev) => ({
+                age: health.age ?? prev.age,
+                gender: health.gender ?? prev.gender,
+                height: health.height ?? prev.height,
+                weight: health.weight ?? prev.weight,
+                activityLevel:
+                  (health.activityLevel as ActivityLevel) ?? prev.activityLevel,
+                goal: health.goal ?? prev.goal,
+              }));
+            } else if (mg?.personalInfo) {
+              // fallback to macroGoals.personalInfo
+              const p = mg.personalInfo;
+              setPersonalInfo({
+                age: p.age ?? "",
+                gender: p.gender ?? "",
+                height: p.height ?? "",
+                weight: p.weight ?? "",
+                activityLevel: (p.activityLevel as ActivityLevel) ?? "",
+                goal: p.goal ?? "",
+              });
+            }
+            setHasExisting(!!(mg || health));
+          } else {
+            setHasExisting(false);
+          }
+          setLoading(false);
+        },
+        (error) => {
+          console.error("onValue error fetching user data:", error);
+          setLoading(false);
+        }
+      );
+    }
+
+    function detachListener(uid?: string) {
+      if (!uid) return;
+      const userRef = ref(db, `users/${uid}`);
+      try {
+        off(userRef);
+      } catch {}
+    }
+  }, [visible]); // keep visible so modal open triggers attach if needed
+
   const calculateMacros = (): MacroGoals => {
     const age = parseInt(personalInfo.age);
     const height = parseFloat(personalInfo.height);
     const weight = parseFloat(personalInfo.weight);
+
     if (
       !age ||
       !height ||
@@ -78,7 +154,6 @@ export default function MacroCalculatorModal({
       };
     }
 
-    // Calculate BMR (Basal Metabolic Rate)
     let bmr: number;
     if (personalInfo.gender === "male") {
       bmr = 88.362 + 13.397 * weight + 4.799 * height - 5.677 * age;
@@ -86,19 +161,7 @@ export default function MacroCalculatorModal({
       bmr = 447.593 + 9.247 * weight + 3.098 * height - 4.33 * age;
     }
 
-    // Activity multipliers
-    const activityMultipliers = {
-      sedentary: 1.2,
-      light: 1.375,
-      moderate: 1.55,
-      active: 1.725,
-      very_active: 1.9,
-    };
-
-    // Calculate TDEE (Total Daily Energy Expenditure)
     const tdee = bmr * activityMultipliers[personalInfo.activityLevel];
-
-    // Calculate target calories based on goal
     let targetCalories: number;
     switch (personalInfo.goal) {
       case "lose":
@@ -111,19 +174,14 @@ export default function MacroCalculatorModal({
         targetCalories = tdee;
     }
 
-    // Protein = 2g per kg
     const protein = Math.round(weight * 2);
     const proteinCalories = protein * 4;
-
-    // Fat = 1g per kg
     const fat = Math.round(weight * 1);
     const fatCalories = fat * 9;
-
-    // Carbs = remaining calories
     const carbCalories = targetCalories - (proteinCalories + fatCalories);
     const carbs = Math.round(carbCalories / 4);
 
-    const result = {
+    return {
       calories: Math.round(targetCalories),
       protein,
       carbs,
@@ -133,51 +191,47 @@ export default function MacroCalculatorModal({
       consumedCarbs: 0,
       consumedFat: 0,
     };
-
-    console.log("Calculated result:", result); // Debugging output
-    return result;
   };
 
+  // Save/update macroGoals + healthInfo. This uses update() so it merges instead of wiping unrelated nodes.
   const handleCalculate = async () => {
     const macros = calculateMacros();
-    if (macros.calories > 0) {
-      try {
-        const userId = auth.currentUser?.uid;
-        console.log("Current user ID:", userId); // Debug user ID
+    if (macros.calories <= 0) return;
 
-        if (!userId) {
-          Alert.alert("Error", "You must be logged in to save macro goals");
-          return;
-        }
-
-        const databaseRef = ref(db, `users/${userId}/macroGoals`);
-        console.log("Database reference path:", `users/${userId}/macroGoals`); // Debug path
-
-        const dataToSave = {
-          ...macros,
-          updatedAt: new Date().toISOString(),
-        };
-        console.log("Data to save:", dataToSave); // Debug data
-
-        // Use set with error callback
-        await set(databaseRef, dataToSave)
-          .then(() => {
-            console.log("Data successfully saved to Firebase");
-            onSave(macros);
-            onClose();
-          })
-          .catch((error) => {
-            throw error; // Propagate error to outer catch block
-          });
-      } catch (error: any) {
-        console.error("Detailed error saving macros:", {
-          code: error.code,
-          message: error.message,
-          stack: error.stack,
-        });
-
-        Alert.alert("Error Saving Data", `Failed to save macro goals: ${error.message}`);
+    try {
+      const user = auth.currentUser;
+      if (!user) {
+        Alert.alert("Error", "You must be logged in to save macro goals");
+        return;
       }
+      setLoading(true);
+      const uid = user.uid;
+      const userRef = ref(db, `users/${uid}`);
+
+      const dataToSave = {
+        macroGoals: {
+          ...macros,
+          personalInfo: { ...personalInfo },
+          updatedAt: new Date().toISOString(),
+        },
+        healthInfo: {
+          ...personalInfo,
+        },
+      };
+
+      await update(userRef, dataToSave);
+      setHasExisting(true);
+      onSave(macros);
+      Alert.alert("Success", hasExisting ? "Macros updated" : "Macros saved");
+      onClose();
+    } catch (error: any) {
+      console.error("Error saving macros:", error);
+      Alert.alert(
+        "Error Saving Data",
+        error.message || "Failed to save macro goals"
+      );
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -277,7 +331,6 @@ export default function MacroCalculatorModal({
       onRequestClose={onClose}
     >
       <View style={{ flex: 1, backgroundColor: colors.background }}>
-        {/* Header */}
         <View
           className="flex-row items-center justify-between p-4 border-b"
           style={{ borderBottomColor: colors.border }}
@@ -292,7 +345,6 @@ export default function MacroCalculatorModal({
         </View>
 
         <ScrollView className="flex-1 p-4">
-          {/* Personal Information Section */}
           <View
             className="rounded-xl p-4 mb-6"
             style={{ backgroundColor: colors.surface }}
@@ -408,7 +460,6 @@ export default function MacroCalculatorModal({
             />
           </View>
 
-          {/* Goal Selection */}
           <View
             className="rounded-xl p-4 mb-6"
             style={{ backgroundColor: colors.surface }}
@@ -439,11 +490,11 @@ export default function MacroCalculatorModal({
             />
           </View>
 
-          {/* Calculate Button */}
           <TouchableOpacity
             className="rounded-xl p-4 items-center"
             style={{ backgroundColor: colors.primary }}
             onPress={handleCalculate}
+            disabled={loading}
           >
             <View className="flex-row items-center">
               <Ionicons
@@ -453,7 +504,7 @@ export default function MacroCalculatorModal({
                 style={{ marginRight: 8 }}
               />
               <Text className="text-white font-bold text-lg">
-                Calculate Macros
+                {hasExisting ? "Update Macros" : "Calculate Macros"}
               </Text>
             </View>
           </TouchableOpacity>
