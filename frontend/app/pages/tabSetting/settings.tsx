@@ -118,6 +118,8 @@ export default function Settings() {
             />
           </View>
 
+          {/* Notification option - Hidden for now 
+          
           <TouchableOpacity
             className="flex-row items-center py-4 border-b"
             style={{ borderBottomColor: colors.surface }}
@@ -139,9 +141,11 @@ export default function Settings() {
               color={colors.text}
               style={{ opacity: 0.5 }}
             />
-          </TouchableOpacity>
+          </TouchableOpacity>*/}
 
-          {/*<TouchableOpacity
+          {/* Language option - Hidden for now
+          
+          <TouchableOpacity
             className="flex-row items-center py-4 border-b"
             style={{ borderBottomColor: colors.surface }}
           >
@@ -164,10 +168,12 @@ export default function Settings() {
               color={colors.text}
               style={{ opacity: 0.5 }}
             />
-          </TouchableOpacity>*/}
+          </TouchableOpacity>
+          */}
         </View>
 
         {/* Data Section */}
+        {/* Data Section - Hidden for now
         <View className="mb-8">
           <Text
             className="text-lg font-semibold mb-4"
@@ -214,6 +220,7 @@ export default function Settings() {
             />
           </TouchableOpacity>
         </View>
+        */}
       </ScrollView>
     </SafeAreaView>
   );

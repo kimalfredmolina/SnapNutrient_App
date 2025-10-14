@@ -1,6 +1,13 @@
 import React, { useState } from "react";
-import { View, Text, TouchableOpacity, ScrollView, Image, TextInput } from "react-native";
-import { useRouter } from "expo-router";  // You are already using useRouter
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  ScrollView,
+  Image,
+  TextInput,
+} from "react-native";
+import { useRouter } from "expo-router"; // You are already using useRouter
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../../../contexts/ThemeContext";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -10,12 +17,21 @@ export default function About() {
   const { colors } = useTheme();
 
   const [predictions, setPredictions] = useState<any[]>([]);
-  const [macros, setMacros] = useState<{ carbs: number, protein: number, fats: number, calories: number } | null>(null);
-  const [ingredients, setIngredients] = useState<{ [key: string]: number } | null>(null);
+  const [macros, setMacros] = useState<{
+    carbs: number;
+    protein: number;
+    fats: number;
+    calories: number;
+  } | null>(null);
+  const [ingredients, setIngredients] = useState<{
+    [key: string]: number;
+  } | null>(null);
   const [weight, setWeight] = useState<number>(0);
   const [isLogging, setIsLogging] = useState<boolean>(false);
   const [editMode, setEditMode] = useState<boolean>(false);
-  const [editedIngredients, setEditedIngredients] = useState<{ [key: string]: number }>({});
+  const [editedIngredients, setEditedIngredients] = useState<{
+    [key: string]: number;
+  }>({});
 
   const handleLogFood = () => {
     if (weight <= 0) {
@@ -42,10 +58,7 @@ export default function About() {
         }}
       >
         {/* Back Button */}
-        <TouchableOpacity
-          onPress={() => router.back()}
-          className="mr-4"
-        >
+        <TouchableOpacity onPress={() => router.back()} className="mr-4">
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
 
@@ -89,13 +102,19 @@ export default function About() {
                 marginBottom: 20,
               }}
             >
-              <Text style={{ color: colors.text, fontSize: 16, marginBottom: 8 }}>
+              <Text
+                style={{ color: colors.text, fontSize: 16, marginBottom: 8 }}
+              >
                 🍚 Carbs: {macros?.carbs} g
               </Text>
-              <Text style={{ color: colors.text, fontSize: 16, marginBottom: 8 }}>
+              <Text
+                style={{ color: colors.text, fontSize: 16, marginBottom: 8 }}
+              >
                 🍗 Protein: {macros?.protein} g
               </Text>
-              <Text style={{ color: colors.text, fontSize: 16, marginBottom: 8 }}>
+              <Text
+                style={{ color: colors.text, fontSize: 16, marginBottom: 8 }}
+              >
                 🧈 Fat: {macros?.fats} g
               </Text>
               <Text style={{ color: colors.text, fontSize: 16 }}>
@@ -139,56 +158,63 @@ export default function About() {
               </Text>
 
               <ScrollView nestedScrollEnabled={true}>
-                {Object.entries(ingredients).map(([ingredient, weight], index) => {
-                  const currentValue = editedIngredients[ingredient] ?? weight;
+                {Object.entries(ingredients).map(
+                  ([ingredient, weight], index) => {
+                    const currentValue =
+                      editedIngredients[ingredient] ?? weight;
 
-                  return editMode ? (
-                    <View
-                      key={`${ingredient}-${index}`}
-                      style={{
-                        flexDirection: "row",
-                        alignItems: "center",
-                        marginBottom: 6,
-                      }}
-                    >
-                      <Text style={{ color: colors.text, fontSize: 15, flex: 1 }}>
-                        {ingredient.replace(/_/g, " ")}
-                      </Text>
-                      <TextInput
-                        value={String(currentValue)}
-                        keyboardType="numeric"
-                        onChangeText={(text) => {
-                          const newWeight = Math.max(0, Number(text) || 0); // Prevent negative or zero values
-                          setEditedIngredients((prev) => ({
-                            ...prev,
-                            [ingredient]: newWeight,
-                          }));
-                        }}
+                    return editMode ? (
+                      <View
+                        key={`${ingredient}-${index}`}
                         style={{
-                          borderWidth: 1,
-                          borderColor: colors.primary,
-                          borderRadius: 6,
-                          paddingHorizontal: 8,
-                          width: 60,
-                          textAlign: "center",
-                          color: colors.text,
+                          flexDirection: "row",
+                          alignItems: "center",
+                          marginBottom: 6,
                         }}
-                      />
-                      <Text style={{ color: colors.text, marginLeft: 4 }}>g</Text>
-                    </View>
-                  ) : (
-                    <Text
-                      key={`${ingredient}-${index}`}
-                      style={{
-                        color: colors.text,
-                        fontSize: 15,
-                        marginBottom: 6,
-                      }}
-                    >
-                      {ingredient.replace(/_/g, " ")} – {currentValue} g
-                    </Text>
-                  );
-                })}
+                      >
+                        <Text
+                          style={{ color: colors.text, fontSize: 15, flex: 1 }}
+                        >
+                          {ingredient.replace(/_/g, " ")}
+                        </Text>
+                        <TextInput
+                          value={String(currentValue)}
+                          keyboardType="numeric"
+                          onChangeText={(text) => {
+                            const newWeight = Math.max(0, Number(text) || 0); // Prevent negative or zero values
+                            setEditedIngredients((prev) => ({
+                              ...prev,
+                              [ingredient]: newWeight,
+                            }));
+                          }}
+                          style={{
+                            borderWidth: 1,
+                            borderColor: colors.primary,
+                            borderRadius: 6,
+                            paddingHorizontal: 8,
+                            width: 60,
+                            textAlign: "center",
+                            color: colors.text,
+                          }}
+                        />
+                        <Text style={{ color: colors.text, marginLeft: 4 }}>
+                          g
+                        </Text>
+                      </View>
+                    ) : (
+                      <Text
+                        key={`${ingredient}-${index}`}
+                        style={{
+                          color: colors.text,
+                          fontSize: 15,
+                          marginBottom: 6,
+                        }}
+                      >
+                        {ingredient.replace(/_/g, " ")} – {currentValue} g
+                      </Text>
+                    );
+                  }
+                )}
               </ScrollView>
             </View>
           ) : (

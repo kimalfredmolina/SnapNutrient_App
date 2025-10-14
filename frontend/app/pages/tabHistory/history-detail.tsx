@@ -1,16 +1,24 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { ScrollView, Text, TouchableOpacity, View, Image } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../../../contexts/ThemeContext";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Circle } from "react-native-svg";
+import { db, auth } from "../../../config/firebase";
+import { ref, get } from "firebase/database";
 
 // Constants for macro circles
 const SIZE = 64;
 const STROKE_WIDTH = 6;
 const RADIUS = (SIZE - STROKE_WIDTH) / 2;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
+
+const calculatePercentage = (consumed: number, total: number): number => {
+  if (total <= 0) return 0;
+  const percentage = (consumed / total) * 100;
+  return Math.min(Math.round(percentage), 100); // Cap at 100%
+};
 
 const MacroCircle = ({
   label,
@@ -26,13 +34,14 @@ const MacroCircle = ({
   unit?: string;
 }) => {
   const { colors } = useTheme();
-  const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
+  const percentage = calculatePercentage(value, total);
   const offset = CIRCUMFERENCE - (CIRCUMFERENCE * percentage) / 100;
 
   return (
     <View className="items-center">
       <View style={{ width: SIZE, height: SIZE }}>
         <Svg width={SIZE} height={SIZE}>
+          {/* Background circle */}
           <Circle
             cx={SIZE / 2}
             cy={SIZE / 2}
@@ -41,6 +50,7 @@ const MacroCircle = ({
             strokeWidth={STROKE_WIDTH}
             fill="none"
           />
+          {/* Progress circle */}
           <Circle
             cx={SIZE / 2}
             cy={SIZE / 2}
@@ -53,18 +63,22 @@ const MacroCircle = ({
             fill="none"
           />
         </Svg>
+        {/* Center text showing goal */}
         <View className="absolute inset-0 justify-center items-center">
           <Text className="text-xs font-black" style={{ color: colors.text }}>
-            {value}
+            {total}
             {unit}
           </Text>
         </View>
       </View>
+      {/* Label */}
       <Text className="text-xs font-bold mt-2" style={{ color: colors.text }}>
         {label}
       </Text>
+      {/* Consumed percentage */}
       <Text className="text-xs" style={{ color }}>
-        {percentage}%
+        {value}
+        {unit} ({percentage}%)
       </Text>
     </View>
   );
@@ -81,13 +95,13 @@ const FoodItem = ({
   time: string;
   image: any;
   calories: string;
-  onPress: () => void;  
+  onPress: () => void;
 }) => {
   const { colors, isDark } = useTheme();
 
   return (
     <TouchableOpacity
-      onPress={onPress} 
+      onPress={onPress}
       className="flex-row items-center mb-4 p-4 rounded-2xl"
       style={{
         backgroundColor: colors.surface,
@@ -127,14 +141,35 @@ export default function HistoryDetail() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const foodLogs = JSON.parse(params.logs as string);
+  const [targets, setTargets] = useState({
+    calories: 0,
+    protein: 0,
+    carbs: 0,
+    fat: 0,
+  });
 
-  // Calculate total targets (you might want to fetch these from user preferences)
-  const targets = {
-    calories: 2500,
-    protein: 130,
-    carbs: 300,
-    fat: 50,
-  };
+  // Fetch user's macro goals when component mounts
+  useEffect(() => {
+    const fetchMacroGoals = async () => {
+      const userId = auth.currentUser?.uid;
+      if (!userId) return;
+
+      const macroRef = ref(db, `users/${userId}/macroGoals`);
+      const snapshot = await get(macroRef);
+      const data = snapshot.val();
+
+      if (data) {
+        setTargets({
+          calories: data.calories,
+          protein: data.protein,
+          carbs: data.carbs,
+          fat: data.fat,
+        });
+      }
+    };
+
+    fetchMacroGoals();
+  }, []);
 
   const formatTime = (timestamp: string) => {
     return new Date(timestamp).toLocaleTimeString("en-US", {
@@ -188,11 +223,11 @@ export default function HistoryDetail() {
             className="text-lg text-opacity-60"
             style={{ color: colors.text }}
           >
-            Your nutrition summary for this today
+            Your nutrition summary for this day
           </Text>
         </View>
 
-        {/* Macros Summary */}
+        {/* Macros Summary with fetched targets */}
         <View
           className="rounded-2xl p-6 mb-6"
           style={{
@@ -269,11 +304,12 @@ export default function HistoryDetail() {
             Daily Summary
           </Text>
           <Text style={{ color: colors.text, lineHeight: 22 }}>
-            You've consumed {params.calories} calories today. Your protein
+            You've consumed {params.calories} calories this day. Your protein
             intake is
             {Number(params.protein) >= targets.protein
               ? " excellent"
-              : " below target"}. Consider adding more protein-rich foods if needed.
+              : " below target"}
+            . Consider adding more protein-rich foods if needed.
           </Text>
         </View>
       </ScrollView>
