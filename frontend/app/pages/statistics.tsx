@@ -18,7 +18,7 @@ export default function Statistics() {
   const [selectedTimeRange, setSelectedTimeRange] = useState("1 Week");
   const [selectedNutritionRange, setSelectedNutritionRange] =
     useState("1 Week");
-  const [selectedMacro, setSelectedMacro] = useState("Carbs");
+  const [selectedMacro, setSelectedMacro] = useState("Calories");
   const [selectedDate, setSelectedDate] = useState("");
 
   const screenWidth = Dimensions.get("window").width;
@@ -72,7 +72,7 @@ export default function Statistics() {
 
   const timeRanges = ["1 Week", "2 Weeks", "1 Month", "All time"];
   const nutritionRanges = ["1 Week", "2 Week", "3 Week", "1 Month"];
-  const macros = ["Carbs", "Protein", "Fats"];
+  const macros = ["Calories", "Carbs", "Protein", "Fats"];
 
   const parseWeightHistory = (obj: any) => {
     if (!obj) return [] as Array<{ date: string; weight: number }>;
@@ -177,7 +177,6 @@ export default function Statistics() {
   const minWeight = Math.min(...allWeights, Infinity);
   const yRange = Math.ceil(maxWeight - minWeight) || 1;
 
-  // Create array of unique Y-axis labels
   const yAxisLabels = useMemo(() => {
     const labels: number[] = [];
     const step = Math.max(1, Math.ceil(yRange / 5));
@@ -203,6 +202,21 @@ export default function Statistics() {
     const b = bigint & 255;
     return `${r},${g},${b}`;
   }
+
+  const getMacroColor = (macro: string) => {
+    switch (macro) {
+      case "Calories":
+        return "#ef4444";
+      case "Protein":
+        return "#22c55e";
+      case "Fats":
+        return "#f97316";
+      case "Carbs":
+        return "#3b82f6";
+      default:
+        return "#FFA600";
+    }
+  };
 
   const textColor = isDark ? "#ffffff" : "#1a1a1a";
   const labelColor = isDark ? "#a0a0a0" : "#666666";
@@ -235,7 +249,8 @@ export default function Statistics() {
     backgroundGradientFrom: colors.surface,
     backgroundGradientTo: colors.surface,
     decimalPlaces: 0,
-    color: (opacity = 1) => `rgba(${hexToRgb("#FFA600")}, ${opacity})`,
+    color: (opacity = 1) =>
+      `rgba(${hexToRgb(getMacroColor(selectedMacro))}, ${opacity})`,
     labelColor: (opacity = 1) => `rgba(${hexToRgb(labelColor)}, ${opacity})`,
     propsForBackgroundLines: {
       strokeDasharray: "5",
@@ -412,13 +427,9 @@ export default function Statistics() {
                     fontWeight: "700",
                   }}
                 >
-                  Nutritions
+                  Macro Nutrient Intake
                 </Text>
-                <Text style={{ color: "#22c55e", fontWeight: "600" }}>90%</Text>
               </View>
-              <Text style={{ color: labelColor, fontSize: 12 }}>
-                This week vs last week
-              </Text>
             </View>
 
             <View style={{ flexDirection: "row", gap: 8, marginBottom: 12 }}>
@@ -453,7 +464,7 @@ export default function Statistics() {
               style={{
                 flexDirection: "row",
                 justifyContent: "space-between",
-                marginBottom: 12,
+                marginBottom: 20,
               }}
             >
               <View style={{ alignItems: "center" }}>
@@ -464,10 +475,10 @@ export default function Statistics() {
                     fontWeight: "700",
                   }}
                 >
-                  12780
+                  12780 cal
                 </Text>
                 <Text style={{ color: labelColor, fontSize: 12 }}>
-                  Total calories
+                  Total calories (all time data)
                 </Text>
               </View>
               <View style={{ alignItems: "center" }}>
@@ -478,7 +489,7 @@ export default function Statistics() {
                     fontWeight: "700",
                   }}
                 >
-                  1952
+                  1952 cal
                 </Text>
                 <Text style={{ color: labelColor, fontSize: 12 }}>
                   Daily avg.
@@ -503,7 +514,9 @@ export default function Statistics() {
                     marginHorizontal: 8,
                     borderRadius: 999,
                     backgroundColor:
-                      selectedMacro === macro ? "#FFA600" : colors.surface,
+                      selectedMacro === macro
+                        ? getMacroColor(macro)
+                        : colors.surface,
                   }}
                 >
                   <Text
@@ -531,16 +544,27 @@ export default function Statistics() {
                   labels: nutritionData.map((d) => d.day),
                   datasets: [
                     {
-                      data: nutritionData.map(
-                        (d) => d.protein + d.carbs + d.fats
-                      ),
+                      data: nutritionData.map((d) => {
+                        switch (selectedMacro) {
+                          case "Calories":
+                            return d.protein + d.carbs + d.fats;
+                          case "Protein":
+                            return d.protein;
+                          case "Carbs":
+                            return d.carbs;
+                          case "Fats":
+                            return d.fats;
+                          default:
+                            return d.protein + d.carbs + d.fats;
+                        }
+                      }),
                     },
                   ],
                 }}
                 width={screenWidth - 90}
                 height={280}
                 yAxisLabel=""
-                yAxisSuffix="cal"
+                yAxisSuffix={selectedMacro === "Calories" ? "cal" : "g"}
                 chartConfig={chartConfigBar}
                 style={{ borderRadius: 16 }}
                 showValuesOnTopOfBars={false}
