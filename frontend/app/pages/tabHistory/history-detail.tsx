@@ -1,16 +1,24 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { ScrollView, Text, TouchableOpacity, View, Image } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../../../contexts/ThemeContext";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Circle } from "react-native-svg";
+import { db, auth } from "../../../config/firebase";
+import { ref, get } from "firebase/database";
 
 // Constants for macro circles
 const SIZE = 64;
 const STROKE_WIDTH = 6;
 const RADIUS = (SIZE - STROKE_WIDTH) / 2;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
+
+const calculatePercentage = (consumed: number, total: number): number => {
+  if (total <= 0) return 0;
+  const percentage = (consumed / total) * 100;
+  return Math.min(Math.round(percentage), 100); // Cap at 100%
+};
 
 const MacroCircle = ({
   label,
@@ -26,13 +34,14 @@ const MacroCircle = ({
   unit?: string;
 }) => {
   const { colors } = useTheme();
-  const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
+  const percentage = calculatePercentage(value, total);
   const offset = CIRCUMFERENCE - (CIRCUMFERENCE * percentage) / 100;
 
   return (
     <View className="items-center">
       <View style={{ width: SIZE, height: SIZE }}>
         <Svg width={SIZE} height={SIZE}>
+          {/* Background circle */}
           <Circle
             cx={SIZE / 2}
             cy={SIZE / 2}
@@ -41,6 +50,7 @@ const MacroCircle = ({
             strokeWidth={STROKE_WIDTH}
             fill="none"
           />
+          {/* Progress circle */}
           <Circle
             cx={SIZE / 2}
             cy={SIZE / 2}
@@ -53,18 +63,22 @@ const MacroCircle = ({
             fill="none"
           />
         </Svg>
+        {/* Center text showing goal */}
         <View className="absolute inset-0 justify-center items-center">
           <Text className="text-xs font-black" style={{ color: colors.text }}>
-            {value}
+            {total}
             {unit}
           </Text>
         </View>
       </View>
+      {/* Label */}
       <Text className="text-xs font-bold mt-2" style={{ color: colors.text }}>
         {label}
       </Text>
+      {/* Consumed percentage */}
       <Text className="text-xs" style={{ color }}>
-        {percentage}%
+        {value}
+        {unit} ({percentage}%)
       </Text>
     </View>
   );
@@ -75,16 +89,19 @@ const FoodItem = ({
   time,
   image,
   calories,
+  onPress,
 }: {
   name: string;
   time: string;
   image: any;
   calories: string;
+  onPress: () => void;
 }) => {
   const { colors, isDark } = useTheme();
 
   return (
-    <View
+    <TouchableOpacity
+      onPress={onPress}
       className="flex-row items-center mb-4 p-4 rounded-2xl"
       style={{
         backgroundColor: colors.surface,
@@ -110,17 +127,12 @@ const FoodItem = ({
         >
           {time}
         </Text>
-        <Text
-          className="text-sm font-medium"
-          style={{ color: colors.primary }}
-        >
+        <Text className="text-sm font-medium" style={{ color: colors.primary }}>
           {calories}
         </Text>
       </View>
-      <TouchableOpacity className="p-2">
-        <Ionicons name="ellipsis-vertical" size={20} color={colors.text} />
-      </TouchableOpacity>
-    </View>
+      <Ionicons name="ellipsis-vertical" size={20} color={colors.text} />
+    </TouchableOpacity>
   );
 };
 
@@ -128,40 +140,49 @@ export default function HistoryDetail() {
   const { colors } = useTheme();
   const router = useRouter();
   const params = useLocalSearchParams();
+  const foodLogs = JSON.parse(params.logs as string);
+  const [targets, setTargets] = useState({
+    calories: 0,
+    protein: 0,
+    carbs: 0,
+    fat: 0,
+  });
 
-  // Mock food data for the selected day
-  const foodLog = [
-    {
-      name: "Salmon",
-      time: "11:45",
-      image: require("../../../assets/images/icon.png"),
-      calories: "280 cal",
-    },
-    {
-      name: "Donut",
-      time: "11:48",
-      image: require("../../../assets/images/icon.png"),
-      calories: "320 cal",
-    },
-    {
-      name: "Burger and Fries",
-      time: "11:50",
-      image: require("../../../assets/images/icon.png"),
-      calories: "450 cal",
-    },
-    {
-      name: "Fried Rice",
-      time: "11:53",
-      image: require("../../../assets/images/icon.png"),
-      calories: "220 cal",
-    },
-    {
-      name: "Yogurt",
-      time: "11:59",
-      image: require("../../../assets/images/icon.png"),
-      calories: "150 cal",
-    },
-  ];
+  // Fetch user's macro goals when component mounts
+  useEffect(() => {
+    const fetchMacroGoals = async () => {
+      const userId = auth.currentUser?.uid;
+      if (!userId) return;
+
+      const macroRef = ref(db, `users/${userId}/macroGoals`);
+      const snapshot = await get(macroRef);
+      const data = snapshot.val();
+
+      if (data) {
+        setTargets({
+          calories: data.calories,
+          protein: data.protein,
+          carbs: data.carbs,
+          fat: data.fat,
+        });
+      }
+    };
+
+    fetchMacroGoals();
+  }, []);
+
+  const formatTime = (timestamp: string) => {
+    return new Date(timestamp).toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    });
+  };
+
+  const navigateToFoodDetails = (foodName: string) => {
+    // Navigate to the detailed food log screen
+    router.push("../tabHistory/history-foodlog-card");
+  };
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
@@ -176,10 +197,7 @@ export default function HistoryDetail() {
         >
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text
-          className="text-xl font-bold"
-          style={{ color: colors.text }}
-        >
+        <Text className="text-xl font-bold" style={{ color: colors.text }}>
           {params.date}
         </Text>
       </View>
@@ -198,65 +216,54 @@ export default function HistoryDetail() {
             className="text-3xl font-bold mb-2"
             style={{ color: colors.text }}
           >
-            July {params.day}, 2025
+            {new Date().toLocaleString("default", { month: "long" })}{" "}
+            {params.day}, 2025
           </Text>
           <Text
             className="text-lg text-opacity-60"
             style={{ color: colors.text }}
           >
-            Your nutrition summary for this today
+            Your nutrition summary for this day
           </Text>
         </View>
 
-        {/* Macros Summary */}
+        {/* Macros Summary with fetched targets */}
         <View
           className="rounded-2xl p-6 mb-6"
           style={{
             backgroundColor: colors.surface,
             shadowColor: colors.text === "#FFFFFF" ? "#fff" : "#000",
             shadowOffset: { width: 0, height: 1 },
-            shadowOpacity: 1,
-            shadowRadius: 5,
-            elevation: 5,
+            shadowOpacity: 0.1,
+            shadowRadius: 3,
+            elevation: 3,
           }}
         >
-          <View className="flex-row justify-between items-center mb-6">
-            <Text
-              className="text-xl font-bold"
-              style={{ color: colors.text }}
-            >
-              Macros
-            </Text>
-            <TouchableOpacity>
-              <Ionicons name="create-outline" size={20} color={colors.text} />
-            </TouchableOpacity>
-          </View>
-
           <View className="flex-row justify-between">
             <MacroCircle
               label="Calories"
               value={Number(params.calories)}
-              total={3000}
+              total={targets.calories}
               color="#EF4444"
               unit="cal"
             />
             <MacroCircle
               label="Protein"
               value={Number(params.protein)}
-              total={130}
+              total={targets.protein}
               color="#10B981"
-            />
-            <MacroCircle
-              label="Carbs"
-              value={Number(params.carbs)}
-              total={300}
-              color="#3B82F6"
             />
             <MacroCircle
               label="Fat"
               value={Number(params.fat)}
-              total={50}
+              total={targets.fat}
               color="#F97316"
+            />
+            <MacroCircle
+              label="Carbs"
+              value={Number(params.carbs)}
+              total={targets.carbs}
+              color="#3B82F6"
             />
           </View>
         </View>
@@ -269,13 +276,14 @@ export default function HistoryDetail() {
           >
             Food Log
           </Text>
-          {foodLog.map((food, index) => (
+          {foodLogs.map((food: any, index: number) => (
             <FoodItem
               key={index}
-              name={food.name}
-              time={food.time}
-              image={food.image}
-              calories={food.calories}
+              name={food.foodName}
+              time={formatTime(food.createdAt)}
+              image={require("../../../assets/images/icon.png")}
+              calories={`${food.calories} cal`}
+              onPress={() => navigateToFoodDetails(food.foodName)} // Pass the onPress handler
             />
           ))}
         </View>
@@ -296,9 +304,12 @@ export default function HistoryDetail() {
             Daily Summary
           </Text>
           <Text style={{ color: colors.text, lineHeight: 22 }}>
-            You've consumed {params.calories} calories today. Your protein intake is 
-            {Number(params.protein) >= 130 ? " excellent" : " below target"}. 
-            Consider adding more protein-rich foods if needed.
+            You've consumed {params.calories} calories this day. Your protein
+            intake is
+            {Number(params.protein) >= targets.protein
+              ? " excellent"
+              : " below target"}
+            . Consider adding more protein-rich foods if needed.
           </Text>
         </View>
       </ScrollView>

@@ -1,6 +1,9 @@
 // ✅ Extend Jest matchers FIRST
 import '@testing-library/jest-native/extend-expect';
 
+// Set EXPO_OS environment variable
+process.env.EXPO_OS = 'web';
+
 // ✅ Mock AsyncStorage
 jest.mock('@react-native-async-storage/async-storage', () => ({
   setItem: jest.fn(),
@@ -36,9 +39,30 @@ jest.mock('firebase/app', () => ({
 jest.mock('firebase/auth', () => ({
   getAuth: jest.fn(),
 }));
-jest.mock('firebase/database', () => ({
-  getDatabase: jest.fn(),
-}));
+jest.mock('firebase/database', () => {
+  const mockRef = {
+    off: jest.fn(),
+    on: jest.fn(),
+  };
+
+  return {
+    getDatabase: jest.fn(),
+    ref: jest.fn(() => mockRef),
+    set: jest.fn(),
+    get: jest.fn(() => Promise.resolve({ val: () => ({}) })),
+    child: jest.fn(() => mockRef),
+    push: jest.fn(),
+    onValue: jest.fn((_, callback) => {
+      callback({ val: () => ({}) });
+      return jest.fn();
+    }),
+    query: jest.fn(),
+    orderByChild: jest.fn(),
+    off: jest.fn(),
+    startAt: jest.fn(),
+    endAt: jest.fn(),
+  };
+});
 jest.mock('expo-auth-session/providers/google', () => ({
   useAuthRequest: jest.fn(() => [
     {}, // mock request
@@ -46,4 +70,6 @@ jest.mock('expo-auth-session/providers/google', () => ({
     jest.fn(), // mock promptAsync
   ]),
 }));
+
+
 

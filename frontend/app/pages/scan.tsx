@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -18,6 +18,8 @@ import CONFIG from "../../server";
 import { ingredientMacros } from "../macros/ingredient-level-macros";
 import { dishMacros } from "../macros/dish-level-macros";
 import { computeDishMacros } from "../macros/compute_dish";
+import { logFoodForUser } from "../macros/foodLogs";
+import { getAuth } from "firebase/auth";
 
 export default function Scan() {
   const cameraRef = useRef<CameraView>(null);
@@ -38,7 +40,8 @@ export default function Scan() {
 
   const [weight, setweight] = useState<number>(100);
   const detected = predictions.length > 0 ? predictions[0].class : null;
-  // const macros = detected ? ingredientMacros[detected] : null;
+
+  const [isLogging, setIsLogging] = useState(false);
 
   const macros =
     detected && computeDishMacros(detected, weight / 100, editedIngredients)
@@ -132,7 +135,7 @@ export default function Scan() {
       // } else {
       //   Alert.alert(
       //     "No detections",
-      //     `Analysis Time: ${duration}s\n\nThe AI model found nothing.`
+      //     Analysis Time: ${duration}s\n\nThe AI model found nothing.
       //   );
       // }
 
@@ -161,12 +164,48 @@ export default function Scan() {
     setCapturedPhoto(null);
   };
 
+  const handleLogFood = async () => {
+    if (!macros) {
+      Alert.alert("Error", "No macros available to log.");
+      return;
+    }
+
+    const auth = getAuth();
+    const user = auth.currentUser;
+
+    if (!user) {
+      Alert.alert("Error", "You must be logged in to log food.");
+      return;
+    }
+
+    setIsLogging(true);
+
+    try {
+      await logFoodForUser(user.uid, {
+        foodName: predictions[0]?.class || "Unknown",
+        weight,
+        carbs: macros.carbs,
+        protein: macros.protein,
+        fats: macros.fats,
+        calories: macros.calories,
+      });
+
+      Alert.alert("Success", "Food logged successfully!", [
+        { text: "OK", onPress: () => router.push("/pages") },
+      ]);
+    } catch (error) {
+      console.error("Error logging food:", error);
+      Alert.alert("Error", "Failed to log food. Please try again.");
+    } finally {
+      setIsLogging(false);
+    }
+  };
+
   if (!permission) {
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
         <View
-          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
-        >
+          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
           <Text style={{ color: colors.text, fontSize: 16 }}>
             Loading camera...
           </Text>
@@ -177,62 +216,44 @@ export default function Scan() {
 
   if (!permission.granted) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
-        <View
-          style={{
-            flex: 1,
-            justifyContent: "center",
-            alignItems: "center",
-            padding: 20,
-          }}
-        >
+      <SafeAreaView
+        className="flex-1"
+        style={{ backgroundColor: colors.background }}>
+        <View className="flex-1 justify-center items-center p-5">
           <Ionicons
             name="camera-outline"
             size={64}
             color={colors.text}
             style={{ marginBottom: 20 }}
           />
+
           <Text
-            style={{
-              color: colors.text,
-              fontSize: 18,
-              textAlign: "center",
-              marginBottom: 20,
-              fontWeight: "600",
-            }}
-          >
+            className="text-lg font-semibold text-center mb-5"
+            style={{ color: colors.text }}>
             Camera Permission Required
           </Text>
+
           <Text
-            style={{
-              color: colors.text,
-              fontSize: 14,
-              textAlign: "center",
-              marginBottom: 30,
-              opacity: 0.7,
-            }}
-          >
+            className="text-sm text-center mb-8"
+            style={{ color: colors.text, opacity: 0.7 }}>
             We need camera access to scan and analyze your food items
           </Text>
+
+          {/* Grant Permission Button */}
           <TouchableOpacity
             onPress={requestPermission}
-            style={{
-              backgroundColor: colors.primary,
-              paddingHorizontal: 32,
-              paddingVertical: 16,
-              borderRadius: 12,
-              marginBottom: 16,
-            }}
-          >
-            <Text style={{ color: "white", fontSize: 16, fontWeight: "600" }}>
+            className="rounded-xl px-8 py-4 mb-4"
+            style={{ backgroundColor: colors.primary }}>
+            <Text className="text-white text-base font-semibold">
               Grant Camera Permission
             </Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => router.back()}
-            style={{ paddingHorizontal: 32, paddingVertical: 16 }}
-          >
-            <Text style={{ color: colors.text, fontSize: 16, opacity: 0.7 }}>
+
+          {/* Go Back Button */}
+          <TouchableOpacity onPress={() => router.back()} className="px-8 py-4">
+            <Text
+              className="text-base"
+              style={{ color: colors.text, opacity: 0.7 }}>
               Go Back
             </Text>
           </TouchableOpacity>
@@ -346,94 +367,56 @@ export default function Scan() {
   if (capturedPhoto) {
     if (state === "preview") {
       return (
-        <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
+        <SafeAreaView
+          className="flex-1"
+          style={{ backgroundColor: colors.background }}>
           <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              padding: 16,
-              borderBottomWidth: 1,
-              borderBottomColor: colors.surface,
-            }}
-          >
-            <TouchableOpacity onPress={retakePhoto} style={{ marginRight: 16 }}>
+            className="flex-row items-center px-4 py-4 border-b"
+            style={{ borderBottomColor: colors.surface }}>
+            <TouchableOpacity onPress={retakePhoto} className="mr-4">
               <Ionicons name="arrow-back" size={24} color={colors.text} />
             </TouchableOpacity>
             <Text
-              style={{ color: colors.text, fontSize: 18, fontWeight: "600" }}
-            >
+              className="text-lg font-semibold"
+              style={{ color: colors.text }}>
               Photo Preview
             </Text>
           </View>
 
-          <View style={{ flex: 1, padding: 16 }}>
+          <View className="flex-1 p-4">
             <Image
               source={{ uri: capturedPhoto }}
-              style={{
-                width: "100%",
-                height: 300,
-                borderRadius: 12,
-                marginBottom: 20,
-              }}
+              className="w-full h-72 rounded-xl mb-5"
               resizeMode="cover"
             />
 
             <View
-              style={{
-                backgroundColor: colors.surface,
-                padding: 20,
-                borderRadius: 12,
-                marginBottom: 20,
-              }}
-            >
+              className="rounded-xl p-5 mb-5"
+              style={{ backgroundColor: colors.surface }}>
               <Text
-                style={{
-                  color: colors.text,
-                  fontSize: 18,
-                  fontWeight: "600",
-                  marginBottom: 12,
-                  textAlign: "center",
-                }}
-              >
+                className="text-lg font-semibold text-center"
+                style={{ color: colors.text }}>
                 🚀 Ready to be analyzed by AI
               </Text>
             </View>
 
-            <View style={{ flexDirection: "row", gap: 12 }}>
+            <View className="flex-row space-x-3">
               <TouchableOpacity
                 onPress={retakePhoto}
-                style={{
-                  flex: 1,
-                  backgroundColor: colors.surface,
-                  padding: 16,
-                  borderRadius: 12,
-                  alignItems: "center",
-                }}
-              >
+                className="flex-1 rounded-xl p-4 items-center"
+                style={{ backgroundColor: colors.surface }}>
                 <Text
-                  style={{
-                    color: colors.text,
-                    fontSize: 16,
-                    fontWeight: "600",
-                  }}
-                >
+                  className="text-base font-semibold"
+                  style={{ color: colors.text }}>
                   Retake Photo
                 </Text>
               </TouchableOpacity>
 
               <TouchableOpacity
                 onPress={processWithAI}
-                style={{
-                  flex: 1,
-                  backgroundColor: colors.primary,
-                  padding: 16,
-                  borderRadius: 12,
-                  alignItems: "center",
-                }}
-              >
-                <Text
-                  style={{ color: "white", fontSize: 16, fontWeight: "600" }}
-                >
+                className="flex-1 rounded-xl p-4 items-center"
+                style={{ backgroundColor: colors.primary }}>
+                <Text className="text-base font-semibold text-white">
                   Process with AI
                 </Text>
               </TouchableOpacity>
@@ -453,14 +436,12 @@ export default function Scan() {
               padding: 16,
               borderBottomWidth: 1,
               borderBottomColor: colors.surface,
-            }}
-          >
+            }}>
             <TouchableOpacity onPress={retakePhoto} style={{ marginRight: 16 }}>
               <Ionicons name="arrow-back" size={24} color={colors.text} />
             </TouchableOpacity>
             <Text
-              style={{ color: colors.text, fontSize: 18, fontWeight: "600" }}
-            >
+              style={{ color: colors.text, fontSize: 18, fontWeight: "600" }}>
               Result
             </Text>
           </View>
@@ -479,100 +460,134 @@ export default function Scan() {
               />
               {predictions.length > 0 && (
                 <Text
-                  style={{
-                    color: colors.text,
-                    fontSize: 18,
-                    fontWeight: "600",
-                    textAlign: "center",
-                    marginBottom: 16,
-                  }}
-                >
+                  className="text-lg font-semibold text-center mb-2"
+                  style={{ color: colors.text }}>
                   🍽️ Food: {predictions[0].class.replace(/_/g, " ")}
                 </Text>
               )}
 
               {macros ? (
-                <View
-                  style={{
-                    backgroundColor: colors.surface,
-                    padding: 20,
-                    borderRadius: 12,
-                    marginBottom: 20,
-                  }}
-                >
+                <View className="p-1 mb-1">
                   <Text
-                    style={{
-                      color: colors.text,
-                      fontSize: 16,
-                      marginBottom: 8,
-                    }}
-                  >
-                    🍚 Carbs: {macros?.carbs} g
+                    className="text-xl font-bold text-left mb-2 ml-4"
+                    style={{ color: colors.text }}>
+                    Macros
                   </Text>
-                  <Text
-                    style={{
-                      color: colors.text,
-                      fontSize: 16,
-                      marginBottom: 8,
-                    }}
-                  >
-                    🍗 Protein: {macros?.protein} g
-                  </Text>
-                  <Text
-                    style={{
-                      color: colors.text,
-                      fontSize: 16,
-                      marginBottom: 8,
-                    }}
-                  >
-                    🧈 Fat: {macros?.fats} g
-                  </Text>
-                  <Text style={{ color: colors.text, fontSize: 16 }}>
-                    🔥 Calories: {macros?.calories} kcal
-                  </Text>
+
+                  <View className="flex-row flex-wrap justify-between">
+                    {/* Calories */}
+                    <View
+                      className="w-[48%] rounded-xl p-3 mb-3 flex-row items-center"
+                      style={{
+                        backgroundColor: colors.background,
+                        borderColor: colors.text + "40",
+                        borderWidth: 1,
+                      }}>
+                      <Ionicons name="flame" size={20} color="#ef4444" />
+                      <Text
+                        className="text-base ml-2"
+                        style={{ color: colors.text }}>
+                        Calories:{" "}
+                        <Text className="font-semibold text-red-500">
+                          {macros?.calories} kcal
+                        </Text>
+                      </Text>
+                    </View>
+
+                    {/* Fat */}
+                    <View
+                      className="w-[48%] rounded-xl p-3 mb-3 flex-row items-center"
+                      style={{
+                        backgroundColor: colors.background,
+                        borderColor: colors.text + "40",
+                        borderWidth: 1,
+                      }}>
+                      <Ionicons name="cube-outline" size={20} color="#f97316" />
+                      <Text
+                        className="text-base ml-2"
+                        style={{ color: colors.text }}>
+                        Fat:{" "}
+                        <Text className="font-semibold text-red-500">
+                          {macros?.fats} g
+                        </Text>
+                      </Text>
+                    </View>
+
+                    {/* Protein */}
+                    <View
+                      className="w-[48%] rounded-xl p-3 mb-3 flex-row items-center"
+                      style={{
+                        backgroundColor: colors.background,
+                        borderColor: colors.text + "40",
+                        borderWidth: 1,
+                      }}>
+                      <Ionicons
+                        name="restaurant-outline"
+                        size={20}
+                        color="#10b981"
+                      />
+                      <Text
+                        className="text-base ml-2"
+                        style={{ color: colors.text }}>
+                        Protein:{" "}
+                        <Text className="font-semibold text-red-500">
+                          {macros?.protein} g
+                        </Text>
+                      </Text>
+                    </View>
+
+                    {/* Carbs */}
+                    <View
+                      className="w-[48%] rounded-xl p-3 mb-3 flex-row items-center"
+                      style={{
+                        backgroundColor: colors.background,
+                        borderColor: colors.text + "40",
+                        borderWidth: 1,
+                      }}>
+                      <Ionicons name="leaf-outline" size={20} color="#3b82f6" />
+                      <Text
+                        className="text-base ml-2"
+                        style={{ color: colors.text }}>
+                        Carbs:{" "}
+                        <Text className="font-semibold text-red-500">
+                          {macros?.carbs} g
+                        </Text>
+                      </Text>
+                    </View>
+                  </View>
                 </View>
               ) : (
-                <Text style={{ color: colors.text, textAlign: "center" }}>
+                <Text className="text-center" style={{ color: colors.text }}>
                   No macros found for this food.
                 </Text>
               )}
 
               {ingredients ? (
                 <View
-                  style={{
-                    backgroundColor: colors.surface,
-                    padding: 20,
-                    borderRadius: 12,
-                    marginBottom: 20,
-                    maxHeight: 200, // prevents it from taking entire screen
-                  }}
-                >
+                  className="rounded-xl p-5 mb-5 max-h-[200px]"
+                  style={{ backgroundColor: colors.surface }}>
+                  {/* Edit Button */}
                   <TouchableOpacity
                     onPress={() => {
-                      if (editMode) {
+                      if (editMode)
                         console.log("Recomputing with:", editedIngredients);
-                      }
                       setEditMode(!editMode);
                     }}
-                    style={{ alignSelf: "flex-end", marginBottom: 10 }}
-                  >
-                    <Text style={{ color: colors.primary, fontWeight: "bold" }}>
+                    className="self-end mb-2.5">
+                    <Text
+                      className="font-bold"
+                      style={{ color: colors.primary }}>
                       {editMode ? "Done" : "Edit"}
                     </Text>
                   </TouchableOpacity>
 
                   <Text
-                    style={{
-                      color: colors.text,
-                      fontSize: 16,
-                      fontWeight: "600",
-                      marginBottom: 12,
-                    }}
-                  >
+                    className="text-base font-semibold mb-3"
+                    style={{ color: colors.text }}>
                     🥘 Ingredients
                   </Text>
 
-                  <ScrollView nestedScrollEnabled={true}>
+                  <ScrollView nestedScrollEnabled className="pr-1">
                     {Object.entries(ingredients).map(
                       ([ingredient, weight], index) => {
                         const currentValue =
@@ -582,21 +597,14 @@ export default function Scan() {
                           // EDIT MODE → Show TextInput
                           <View
                             key={`${ingredient}-${index}`}
-                            style={{
-                              flexDirection: "row",
-                              alignItems: "center",
-                              marginBottom: 6,
-                            }}
-                          >
+                            className="flex-row items-center mb-1.5">
+                            {/* Ingredient Name */}
                             <Text
-                              style={{
-                                color: colors.text,
-                                fontSize: 15,
-                                flex: 1,
-                              }}
-                            >
+                              className="flex-1 text-[15px]"
+                              style={{ color: colors.text }}>
                               {ingredient.replace(/_/g, " ")}
                             </Text>
+
                             <TextInput
                               value={String(currentValue)}
                               keyboardType="numeric"
@@ -607,30 +615,23 @@ export default function Scan() {
                                   [ingredient]: newWeight,
                                 }));
                               }}
+                              className="border rounded-md px-2 text-center w-[60px]"
                               style={{
-                                borderWidth: 1,
                                 borderColor: colors.primary,
-                                borderRadius: 6,
-                                paddingHorizontal: 8,
-                                width: 60,
-                                textAlign: "center",
                                 color: colors.text,
                               }}
                             />
-                            <Text style={{ color: colors.text, marginLeft: 4 }}>
+                            <Text
+                              className="ml-1"
+                              style={{ color: colors.text }}>
                               g
                             </Text>
                           </View>
                         ) : (
-                          // VIEW MODE → Show plain text
                           <Text
                             key={`${ingredient}-${index}`}
-                            style={{
-                              color: colors.text,
-                              fontSize: 15,
-                              marginBottom: 6,
-                            }}
-                          >
+                            className="text-[15px] mb-1.5"
+                            style={{ color: colors.text }}>
                             {ingredient.replace(/_/g, " ")} – {currentValue} g
                           </Text>
                         );
@@ -639,14 +640,13 @@ export default function Scan() {
                   </ScrollView>
                 </View>
               ) : (
-                <Text style={{ color: colors.text, textAlign: "center" }}>
+                <Text className="text-center" style={{ color: colors.text }}>
                   No ingredients found for this dish.
                 </Text>
               )}
 
               <Text
-                style={{ color: colors.text, fontSize: 16, marginBottom: 12 }}
-              >
+                style={{ color: colors.text, fontSize: 16, marginBottom: 12 }}>
                 Weight (grams):
               </Text>
               <TextInput
@@ -672,33 +672,30 @@ export default function Scan() {
                     padding: 16,
                     borderRadius: 12,
                     alignItems: "center",
-                  }}
-                >
+                  }}>
                   <Text
                     style={{
                       color: colors.text,
                       fontSize: 16,
                       fontWeight: "600",
-                    }}
-                  >
+                    }}>
                     Retake Photo
                   </Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                  onPress={() => console.log("Log Food pressed")}
+                  onPress={handleLogFood}
+                  disabled={isLogging}
                   style={{
                     flex: 1,
-                    backgroundColor: colors.primary,
+                    backgroundColor: isLogging ? "gray" : colors.primary,
                     padding: 16,
                     borderRadius: 12,
                     alignItems: "center",
-                  }}
-                >
+                  }}>
                   <Text
-                    style={{ color: "white", fontSize: 16, fontWeight: "600" }}
-                  >
-                    Log Food
+                    style={{ color: "white", fontSize: 16, fontWeight: "600" }}>
+                    {isLogging ? "Logging..." : "Log Food"}
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -715,11 +712,9 @@ export default function Scan() {
         ref={cameraRef}
         style={{ flex: 1 }}
         facing={facing}
-        flash={isFlashOn ? "on" : "off"}
-      >
+        flash={isFlashOn ? "on" : "off"}>
         <SafeAreaView
-          style={{ position: "absolute", top: 0, left: 0, right: 0 }}
-        >
+          style={{ position: "absolute", top: 0, left: 0, right: 0 }}>
           <View
             style={{
               flexDirection: "row",
@@ -727,16 +722,14 @@ export default function Scan() {
               alignItems: "center",
               paddingHorizontal: 20,
               paddingVertical: 16,
-            }}
-          >
+            }}>
             <TouchableOpacity
               onPress={() => router.back()}
               style={{
                 backgroundColor: "rgba(0,0,0,0.6)",
                 padding: 12,
                 borderRadius: 25,
-              }}
-            >
+              }}>
               <Ionicons name="close" size={24} color="white" />
             </TouchableOpacity>
 
@@ -746,8 +739,7 @@ export default function Scan() {
                 paddingHorizontal: 16,
                 paddingVertical: 8,
                 borderRadius: 20,
-              }}
-            >
+              }}>
               <Text style={{ color: "white", fontSize: 16, fontWeight: "600" }}>
                 Food Scanner
               </Text>
@@ -759,8 +751,7 @@ export default function Scan() {
                 backgroundColor: "rgba(0,0,0,0.6)",
                 padding: 12,
                 borderRadius: 25,
-              }}
-            >
+              }}>
               <Ionicons
                 name={isFlashOn ? "flash" : "flash-off"}
                 size={24}
@@ -777,8 +768,7 @@ export default function Scan() {
             left: "50%",
             borderColor: colors.primary,
             transform: [{ translateX: -120 }, { translateY: -120 }],
-          }}
-        >
+          }}>
           <View
             className="absolute w-[30px] h-[30px] border-t-[6px] border-l-[6px] rounded-tl-[20px]"
             style={{ top: -3, left: -3, borderColor: colors.primary }}
@@ -803,8 +793,7 @@ export default function Scan() {
             top: "50%",
             left: "50%",
             transform: [{ translateX: -100 }, { translateY: -180 }],
-          }}
-        >
+          }}>
           <Text className="text-white text-sm font-medium text-center">
             Point camera at food
           </Text>
@@ -821,53 +810,45 @@ export default function Scan() {
             right: 0,
             paddingBottom: 50,
             paddingHorizontal: 30,
-          }}
-        >
-          <View
-            style={{
-              flexDirection: "row",
-              justifyContent: "space-between",
-              alignItems: "center",
-            }}
-          >
+          }}>
+          <View className="flex-row justify-between items-center">
+            {/* Gallery Button */}
             <TouchableOpacity
               onPress={pickImage}
               className="w-[50px] h-[50px] rounded-full justify-center items-center border-2"
               style={{
                 backgroundColor: "rgba(255,255,255,0.2)",
                 borderColor: "rgba(255,255,255,0.3)",
-              }}
-            >
+              }}>
               <Ionicons name="images" size={24} color="white" />
             </TouchableOpacity>
 
+            {/* Capture Button */}
             <TouchableOpacity
               onPress={takePhoto}
-              className="w-[80px] h-[80px] rounded-full justify-center items-center"
+              className="w-[80px] h-[80px] rounded-full justify-center items-center border-[6]"
               style={{
                 backgroundColor: "white",
                 borderColor: "rgba(255,255,255,0.3)",
-                borderWidth: 6,
                 shadowColor: "#000",
                 shadowOffset: { width: 0, height: 2 },
                 shadowOpacity: 0.3,
                 shadowRadius: 4,
-              }}
-            >
+              }}>
               <View
                 className="w-[60px] h-[60px] rounded-full"
                 style={{ backgroundColor: colors.primary }}
               />
             </TouchableOpacity>
 
+            {/* Switch Camera Button */}
             <TouchableOpacity
               onPress={toggleCameraFacing}
               className="w-[50px] h-[50px] rounded-full justify-center items-center border-2"
               style={{
                 backgroundColor: "rgba(255,255,255,0.2)",
                 borderColor: "rgba(255,255,255,0.3)",
-              }}
-            >
+              }}>
               <Ionicons name="camera-reverse" size={24} color="white" />
             </TouchableOpacity>
           </View>
@@ -879,8 +860,7 @@ export default function Scan() {
               textAlign: "center",
               marginTop: 16,
               opacity: 0.8,
-            }}
-          >
+            }}>
             Tap the capture button to take a photo
           </Text>
         </View>
