@@ -8,10 +8,19 @@ import {
 } from "react-native";
 import { LineChart, BarChart } from "react-native-chart-kit";
 import { db, auth } from "../../config/firebase";
-import { ref, onValue, off, set } from "firebase/database";
+import {
+  ref,
+  onValue,
+  off,
+  set,
+  query,
+  getDatabase,
+  get,
+} from "firebase/database";
 import { useTheme } from "../../contexts/ThemeContext";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Calendar } from "react-native-calendars";
+import { getAuth } from "firebase/auth";
 
 export default function Statistics() {
   const { colors, isDark } = useTheme();
@@ -60,19 +69,104 @@ export default function Statistics() {
     { date: new Date().toISOString().slice(0, 10), weight: 67 },
   ]);
 
-  const nutritionData = [
-    { day: "M", protein: 500, carbs: 300, fats: 200 },
-    { day: "T", protein: 450, carbs: 350, fats: 150 },
-    { day: "W", protein: 600, carbs: 250, fats: 180 },
-    { day: "T", protein: 550, carbs: 400, fats: 160 },
-    { day: "F", protein: 700, carbs: 300, fats: 190 },
-    { day: "S", protein: 500, carbs: 280, fats: 170 },
-    { day: "S", protein: 650, carbs: 320, fats: 210 },
-  ];
+  const [nutritionData, setNutritionData] = useState<
+    Array<{
+      day: string;
+      protein: number;
+      carbs: number;
+      fats: number;
+      timestamp: number;
+    }>
+  >([]);
+
+  // Get the start date based on selected nutrition range
+  const getNutritionRangeStartDate = (range: string) => {
+    const today = new Date();
+    switch (range) {
+      case "1 Week":
+        return new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+      case "2 Week":
+        return new Date(today.getTime() - 14 * 24 * 60 * 60 * 1000);
+      case "3 Week":
+        return new Date(today.getTime() - 21 * 24 * 60 * 60 * 1000);
+      case "1 Month":
+        return new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
+      default:
+        return new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+    }
+  };
+
+  // Fetch nutrition data
+  useEffect(() => {
+    const fetchNutritionData = async () => {
+      try {
+        const auth = getAuth();
+        const userId = auth.currentUser?.uid;
+        if (!userId) return;
+
+        const db = getDatabase();
+        const foodLogsRef = ref(db, `foodLogs/${userId}`);
+        const foodLogsQuery = query(foodLogsRef);
+
+        const snapshot = await get(foodLogsQuery);
+        if (!snapshot.exists()) return;
+
+        const logs = snapshot.val();
+        const groupedLogs: {
+          [date: string]: {
+            protein: number;
+            carbs: number;
+            fats: number;
+            timestamp: number;
+          };
+        } = {};
+
+        // Process and group the logs by date
+        Object.values(logs).forEach((log: any) => {
+          const dateObj = new Date(log.createdAt);
+          const dateStr = dateObj.toISOString().split("T")[0];
+          const dayOfWeek = dateObj
+            .toLocaleDateString("en-US", { weekday: "short" })
+            .charAt(0);
+
+          if (!groupedLogs[dateStr]) {
+            groupedLogs[dateStr] = {
+              protein: 0,
+              carbs: 0,
+              fats: 0,
+              timestamp: dateObj.getTime(),
+            };
+          }
+
+          groupedLogs[dateStr].protein += Number(log.protein) || 0;
+          groupedLogs[dateStr].carbs += Number(log.carbs) || 0;
+          groupedLogs[dateStr].fats += Number(log.fats) || 0;
+        });
+
+        // Filter data based on selected time range
+        const startDate = getNutritionRangeStartDate(selectedNutritionRange);
+        const filteredData = Object.entries(groupedLogs)
+          .filter(([date]) => new Date(date) >= startDate)
+          .map(([date, data]) => ({
+            day: new Date(date)
+              .toLocaleDateString("en-US", { weekday: "short" })
+              .charAt(0),
+            ...data,
+          }))
+          .sort((a, b) => a.timestamp - b.timestamp);
+
+        setNutritionData(filteredData);
+      } catch (error) {
+        console.error("Error fetching nutrition data:", error);
+      }
+    };
+
+    fetchNutritionData();
+  }, [selectedNutritionRange]);
 
   const timeRanges = ["1 Week", "2 Weeks", "1 Month", "All time"];
   const nutritionRanges = ["1 Week", "2 Week", "3 Week", "1 Month"];
-  const macros = ["Calories", "Carbs", "Protein", "Fats"];
+  const macros = ["Calories", "Protein", "Fats", "Carbs"];
 
   const parseWeightHistory = (obj: any) => {
     if (!obj) return [] as Array<{ date: string; weight: number }>;
@@ -475,10 +569,17 @@ export default function Statistics() {
                     fontWeight: "700",
                   }}
                 >
-                  12780 cal
+                  {nutritionData
+                    .reduce(
+                      (sum, day) =>
+                        sum + (day.protein * 4 + day.carbs * 4 + day.fats * 9),
+                      0
+                    )
+                    .toFixed(2)}{" "}
+                  cal
                 </Text>
                 <Text style={{ color: labelColor, fontSize: 12 }}>
-                  Total calories (all time data)
+                  Total calories ({selectedNutritionRange})
                 </Text>
               </View>
               <View style={{ alignItems: "center" }}>
@@ -489,7 +590,17 @@ export default function Statistics() {
                     fontWeight: "700",
                   }}
                 >
-                  1952 cal
+                  {nutritionData.length > 0
+                    ? (
+                        nutritionData.reduce(
+                          (sum, day) =>
+                            sum +
+                            (day.protein * 4 + day.carbs * 4 + day.fats * 9),
+                          0
+                        ) / nutritionData.length
+                      ).toFixed(2)
+                    : "0.00"}{" "}
+                  cal
                 </Text>
                 <Text style={{ color: labelColor, fontSize: 12 }}>
                   Daily avg.
@@ -532,45 +643,69 @@ export default function Statistics() {
             </View>
 
             {/* Bar Chart */}
-            <View
-              style={{
-                padding: 16,
-                borderRadius: 16,
-                backgroundColor: colors.surface,
-              }}
-            >
-              <BarChart
-                data={{
-                  labels: nutritionData.map((d) => d.day),
-                  datasets: [
-                    {
-                      data: nutritionData.map((d) => {
-                        switch (selectedMacro) {
-                          case "Calories":
-                            return d.protein + d.carbs + d.fats;
-                          case "Protein":
-                            return d.protein;
-                          case "Carbs":
-                            return d.carbs;
-                          case "Fats":
-                            return d.fats;
-                          default:
-                            return d.protein + d.carbs + d.fats;
-                        }
-                      }),
-                    },
-                  ],
+            <ScrollView horizontal showsHorizontalScrollIndicator={true}>
+              <View
+                style={{
+                  padding: 24,
+                  borderRadius: 16,
+                  backgroundColor: colors.surface,
                 }}
-                width={screenWidth - 90}
-                height={280}
-                yAxisLabel=""
-                yAxisSuffix={selectedMacro === "Calories" ? "cal" : "g"}
-                chartConfig={chartConfigBar}
-                style={{ borderRadius: 16 }}
-                showValuesOnTopOfBars={false}
-                fromZero
-              />
-            </View>
+              >
+                <BarChart
+                  data={{
+                    labels: nutritionData.map((d) => {
+                      const date = new Date(d.timestamp);
+                      const day = String(date.getDate());
+                      const month = String(date.getMonth() + 1);
+                      return `${day}/${month}`;
+                    }),
+                    datasets: [
+                      {
+                        data: nutritionData.map((d) => {
+                          const value = (() => {
+                            switch (selectedMacro) {
+                              case "Calories":
+                                return (
+                                  d.protein * 4 +
+                                  d.carbs * 4 +
+                                  d.fats * 9
+                                ).toFixed(2);
+                              case "Protein":
+                                return d.protein.toFixed(2);
+                              case "Carbs":
+                                return d.carbs.toFixed(2);
+                              case "Fats":
+                                return d.fats.toFixed(2);
+                              default:
+                                return (
+                                  d.protein * 4 +
+                                  d.carbs * 4 +
+                                  d.fats * 9
+                                ).toFixed(2);
+                            }
+                          })();
+                          return Number(value);
+                        }),
+                      },
+                    ],
+                  }}
+                  width={Math.max(screenWidth - 90, nutritionData.length * 37)}
+                  height={300}
+                  yAxisLabel=""
+                  yAxisSuffix={selectedMacro === "Calories" ? "cal" : "g"}
+                  chartConfig={{
+                    ...chartConfigBar,
+                    barPercentage: nutritionData.length > 15 ? 0.5 : 0.7,
+                  }}
+                  style={{ borderRadius: 16 }}
+                  showValuesOnTopOfBars={false}
+                  fromZero
+                  verticalLabelRotation={90}
+                  xLabelsOffset={-15}
+                  yLabelsOffset={20}
+                />
+              </View>
+            </ScrollView>
           </View>
         </View>
       </ScrollView>
