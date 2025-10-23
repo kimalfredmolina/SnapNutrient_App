@@ -99,7 +99,7 @@ const MacroCircle = ({
       </Text>
       {/* Consumed percentage */}
       <Text className="text-xs" style={{ color }}>
-        {value}
+        {Number(value).toFixed(2)}
         {unit} ({percentage}%)
       </Text>
     </View>

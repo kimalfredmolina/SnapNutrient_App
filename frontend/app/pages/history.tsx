@@ -106,10 +106,24 @@ export default function History() {
             };
           }
 
-          groupedLogs[isoKey].calories += Number(foodLog.calories) || 0;
-          groupedLogs[isoKey].protein += Number(foodLog.protein) || 0;
-          groupedLogs[isoKey].fat += Number(foodLog.fats) || 0;
-          groupedLogs[isoKey].carbs += Number(foodLog.carbs) || 0;
+          groupedLogs[isoKey].calories = Number(
+            (
+              groupedLogs[isoKey].calories + (Number(foodLog.calories) || 0)
+            ).toFixed(1)
+          );
+          groupedLogs[isoKey].protein = Number(
+            (
+              groupedLogs[isoKey].protein + (Number(foodLog.protein) || 0)
+            ).toFixed(1)
+          );
+          groupedLogs[isoKey].fat = Number(
+            (groupedLogs[isoKey].fat + (Number(foodLog.fats) || 0)).toFixed(1)
+          );
+          groupedLogs[isoKey].carbs = Number(
+            (groupedLogs[isoKey].carbs + (Number(foodLog.carbs) || 0)).toFixed(
+              1
+            )
+          );
           groupedLogs[isoKey].logs.push(foodLog);
         });
 
@@ -390,7 +404,7 @@ export default function History() {
                     }}
                   >
                     <Text className="text-white font-bold text-sm">
-                      {nutrient.value}
+                      {Number(nutrient.value).toFixed(1)}
                     </Text>
                     <Text className="text-white text-[11px]">
                       {nutrient.label}
