@@ -654,8 +654,8 @@ export default function HomePage() {
               Daily Summary
             </Text>
             <Text style={{ color: colors.text, lineHeight: 22 }}>
-              You've consumed {dailyMacros.consumedCalories} calories today.
-              Your protein intake is
+              You've consumed {dailyMacros.consumedCalories.toFixed(1)} calories
+              today. Your protein intake is
               {dailyMacros.consumedProtein >= macroGoals.protein
                 ? " excellent"
                 : " below target"}

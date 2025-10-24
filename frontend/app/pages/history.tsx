@@ -1,13 +1,15 @@
 import React from "react";
-import { ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { ScrollView, Text, TouchableOpacity, View, Modal } from "react-native";
 import {
   ChevronDownIcon,
   EllipsisVerticalIcon,
+  TrashIcon,
+  XMarkIcon,
 } from "react-native-heroicons/outline";
 import { useTheme } from "../../contexts/ThemeContext";
 import { useRouter } from "expo-router";
 import { getAuth } from "firebase/auth";
-import { getDatabase, ref, query, orderByChild, get } from "firebase/database";
+import { getDatabase, ref, query, get, remove } from "firebase/database";
 
 // Define types for food log and history item
 interface FoodLog {
@@ -17,6 +19,7 @@ interface FoodLog {
   fats: number;
   carbs: number;
   foodName: string;
+  logId?: string;
 }
 
 interface HistoryItem {
@@ -43,105 +46,197 @@ export default function History() {
   );
   const [showSortDropdown, setShowSortDropdown] = React.useState(false);
   const [showFilterDropdown, setShowFilterDropdown] = React.useState(false);
+  const [showDeleteModal, setShowDeleteModal] = React.useState(false);
+  const [selectedItem, setSelectedItem] = React.useState<HistoryItem | null>(
+    null
+  );
+  const [isDeleting, setIsDeleting] = React.useState(false);
   const { colors, isDark } = useTheme();
   const router = useRouter();
 
-  // Fetch food logs and group them by date (use ISO date key + timestamp for reliable sorting)
+  // Store original log IDs mapping
+  const logIdsMapRef = React.useRef<{ [isoDate: string]: string[] }>({});
+
+  // Fetch food logs and group them by date
   React.useEffect(() => {
-    const fetchFoodLogs = async () => {
-      try {
-        const auth = getAuth();
-        const userId = auth.currentUser?.uid;
-        if (!userId) {
-          console.log("No user ID found");
-          return;
-        }
-
-        const db = getDatabase();
-        const foodLogsRef = ref(db, `foodLogs/${userId}`);
-        const foodLogsQuery = query(foodLogsRef);
-
-        const snapshot = await get(foodLogsQuery);
-        console.log("Firebase response:", snapshot.val());
-
-        if (!snapshot.exists()) {
-          console.log("No data available");
-          return;
-        }
-
-        const logs = snapshot.val();
-        const groupedLogs: { [isoDate: string]: HistoryItem } = {};
-
-        Object.entries(logs).forEach(([key, value]: [string, any]) => {
-          const foodLog = value as FoodLog;
-          const dateObj = new Date(foodLog.createdAt);
-
-          // Display string for UI
-          const dateDisplay = dateObj.toLocaleDateString("en-US", {
-            month: "short",
-            day: "numeric",
-            year: "numeric",
-          });
-
-          // ISO date key (reliable grouping) and start-of-day timestamp
-          const isoKey = dateObj.toISOString().split("T")[0]; // "2025-09-28"
-          const dayStart = new Date(
-            dateObj.getFullYear(),
-            dateObj.getMonth(),
-            dateObj.getDate()
-          ).getTime();
-
-          const day = dateObj.getDate().toString();
-
-          if (!groupedLogs[isoKey]) {
-            groupedLogs[isoKey] = {
-              day,
-              date: dateDisplay,
-              calories: 0,
-              protein: 0,
-              fat: 0,
-              carbs: 0,
-              logs: [],
-              timestamp: dayStart,
-            };
-          }
-
-          groupedLogs[isoKey].calories = Number(
-            (
-              groupedLogs[isoKey].calories + (Number(foodLog.calories) || 0)
-            ).toFixed(1)
-          );
-          groupedLogs[isoKey].protein = Number(
-            (
-              groupedLogs[isoKey].protein + (Number(foodLog.protein) || 0)
-            ).toFixed(1)
-          );
-          groupedLogs[isoKey].fat = Number(
-            (groupedLogs[isoKey].fat + (Number(foodLog.fats) || 0)).toFixed(1)
-          );
-          groupedLogs[isoKey].carbs = Number(
-            (groupedLogs[isoKey].carbs + (Number(foodLog.carbs) || 0)).toFixed(
-              1
-            )
-          );
-          groupedLogs[isoKey].logs.push(foodLog);
-        });
-
-        // Convert to array and sort by timestamp (newest first by default)
-        const historyArray = Object.values(groupedLogs).sort((a, b) => {
-          const ta = a.timestamp ?? new Date(a.date).getTime();
-          const tb = b.timestamp ?? new Date(b.date).getTime();
-          return tb - ta;
-        });
-
-        setHistoryData(historyArray);
-      } catch (error) {
-        console.error("Error fetching food logs:", error);
-      }
-    };
-
     fetchFoodLogs();
   }, []);
+
+  const fetchFoodLogs = async () => {
+    try {
+      const auth = getAuth();
+      const userId = auth.currentUser?.uid;
+      if (!userId) {
+        console.log("No user ID found");
+        return;
+      }
+
+      const db = getDatabase();
+      const foodLogsRef = ref(db, `foodLogs/${userId}`);
+      const foodLogsQuery = query(foodLogsRef);
+
+      const snapshot = await get(foodLogsQuery);
+      console.log("Firebase response:", snapshot.val());
+
+      if (!snapshot.exists()) {
+        console.log("No data available");
+        return;
+      }
+
+      const logs = snapshot.val();
+      const groupedLogs: { [isoDate: string]: HistoryItem } = {};
+      const logIdsMap: { [isoDate: string]: string[] } = {};
+
+      Object.entries(logs).forEach(([key, value]: [string, any]) => {
+        const foodLog = value as FoodLog;
+        const dateObj = new Date(foodLog.createdAt);
+
+        // Display string for UI
+        const dateDisplay = dateObj.toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+        });
+
+        // ISO date key (reliable grouping) and start-of-day timestamp
+        const isoKey = dateObj.toISOString().split("T")[0]; // "2025-09-28"
+        const dayStart = new Date(
+          dateObj.getFullYear(),
+          dateObj.getMonth(),
+          dateObj.getDate()
+        ).getTime();
+
+        const day = dateObj.getDate().toString();
+
+        if (!groupedLogs[isoKey]) {
+          groupedLogs[isoKey] = {
+            day,
+            date: dateDisplay,
+            calories: 0,
+            protein: 0,
+            fat: 0,
+            carbs: 0,
+            logs: [],
+            timestamp: dayStart,
+          };
+          logIdsMap[isoKey] = [];
+        }
+
+        // Store the Firebase key for deletion
+        logIdsMap[isoKey].push(key);
+
+        groupedLogs[isoKey].calories = Number(
+          (
+            groupedLogs[isoKey].calories + (Number(foodLog.calories) || 0)
+          ).toFixed(1)
+        );
+        groupedLogs[isoKey].protein = Number(
+          (
+            groupedLogs[isoKey].protein + (Number(foodLog.protein) || 0)
+          ).toFixed(1)
+        );
+        groupedLogs[isoKey].fat = Number(
+          (groupedLogs[isoKey].fat + (Number(foodLog.fats) || 0)).toFixed(1)
+        );
+        groupedLogs[isoKey].carbs = Number(
+          (groupedLogs[isoKey].carbs + (Number(foodLog.carbs) || 0)).toFixed(1)
+        );
+        groupedLogs[isoKey].logs.push(foodLog);
+      });
+
+      // Store the log IDs mapping
+      logIdsMapRef.current = logIdsMap;
+
+      // Convert to array and sort by timestamp (newest first by default)
+      const historyArray = Object.values(groupedLogs).sort((a, b) => {
+        const ta = a.timestamp ?? new Date(a.date).getTime();
+        const tb = b.timestamp ?? new Date(b.date).getTime();
+        return tb - ta;
+      });
+
+      setHistoryData(historyArray);
+    } catch (error) {
+      console.error("Error fetching food logs:", error);
+    }
+  };
+
+  const handleDeleteDay = async () => {
+    if (!selectedItem) {
+      console.log("No item selected for deletion");
+      return;
+    }
+
+    setIsDeleting(true);
+    try {
+      const auth = getAuth();
+      const userId = auth.currentUser?.uid;
+      if (!userId) {
+        console.error("No user ID found");
+        return;
+      }
+
+      const db = getDatabase();
+
+      // Get timestamps from the logs array of selected item
+      const logTimestamps = selectedItem.logs.map((log) => {
+        const date = new Date(log.createdAt);
+        return date.toISOString().split("T")[0];
+      });
+
+      console.log("Selected date:", selectedItem.date);
+      console.log("Log timestamps:", logTimestamps);
+      console.log(
+        "Available log IDs in ref:",
+        Object.keys(logIdsMapRef.current)
+      );
+
+      // Find all matching log IDs for the selected date
+      const logIds: string[] = [];
+      for (const timestamp of logTimestamps) {
+        if (logIdsMapRef.current[timestamp]) {
+          logIds.push(...logIdsMapRef.current[timestamp]);
+        }
+      }
+
+      console.log("Found log IDs to delete:", logIds);
+
+      if (logIds.length === 0) {
+        console.error("No logs found for date:", selectedItem.date);
+        return;
+      }
+
+      // Delete all logs for this day
+      console.log("Starting deletion of logs...");
+      const deletePromises = logIds.map((logId) => {
+        const logRef = ref(db, `foodLogs/${userId}/${logId}`);
+        console.log("Deleting log:", logId);
+        return remove(logRef);
+      });
+
+      await Promise.all(deletePromises);
+      console.log("Successfully deleted all logs");
+
+      // Refresh the data
+      await fetchFoodLogs();
+
+      // Close modal and reset selection
+      setShowDeleteModal(false);
+      setSelectedItem(null);
+
+      console.log(
+        `Successfully deleted ${logIds.length} logs for ${selectedItem.date}`
+      );
+    } catch (error) {
+      console.error("Error deleting day logs:", error);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleOptionsPress = (item: HistoryItem) => {
+    setSelectedItem(item);
+    setShowDeleteModal(true);
+  };
 
   const handleHistoryCardPress = (item: HistoryItem) => {
     router.push({
@@ -202,7 +297,7 @@ export default function History() {
     return () => document.removeEventListener("click", handleClickOutside);
   }, []);
 
-  // Use displayedData so we apply either date sort or nutrient filter (filter keeps working)
+  // Use displayedData so we apply either date sort or nutrient filter
   const displayedData = filterBy
     ? filterData(historyData)
     : sortData(historyData);
@@ -219,7 +314,7 @@ export default function History() {
         History
       </Text>
 
-      {/* Filter and Sort Buttons aligned to right */}
+      {/* Filter and Sort Buttons */}
       <View className="flex-row justify-end space-x-3 mb-4 mt-2">
         {/* Sort Dropdown */}
         <View>
@@ -289,15 +384,14 @@ export default function History() {
               <TouchableOpacity
                 className="p-3 border-b"
                 style={{ borderColor: isDark ? "#4B5563" : "#E5E7EB" }}
-                onPress={() => {
-                  handleFilter(null); // clear filter
-                }}
+                onPress={() => handleFilter(null)}
               >
                 <Text style={{ color: colors.text }}>Clear Filter</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
                 className="p-3 border-b"
+                style={{ borderColor: isDark ? "#4B5563" : "#E5E7EB" }}
                 onPress={() => handleFilter("calories")}
               >
                 <Text style={{ color: colors.text }}>Calories</Text>
@@ -305,6 +399,7 @@ export default function History() {
 
               <TouchableOpacity
                 className="p-3 border-b"
+                style={{ borderColor: isDark ? "#4B5563" : "#E5E7EB" }}
                 onPress={() => handleFilter("protein")}
               >
                 <Text style={{ color: colors.text }}>Protein</Text>
@@ -312,6 +407,7 @@ export default function History() {
 
               <TouchableOpacity
                 className="p-3 border-b"
+                style={{ borderColor: isDark ? "#4B5563" : "#E5E7EB" }}
                 onPress={() => handleFilter("fat")}
               >
                 <Text style={{ color: colors.text }}>Fat</Text>
@@ -414,7 +510,10 @@ export default function History() {
               </View>
 
               {/* Options */}
-              <TouchableOpacity className="ml-2 p-1">
+              <TouchableOpacity
+                className="ml-2 p-1"
+                onPress={() => handleOptionsPress(item)}
+              >
                 <EllipsisVerticalIcon
                   size={22}
                   color={isDark ? "#9CA3AF" : "#6B7280"}
@@ -424,6 +523,92 @@ export default function History() {
           </TouchableOpacity>
         ))}
       </ScrollView>
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        visible={showDeleteModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowDeleteModal(false)}
+      >
+        <View className="flex-1 justify-center items-center bg-black/50">
+          <View
+            className="w-11/12 max-w-md rounded-2xl p-6"
+            style={{ backgroundColor: colors.surface }}
+          >
+            {/* Header */}
+            <View className="flex-row justify-between items-center mb-4">
+              <Text
+                className="text-xl font-bold"
+                style={{ color: colors.text }}
+              >
+                Delete Day
+              </Text>
+              <TouchableOpacity
+                onPress={() => setShowDeleteModal(false)}
+                className="p-1"
+              >
+                <XMarkIcon size={24} color={isDark ? "#9CA3AF" : "#6B7280"} />
+              </TouchableOpacity>
+            </View>
+
+            {/* Content */}
+            <View className="mb-6">
+              <Text className="text-base mb-4" style={{ color: colors.text }}>
+                Are you sure you want to delete all food logs for{" "}
+                <Text className="font-bold">{selectedItem?.date}</Text>?
+              </Text>
+              <Text
+                className="text-sm"
+                style={{ color: isDark ? "#9CA3AF" : "#6B7280" }}
+              >
+                This will permanently delete {selectedItem?.logs.length} food{" "}
+                {selectedItem?.logs.length === 1 ? "entry" : "entries"}. This
+                action cannot be undone.
+              </Text>
+            </View>
+
+            {/* Buttons */}
+            <View className="flex-row space-x-3">
+              <TouchableOpacity
+                onPress={() => setShowDeleteModal(false)}
+                className="flex-1 py-3 rounded-xl border mr-2"
+                style={{
+                  borderColor: isDark ? "#4B5563" : "#E5E7EB",
+                }}
+                disabled={isDeleting}
+              >
+                <Text
+                  className="text-center font-semibold"
+                  style={{ color: colors.text }}
+                >
+                  Cancel
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={handleDeleteDay}
+                className="flex-1 py-3 rounded-xl flex-row justify-center items-center"
+                style={{ backgroundColor: "#EF4444" }}
+                disabled={isDeleting}
+              >
+                {isDeleting ? (
+                  <Text className="text-center font-semibold text-white">
+                    Deleting...
+                  </Text>
+                ) : (
+                  <>
+                    <TrashIcon size={18} color="white" />
+                    <Text className="text-center font-semibold text-white ml-2">
+                      Delete
+                    </Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
