@@ -1037,7 +1037,7 @@ export default function Statistics() {
                             color: labelColor,
                           }}
                         >
-                          {(selectedDayData.protein * 4).toFixed(0)} calories
+                          {(selectedDayData.protein * 4).toFixed(0)} Calories
                         </Text>
                       </View>
                       <Text
@@ -1084,7 +1084,7 @@ export default function Statistics() {
                             color: labelColor,
                           }}
                         >
-                          {(selectedDayData.fats * 9).toFixed(0)} calories
+                          {(selectedDayData.fats * 9).toFixed(0)} Calories
                         </Text>
                       </View>
                       <Text
@@ -1133,7 +1133,7 @@ export default function Statistics() {
                           color: labelColor,
                         }}
                       >
-                        {(selectedDayData.carbs * 4).toFixed(0)} calories
+                        {(selectedDayData.carbs * 4).toFixed(0)} Calories
                       </Text>
                     </View>
                     <Text
