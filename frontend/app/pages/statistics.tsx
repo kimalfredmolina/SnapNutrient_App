@@ -85,12 +85,12 @@ export default function Statistics() {
     switch (range) {
       case "1 Week":
         return new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
-      case "2 Week":
+      case "2 Weeks":
         return new Date(today.getTime() - 14 * 24 * 60 * 60 * 1000);
-      case "3 Week":
-        return new Date(today.getTime() - 21 * 24 * 60 * 60 * 1000);
       case "1 Month":
         return new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
+      case "All time":
+        return new Date(0);
       default:
         return new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
     }
@@ -165,7 +165,7 @@ export default function Statistics() {
   }, [selectedNutritionRange]);
 
   const timeRanges = ["1 Week", "2 Weeks", "1 Month", "All time"];
-  const nutritionRanges = ["1 Week", "2 Week", "3 Week", "1 Month"];
+  const nutritionRanges = ["1 Week", "2 Weeks", "1 Month", "All time"];
   const macros = ["Calories", "Protein", "Fats", "Carbs"];
 
   const parseWeightHistory = (obj: any) => {
