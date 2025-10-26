@@ -5,6 +5,8 @@ import {
   Dimensions,
   TouchableOpacity,
   ScrollView,
+  Modal,
+  Pressable,
 } from "react-native";
 import { LineChart, BarChart } from "react-native-chart-kit";
 import { db, auth } from "../../config/firebase";
@@ -29,6 +31,20 @@ export default function Statistics() {
     useState("1 Week");
   const [selectedMacro, setSelectedMacro] = useState("Calories");
   const [selectedDate, setSelectedDate] = useState("");
+  const [modalVisible, setModalVisible] = useState(false);
+  const [weightModalVisible, setWeightModalVisible] = useState(false);
+  const [selectedWeightData, setSelectedWeightData] = useState<{
+    date: string;
+    weight: number;
+    change: number;
+  } | null>(null);
+  const [selectedDayData, setSelectedDayData] = useState<{
+    date: string;
+    protein: number;
+    carbs: number;
+    fats: number;
+    calories: number;
+  } | null>(null);
 
   const screenWidth = Dimensions.get("window").width;
   const chartHeight = 200;
@@ -312,8 +328,51 @@ export default function Statistics() {
     }
   };
 
+  // Handle bar press to show modal with details for Bar Chart
+  const handleBarPress = (index: number) => {
+    if (index !== undefined && nutritionData[index]) {
+      const dayData = nutritionData[index];
+      const calories =
+        dayData.protein * 4 + dayData.carbs * 4 + dayData.fats * 9;
+      setSelectedDayData({
+        date: new Date(dayData.timestamp).toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+        }),
+        protein: dayData.protein,
+        carbs: dayData.carbs,
+        fats: dayData.fats,
+        calories: calories,
+      });
+      setModalVisible(true);
+    }
+  };
+
   const textColor = isDark ? "#ffffff" : "#1a1a1a";
   const labelColor = isDark ? "#a0a0a0" : "#666666";
+
+  // Handle weight point press to show modal with details for Line Chart
+  const handleWeightPointPress = (index: number) => {
+    if (index !== undefined && filteredWeightData[index]) {
+      const currentData = filteredWeightData[index];
+      const previousData = index > 0 ? filteredWeightData[index - 1] : null;
+      const weightChange = previousData
+        ? Number((currentData.weight - previousData.weight).toFixed(1))
+        : 0;
+
+      setSelectedWeightData({
+        date: new Date(currentData.date).toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+        }),
+        weight: currentData.weight,
+        change: weightChange,
+      });
+      setWeightModalVisible(true);
+    }
+  };
 
   const chartConfigLine = {
     backgroundGradientFrom: colors.surface,
@@ -498,6 +557,9 @@ export default function Statistics() {
                   xLabelsOffset={-5}
                   getDotColor={() => colors.primary}
                   style={{ borderRadius: 16 }}
+                  onDataPointClick={({ index }) =>
+                    handleWeightPointPress(index)
+                  }
                 />
               )}
             </View>
@@ -651,63 +713,467 @@ export default function Statistics() {
                   backgroundColor: colors.surface,
                 }}
               >
-                <BarChart
-                  data={{
-                    labels: nutritionData.map((d) => {
-                      const date = new Date(d.timestamp);
-                      const day = String(date.getDate());
-                      const month = String(date.getMonth() + 1);
-                      return `${day}/${month}`;
-                    }),
-                    datasets: [
-                      {
-                        data: nutritionData.map((d) => {
-                          const value = (() => {
-                            switch (selectedMacro) {
-                              case "Calories":
-                                return (
-                                  d.protein * 4 +
-                                  d.carbs * 4 +
-                                  d.fats * 9
-                                ).toFixed(2);
-                              case "Protein":
-                                return d.protein.toFixed(2);
-                              case "Carbs":
-                                return d.carbs.toFixed(2);
-                              case "Fats":
-                                return d.fats.toFixed(2);
-                              default:
-                                return (
-                                  d.protein * 4 +
-                                  d.carbs * 4 +
-                                  d.fats * 9
-                                ).toFixed(2);
-                            }
-                          })();
-                          return Number(value);
-                        }),
-                      },
-                    ],
-                  }}
-                  width={Math.max(screenWidth - 90, nutritionData.length * 37)}
-                  height={300}
-                  yAxisLabel=""
-                  yAxisSuffix={selectedMacro === "Calories" ? "cal" : "g"}
-                  chartConfig={{
-                    ...chartConfigBar,
-                    barPercentage: nutritionData.length > 15 ? 0.5 : 0.7,
-                  }}
-                  style={{ borderRadius: 16 }}
-                  showValuesOnTopOfBars={false}
-                  fromZero
-                  verticalLabelRotation={90}
-                  xLabelsOffset={-15}
-                  yLabelsOffset={20}
-                />
+                <View>
+                  <BarChart
+                    data={{
+                      labels: nutritionData.map((d) => {
+                        const date = new Date(d.timestamp);
+                        const day = String(date.getDate());
+                        const month = String(date.getMonth() + 1);
+                        return `${day}/${month}`;
+                      }),
+                      datasets: [
+                        {
+                          data: nutritionData.map((d) => {
+                            const value = (() => {
+                              switch (selectedMacro) {
+                                case "Calories":
+                                  return (
+                                    d.protein * 4 +
+                                    d.carbs * 4 +
+                                    d.fats * 9
+                                  ).toFixed(2);
+                                case "Protein":
+                                  return d.protein.toFixed(2);
+                                case "Carbs":
+                                  return d.carbs.toFixed(2);
+                                case "Fats":
+                                  return d.fats.toFixed(2);
+                                default:
+                                  return (
+                                    d.protein * 4 +
+                                    d.carbs * 4 +
+                                    d.fats * 9
+                                  ).toFixed(2);
+                              }
+                            })();
+                            return Number(value);
+                          }),
+                        },
+                      ],
+                    }}
+                    width={Math.max(
+                      screenWidth - 90,
+                      nutritionData.length * 37
+                    )}
+                    height={300}
+                    yAxisLabel=""
+                    yAxisSuffix={selectedMacro === "Calories" ? "cal" : "g"}
+                    chartConfig={{
+                      ...chartConfigBar,
+                      barPercentage: nutritionData.length > 15 ? 0.5 : 0.7,
+                    }}
+                    style={{ borderRadius: 16 }}
+                    showValuesOnTopOfBars={false}
+                    fromZero
+                    verticalLabelRotation={90}
+                    xLabelsOffset={-15}
+                    yLabelsOffset={20}
+                  />
+                  {/* Invisible touchable overlay for bar clicks */}
+                  <View
+                    style={{
+                      position: "absolute",
+                      top: 0,
+                      left: 50,
+                      right: 0,
+                      bottom: 50,
+                      flexDirection: "row",
+                    }}
+                  >
+                    {nutritionData.map((_, index) => (
+                      <TouchableOpacity
+                        key={index}
+                        onPress={() => handleBarPress(index)}
+                        style={{
+                          flex: 1,
+                          height: "100%",
+                        }}
+                      />
+                    ))}
+                  </View>
+                </View>
               </View>
             </ScrollView>
           </View>
         </View>
+
+        {/* Modal for Weight Details */}
+        <Modal
+          animationType="fade"
+          transparent={true}
+          visible={weightModalVisible}
+          onRequestClose={() => setWeightModalVisible(false)}
+        >
+          <Pressable
+            style={{
+              flex: 1,
+              backgroundColor: "rgba(0, 0, 0, 0.5)",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+            onPress={() => setWeightModalVisible(false)}
+          >
+            <Pressable
+              style={{
+                width: "85%",
+                backgroundColor: colors.surface,
+                borderRadius: 20,
+                padding: 24,
+                shadowColor: "#000",
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.3,
+                shadowRadius: 8,
+                elevation: 8,
+              }}
+              onPress={(e) => e.stopPropagation()}
+            >
+              <View style={{ alignItems: "center", marginBottom: 20 }}>
+                <Text
+                  style={{
+                    fontSize: 20,
+                    fontWeight: "bold",
+                    color: colors.text,
+                    marginBottom: 8,
+                  }}
+                >
+                  Weight Details
+                </Text>
+                <Text style={{ fontSize: 16, color: colors.text }}>
+                  {selectedWeightData?.date}
+                </Text>
+              </View>
+
+              <View
+                style={{
+                  backgroundColor: colors.primary + "20",
+                  borderRadius: 16,
+                  padding: 20,
+                  marginBottom: 20,
+                }}
+              >
+                <Text
+                  style={{
+                    fontSize: 36,
+                    fontWeight: "bold",
+                    color: colors.primary,
+                    textAlign: "center",
+                  }}
+                >
+                  {selectedWeightData?.weight} kg
+                </Text>
+              </View>
+
+              {selectedWeightData?.change !== 0 && (
+                <View style={{ alignItems: "center" }}>
+                  <Text
+                    style={{
+                      fontSize: 16,
+                      color:
+                        selectedWeightData?.change &&
+                        selectedWeightData.change > 0
+                          ? "#22c55e"
+                          : "#ef4444",
+                    }}
+                  >
+                    {selectedWeightData?.change && selectedWeightData.change > 0
+                      ? "+"
+                      : ""}
+                    {selectedWeightData?.change} kg
+                  </Text>
+                  <Text
+                    style={{ fontSize: 14, color: colors.text, opacity: 0.7 }}
+                  >
+                    from previous record
+                  </Text>
+                </View>
+              )}
+
+              <TouchableOpacity
+                style={{
+                  backgroundColor: colors.primary,
+                  borderRadius: 12,
+                  padding: 12,
+                  alignItems: "center",
+                  marginTop: 20,
+                }}
+                onPress={() => setWeightModalVisible(false)}
+              >
+                <Text style={{ color: "white", fontWeight: "600" }}>Close</Text>
+              </TouchableOpacity>
+            </Pressable>
+          </Pressable>
+        </Modal>
+
+        {/* Modal for Detailed Nutrition Data */}
+        <Modal
+          animationType="fade"
+          transparent={true}
+          visible={modalVisible}
+          onRequestClose={() => setModalVisible(false)}
+        >
+          <Pressable
+            style={{
+              flex: 1,
+              backgroundColor: "rgba(0, 0, 0, 0.5)",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+            onPress={() => setModalVisible(false)}
+          >
+            <Pressable
+              style={{
+                width: "85%",
+                backgroundColor: colors.surface,
+                borderRadius: 20,
+                padding: 24,
+                shadowColor: "#000",
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.3,
+                shadowRadius: 8,
+                elevation: 8,
+              }}
+              onPress={(e) => e.stopPropagation()}
+            >
+              {selectedDayData && (
+                <>
+                  <View
+                    style={{
+                      alignItems: "center",
+                      marginBottom: 24,
+                      paddingBottom: 16,
+                      borderBottomWidth: 1,
+                      borderBottomColor: isDark
+                        ? "rgba(255,255,255,0.1)"
+                        : "rgba(0,0,0,0.1)",
+                    }}
+                  >
+                    <Text
+                      style={{
+                        fontSize: 20,
+                        fontWeight: "700",
+                        color: colors.text,
+                        marginBottom: 4,
+                      }}
+                    >
+                      Nutrition Details
+                    </Text>
+                    <Text
+                      style={{
+                        fontSize: 14,
+                        color: labelColor,
+                        fontWeight: "500",
+                      }}
+                    >
+                      {selectedDayData.date}
+                    </Text>
+                  </View>
+
+                  {/* Total Calories Card */}
+                  <View
+                    style={{
+                      backgroundColor: isDark
+                        ? "rgba(239, 68, 68, 0.1)"
+                        : "rgba(239, 68, 68, 0.05)",
+                      padding: 16,
+                      borderRadius: 12,
+                      marginBottom: 20,
+                      borderWidth: 1,
+                      borderColor: "#ef4444",
+                    }}
+                  >
+                    <Text
+                      style={{
+                        fontSize: 14,
+                        color: labelColor,
+                        marginBottom: 4,
+                      }}
+                    >
+                      Total Calories
+                    </Text>
+                    <Text
+                      style={{
+                        fontSize: 32,
+                        fontWeight: "700",
+                        color: "#ef4444",
+                      }}
+                    >
+                      {selectedDayData.calories.toFixed(0)}{" "}
+                      <Text style={{ fontSize: 18 }}>cal</Text>
+                    </Text>
+                  </View>
+
+                  {/* Macronutrients Breakdown */}
+                  <View style={{ gap: 12 }}>
+                    {/* Protein */}
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        backgroundColor: isDark
+                          ? "rgba(34, 197, 94, 0.1)"
+                          : "rgba(34, 197, 94, 0.05)",
+                        padding: 16,
+                        borderRadius: 12,
+                        borderLeftWidth: 4,
+                        borderLeftColor: "#22c55e",
+                      }}
+                    >
+                      <View style={{ flex: 1 }}>
+                        <Text
+                          style={{
+                            fontSize: 16,
+                            fontWeight: "600",
+                            color: colors.text,
+                            marginBottom: 4,
+                          }}
+                        >
+                          Protein
+                        </Text>
+                        <Text
+                          style={{
+                            fontSize: 12,
+                            color: labelColor,
+                          }}
+                        >
+                          {(selectedDayData.protein * 4).toFixed(0)} calories
+                        </Text>
+                      </View>
+                      <Text
+                        style={{
+                          fontSize: 24,
+                          fontWeight: "700",
+                          color: "#22c55e",
+                        }}
+                      >
+                        {selectedDayData.protein.toFixed(1)}
+                        <Text style={{ fontSize: 14 }}> g</Text>
+                      </Text>
+                    </View>
+
+                    {/* Fats */}
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        backgroundColor: isDark
+                          ? "rgba(249, 115, 22, 0.1)"
+                          : "rgba(249, 115, 22, 0.05)",
+                        padding: 16,
+                        borderRadius: 12,
+                        borderLeftWidth: 4,
+                        borderLeftColor: "#f97316",
+                      }}
+                    >
+                      <View style={{ flex: 1 }}>
+                        <Text
+                          style={{
+                            fontSize: 16,
+                            fontWeight: "600",
+                            color: colors.text,
+                            marginBottom: 4,
+                          }}
+                        >
+                          Fats
+                        </Text>
+                        <Text
+                          style={{
+                            fontSize: 12,
+                            color: labelColor,
+                          }}
+                        >
+                          {(selectedDayData.fats * 9).toFixed(0)} calories
+                        </Text>
+                      </View>
+                      <Text
+                        style={{
+                          fontSize: 24,
+                          fontWeight: "700",
+                          color: "#f97316",
+                        }}
+                      >
+                        {selectedDayData.fats.toFixed(1)}
+                        <Text style={{ fontSize: 14 }}> g</Text>
+                      </Text>
+                    </View>
+                  </View>
+
+                  {/* Carbs */}
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      backgroundColor: isDark
+                        ? "rgba(59, 130, 246, 0.1)"
+                        : "rgba(59, 130, 246, 0.05)",
+                      padding: 16,
+                      borderRadius: 12,
+                      borderLeftWidth: 4,
+                      borderLeftColor: "#3b82f6",
+                      marginTop: 12,
+                    }}
+                  >
+                    <View style={{ flex: 1 }}>
+                      <Text
+                        style={{
+                          fontSize: 16,
+                          fontWeight: "600",
+                          color: colors.text,
+                          marginBottom: 4,
+                        }}
+                      >
+                        Carbohydrates
+                      </Text>
+                      <Text
+                        style={{
+                          fontSize: 12,
+                          color: labelColor,
+                        }}
+                      >
+                        {(selectedDayData.carbs * 4).toFixed(0)} calories
+                      </Text>
+                    </View>
+                    <Text
+                      style={{
+                        fontSize: 24,
+                        fontWeight: "700",
+                        color: "#3b82f6",
+                      }}
+                    >
+                      {selectedDayData.carbs.toFixed(1)}
+                      <Text style={{ fontSize: 14 }}> g</Text>
+                    </Text>
+                  </View>
+
+                  {/* Close Button */}
+                  <TouchableOpacity
+                    onPress={() => setModalVisible(false)}
+                    style={{
+                      backgroundColor: colors.primary,
+                      padding: 14,
+                      borderRadius: 12,
+                      alignItems: "center",
+                      marginTop: 24,
+                    }}
+                  >
+                    <Text
+                      style={{
+                        color: "#fff",
+                        fontSize: 16,
+                        fontWeight: "600",
+                      }}
+                    >
+                      Close
+                    </Text>
+                  </TouchableOpacity>
+                </>
+              )}
+            </Pressable>
+          </Pressable>
+        </Modal>
       </ScrollView>
     </SafeAreaView>
   );
