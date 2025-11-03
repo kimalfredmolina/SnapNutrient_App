@@ -148,6 +148,20 @@ export default function HistoryDetail() {
     fat: 0,
   });
 
+  // Parse the date from params - use timestamp if available, fallback to date string
+  const getSelectedDate = () => {
+    if (params.timestamp) {
+      return new Date(Number(params.timestamp));
+    }
+    // Fallback to parsing the date string
+    if (params.date) {
+      return new Date(params.date as string);
+    }
+    return new Date();
+  };
+
+  const selectedDate = getSelectedDate();
+
   // Fetch user's macro goals when component mounts
   useEffect(() => {
     const fetchMacroGoals = async () => {
@@ -184,6 +198,23 @@ export default function HistoryDetail() {
     router.push("../tabHistory/history-foodlog-card");
   };
 
+  // Format the date for display in large header
+  const formatDisplayDate = () => {
+    const month = selectedDate.toLocaleString("default", { month: "long" });
+    const day = selectedDate.getDate();
+    const year = selectedDate.getFullYear();
+    return `${month} ${day}, ${year}`;
+  };
+
+  // Format the date for the top header (same format as history list)
+  const formatHeaderDate = () => {
+    return selectedDate.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  };
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
       {/* Header */}
@@ -198,7 +229,7 @@ export default function HistoryDetail() {
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text className="text-xl font-bold" style={{ color: colors.text }}>
-          {params.date}
+          {formatHeaderDate()}
         </Text>
       </View>
 
@@ -216,8 +247,7 @@ export default function HistoryDetail() {
             className="text-3xl font-bold mb-2"
             style={{ color: colors.text }}
           >
-            {new Date().toLocaleString("default", { month: "long" })}{" "}
-            {params.day}, 2025
+            {formatDisplayDate()}
           </Text>
           <Text
             className="text-lg text-opacity-60"
