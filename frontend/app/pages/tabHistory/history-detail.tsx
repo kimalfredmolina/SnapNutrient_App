@@ -177,12 +177,19 @@ export default function HistoryDetail() {
         return d.toDateString() === selDate.toDateString();
       });
 
-      setFoodLogs(filtered);
+      // Ensure each log has a logId
+      const logsWithIds = filtered.map((log, index) => ({
+        ...log,
+        logId: log.logId || `log_${Date.now()}_${index}`,
+      }));
+
+      setFoodLogs(logsWithIds);
     } catch (err) {
       console.error("Failed to parse logs param:", err);
       setFoodLogs([]);
     }
   }, [params.logs, params.timestamp, params.date]);
+
   const [targets, setTargets] = useState({
     calories: 0,
     protein: 0,
@@ -238,9 +245,20 @@ export default function HistoryDetail() {
     });
   };
 
-  const navigateToFoodDetails = (foodName: string) => {
-    // Navigate to the detailed food log screen
-    router.push("../tabHistory/history-foodlog-card");
+  const navigateToFoodDetails = (food: FoodLog) => {
+    // Navigate with all the food data as params
+    router.push({
+      pathname: "/pages/tabHistory/history-foodlog-card",
+      params: {
+        logId: food.logId || `log_${Date.now()}`,
+        foodName: food.foodName,
+        calories: food.calories.toString(),
+        protein: food.protein.toString(),
+        fats: food.fats.toString(),
+        carbs: food.carbs.toString(),
+        createdAt: food.createdAt,
+      },
+    });
   };
 
   // Format the date for display in large header
@@ -454,7 +472,7 @@ export default function HistoryDetail() {
                 time={formatTime(food.createdAt)}
                 image={require("../../../assets/images/icon.png")}
                 calories={`${food.calories} cal`}
-                onPress={() => navigateToFoodDetails(food.foodName)}
+                onPress={() => navigateToFoodDetails(food)}
                 onDelete={() => handleDeleteFood(food)}
               />
             ))
