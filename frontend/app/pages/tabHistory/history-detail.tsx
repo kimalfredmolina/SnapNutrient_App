@@ -162,9 +162,27 @@ export default function HistoryDetail() {
   const { colors, isDark } = useTheme();
   const router = useRouter();
   const params = useLocalSearchParams();
-  const [foodLogs, setFoodLogs] = useState<FoodLog[]>(
-    JSON.parse(params.logs as string)
-  );
+  const [foodLogs, setFoodLogs] = useState<FoodLog[]>([]);
+
+  useEffect(() => {
+    if (!params.logs) return;
+    try {
+      const parsed: FoodLog[] = JSON.parse(params.logs as string);
+
+      // Determine selectedDate again (reuse your getSelectedDate logic)
+      const selDate = getSelectedDate();
+      // keep only logs that match the selected date (compare date only)
+      const filtered = parsed.filter((log) => {
+        const d = new Date(log.createdAt);
+        return d.toDateString() === selDate.toDateString();
+      });
+
+      setFoodLogs(filtered);
+    } catch (err) {
+      console.error("Failed to parse logs param:", err);
+      setFoodLogs([]);
+    }
+  }, [params.logs, params.timestamp, params.date]);
   const [targets, setTargets] = useState({
     calories: 0,
     protein: 0,
@@ -269,10 +287,12 @@ export default function HistoryDetail() {
         // Find the matching log entry
         Object.entries(logs).forEach(([key, value]: [string, any]) => {
           const log = value as FoodLog;
+          // compare timestamps as numbers to avoid ms/format mismatch
           if (
-            log.createdAt === selectedFood.createdAt &&
+            new Date(log.createdAt).getTime() ===
+              new Date(selectedFood.createdAt).getTime() &&
             log.foodName === selectedFood.foodName &&
-            log.calories === selectedFood.calories
+            Number(log.calories) === Number(selectedFood.calories)
           ) {
             logIdToDelete = key;
           }
@@ -429,7 +449,7 @@ export default function HistoryDetail() {
           ) : (
             foodLogs.map((food: FoodLog, index: number) => (
               <FoodItem
-                key={index}
+                key={food.logId ?? food.createdAt}
                 name={food.foodName}
                 time={formatTime(food.createdAt)}
                 image={require("../../../assets/images/icon.png")}
