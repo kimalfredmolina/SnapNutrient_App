@@ -1,18 +1,36 @@
 import React, { useEffect, useState } from "react";
-import { ScrollView, Text, TouchableOpacity, View, Image } from "react-native";
+import {
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+  Image,
+  Modal,
+} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../../../contexts/ThemeContext";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Circle } from "react-native-svg";
 import { db, auth } from "../../../config/firebase";
-import { ref, get } from "firebase/database";
+import { ref, get, remove } from "firebase/database";
+import { XMarkIcon, TrashIcon } from "react-native-heroicons/outline";
 
 // Constants for macro circles
 const SIZE = 64;
 const STROKE_WIDTH = 6;
 const RADIUS = (SIZE - STROKE_WIDTH) / 2;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
+
+interface FoodLog {
+  createdAt: string;
+  calories: number;
+  protein: number;
+  fats: number;
+  carbs: number;
+  foodName: string;
+  logId?: string;
+}
 
 const calculatePercentage = (consumed: number, total: number): number => {
   if (total <= 0) return 0;
@@ -90,12 +108,14 @@ const FoodItem = ({
   image,
   calories,
   onPress,
+  onDelete,
 }: {
   name: string;
   time: string;
   image: any;
   calories: string;
   onPress: () => void;
+  onDelete: () => void;
 }) => {
   const { colors, isDark } = useTheme();
 
@@ -131,22 +151,29 @@ const FoodItem = ({
           {calories}
         </Text>
       </View>
-      <Ionicons name="ellipsis-vertical" size={20} color={colors.text} />
+      <TouchableOpacity onPress={onDelete} className="ml-2 p-1">
+        <Ionicons name="ellipsis-vertical" size={20} color={colors.text} />
+      </TouchableOpacity>
     </TouchableOpacity>
   );
 };
 
 export default function HistoryDetail() {
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const router = useRouter();
   const params = useLocalSearchParams();
-  const foodLogs = JSON.parse(params.logs as string);
+  const [foodLogs, setFoodLogs] = useState<FoodLog[]>(
+    JSON.parse(params.logs as string)
+  );
   const [targets, setTargets] = useState({
     calories: 0,
     protein: 0,
     carbs: 0,
     fat: 0,
   });
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [selectedFood, setSelectedFood] = useState<FoodLog | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Parse the date from params - use timestamp if available, fallback to date string
   const getSelectedDate = () => {
@@ -215,6 +242,92 @@ export default function HistoryDetail() {
     });
   };
 
+  const handleDeleteFood = (food: FoodLog) => {
+    setSelectedFood(food);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDeleteFood = async () => {
+    if (!selectedFood) return;
+
+    setIsDeleting(true);
+    try {
+      const userId = auth.currentUser?.uid;
+      if (!userId) {
+        console.error("No user ID found");
+        return;
+      }
+
+      // Find the log ID by matching the food data
+      const foodLogsRef = ref(db, `foodLogs/${userId}`);
+      const snapshot = await get(foodLogsRef);
+
+      if (snapshot.exists()) {
+        const logs = snapshot.val();
+        let logIdToDelete: string | null = null;
+
+        // Find the matching log entry
+        Object.entries(logs).forEach(([key, value]: [string, any]) => {
+          const log = value as FoodLog;
+          if (
+            log.createdAt === selectedFood.createdAt &&
+            log.foodName === selectedFood.foodName &&
+            log.calories === selectedFood.calories
+          ) {
+            logIdToDelete = key;
+          }
+        });
+
+        if (logIdToDelete) {
+          // Delete the specific log
+          const logRef = ref(db, `foodLogs/${userId}/${logIdToDelete}`);
+          await remove(logRef);
+
+          // Update local state
+          const updatedLogs = foodLogs.filter(
+            (log) =>
+              !(
+                log.createdAt === selectedFood.createdAt &&
+                log.foodName === selectedFood.foodName &&
+                log.calories === selectedFood.calories
+              )
+          );
+
+          setFoodLogs(updatedLogs);
+
+          // If no more logs, go back to history
+          if (updatedLogs.length === 0) {
+            router.push("..\\history");
+          }
+
+          console.log(
+            `Successfully deleted food log: ${selectedFood.foodName}`
+          );
+        } else {
+          console.error("Could not find log ID to delete");
+        }
+      }
+
+      setShowDeleteModal(false);
+      setSelectedFood(null);
+    } catch (error) {
+      console.error("Error deleting food log:", error);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  // Calculate current totals from displayed logs
+  const currentTotals = foodLogs.reduce(
+    (acc, log) => ({
+      calories: acc.calories + (Number(log.calories) || 0),
+      protein: acc.protein + (Number(log.protein) || 0),
+      fat: acc.fat + (Number(log.fats) || 0),
+      carbs: acc.carbs + (Number(log.carbs) || 0),
+    }),
+    { calories: 0, protein: 0, fat: 0, carbs: 0 }
+  );
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
       {/* Header */}
@@ -272,26 +385,26 @@ export default function HistoryDetail() {
           <View className="flex-row justify-between">
             <MacroCircle
               label="Calories"
-              value={Number(params.calories)}
+              value={currentTotals.calories}
               total={targets.calories}
               color="#EF4444"
               unit="cal"
             />
             <MacroCircle
               label="Protein"
-              value={Number(params.protein)}
+              value={currentTotals.protein}
               total={targets.protein}
               color="#10B981"
             />
             <MacroCircle
               label="Fat"
-              value={Number(params.fat)}
+              value={currentTotals.fat}
               total={targets.fat}
               color="#F97316"
             />
             <MacroCircle
               label="Carbs"
-              value={Number(params.carbs)}
+              value={currentTotals.carbs}
               total={targets.carbs}
               color="#3B82F6"
             />
@@ -306,16 +419,26 @@ export default function HistoryDetail() {
           >
             Food Log
           </Text>
-          {foodLogs.map((food: any, index: number) => (
-            <FoodItem
-              key={index}
-              name={food.foodName}
-              time={formatTime(food.createdAt)}
-              image={require("../../../assets/images/icon.png")}
-              calories={`${food.calories} cal`}
-              onPress={() => navigateToFoodDetails(food.foodName)} // Pass the onPress handler
-            />
-          ))}
+          {foodLogs.length === 0 ? (
+            <Text
+              className="text-center text-lg"
+              style={{ color: colors.text, opacity: 0.6 }}
+            >
+              No food logs for this day
+            </Text>
+          ) : (
+            foodLogs.map((food: FoodLog, index: number) => (
+              <FoodItem
+                key={index}
+                name={food.foodName}
+                time={formatTime(food.createdAt)}
+                image={require("../../../assets/images/icon.png")}
+                calories={`${food.calories} cal`}
+                onPress={() => navigateToFoodDetails(food.foodName)}
+                onDelete={() => handleDeleteFood(food)}
+              />
+            ))
+          )}
         </View>
 
         {/* Summary Card */}
@@ -334,15 +457,100 @@ export default function HistoryDetail() {
             Daily Summary
           </Text>
           <Text style={{ color: colors.text, lineHeight: 22 }}>
-            You've consumed {params.calories} calories this day. Your protein
-            intake is
-            {Number(params.protein) >= targets.protein
+            You've consumed {currentTotals.calories.toFixed(1)} calories this
+            day. Your protein intake is
+            {currentTotals.protein >= targets.protein
               ? " excellent"
               : " below target"}
             . Consider adding more protein-rich foods if needed.
           </Text>
         </View>
       </ScrollView>
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        visible={showDeleteModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowDeleteModal(false)}
+      >
+        <View className="flex-1 justify-center items-center bg-black/50">
+          <View
+            className="w-11/12 max-w-md rounded-2xl p-6"
+            style={{ backgroundColor: colors.surface }}
+          >
+            {/* Header */}
+            <View className="flex-row justify-between items-center mb-4">
+              <Text
+                className="text-xl font-bold"
+                style={{ color: colors.text }}
+              >
+                Delete Food Log
+              </Text>
+              <TouchableOpacity
+                onPress={() => setShowDeleteModal(false)}
+                className="p-1"
+              >
+                <XMarkIcon size={24} color={isDark ? "#9CA3AF" : "#6B7280"} />
+              </TouchableOpacity>
+            </View>
+
+            {/* Content */}
+            <View className="mb-6">
+              <Text className="text-base mb-4" style={{ color: colors.text }}>
+                Are you sure you want to delete{" "}
+                <Text className="font-bold">{selectedFood?.foodName}</Text>?
+              </Text>
+              <Text
+                className="text-sm"
+                style={{ color: isDark ? "#9CA3AF" : "#6B7280" }}
+              >
+                This will remove {selectedFood?.calories} calories from your
+                daily total. This action cannot be undone.
+              </Text>
+            </View>
+
+            {/* Buttons */}
+            <View className="flex-row space-x-3">
+              <TouchableOpacity
+                onPress={() => setShowDeleteModal(false)}
+                className="flex-1 py-3 rounded-xl border mr-2"
+                style={{
+                  borderColor: isDark ? "#4B5563" : "#E5E7EB",
+                }}
+                disabled={isDeleting}
+              >
+                <Text
+                  className="text-center font-semibold"
+                  style={{ color: colors.text }}
+                >
+                  Cancel
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={confirmDeleteFood}
+                className="flex-1 py-3 rounded-xl flex-row justify-center items-center"
+                style={{ backgroundColor: "#EF4444" }}
+                disabled={isDeleting}
+              >
+                {isDeleting ? (
+                  <Text className="text-center font-semibold text-white">
+                    Deleting...
+                  </Text>
+                ) : (
+                  <>
+                    <TrashIcon size={18} color="white" />
+                    <Text className="text-center font-semibold text-white ml-2">
+                      Delete
+                    </Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
