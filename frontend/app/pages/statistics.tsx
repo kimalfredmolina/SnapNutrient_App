@@ -51,39 +51,7 @@ export default function Statistics() {
 
   const [weightData, setWeightData] = useState<
     Array<{ date: string; weight: number }>
-  >([
-    {
-      date: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
-        .toISOString()
-        .slice(0, 10),
-      weight: 65,
-    },
-    {
-      date: new Date(Date.now() - 21 * 24 * 60 * 60 * 1000)
-        .toISOString()
-        .slice(0, 10),
-      weight: 66,
-    },
-    {
-      date: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000)
-        .toISOString()
-        .slice(0, 10),
-      weight: 67,
-    },
-    {
-      date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
-        .toISOString()
-        .slice(0, 10),
-      weight: 68,
-    },
-    {
-      date: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000)
-        .toISOString()
-        .slice(0, 10),
-      weight: 67,
-    },
-    { date: new Date().toISOString().slice(0, 10), weight: 67 },
-  ]);
+  >([]);
 
   const [nutritionData, setNutritionData] = useState<
     Array<{
