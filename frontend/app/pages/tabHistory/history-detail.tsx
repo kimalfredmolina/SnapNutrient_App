@@ -818,7 +818,7 @@ export default function HistoryDetail() {
                 className="text-base font-semibold mb-3"
                 style={{ color: colors.text }}
               >
-                🥘 Today's Ingredients
+                🥘 Ingredients for this day
               </Text>
               {foodLogs.map((log, index) => (
                 <View key={index} className="mb-3">
