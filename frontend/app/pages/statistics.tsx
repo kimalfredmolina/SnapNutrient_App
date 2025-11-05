@@ -46,6 +46,16 @@ export default function Statistics() {
     calories: number;
   } | null>(null);
 
+  // New state for calendar marked dates
+  const [markedDates, setMarkedDates] = useState<{
+    [key: string]: {
+      selected?: boolean;
+      marked?: boolean;
+      selectedColor?: string;
+      dotColor?: string;
+    };
+  }>({});
+
   const screenWidth = Dimensions.get("window").width;
   const chartHeight = 200;
 
@@ -79,6 +89,80 @@ export default function Statistics() {
         return new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
     }
   };
+
+  // Fetch food logs for calendar highlighting
+  useEffect(() => {
+    const fetchFoodLogsForCalendar = async () => {
+      try {
+        const auth = getAuth();
+        const userId = auth.currentUser?.uid;
+        if (!userId) return;
+
+        const db = getDatabase();
+        const foodLogsRef = ref(db, `foodLogs/${userId}`);
+        const foodLogsQuery = query(foodLogsRef);
+
+        const snapshot = await get(foodLogsQuery);
+        if (!snapshot.exists()) {
+          setMarkedDates({});
+          return;
+        }
+
+        const logs = snapshot.val();
+        const datesWithLogs: Set<string> = new Set();
+
+        // Collect all dates that have food logs
+        Object.values(logs).forEach((log: any) => {
+          const dateObj = new Date(log.createdAt);
+          const isoDate = dateObj.toISOString().split("T")[0];
+          datesWithLogs.add(isoDate);
+        });
+
+        // Create marked dates object with custom marking
+        const marked: {
+          [key: string]: any;
+        } = {};
+
+        // Mark all dates with food logs using customStyles for bigger highlight
+        datesWithLogs.forEach((date) => {
+          marked[date] = {
+            customStyles: {
+              container: {
+                backgroundColor: colors.primary + "70",
+                borderRadius: 8,
+              },
+              text: {
+                color: colors.text,
+                fontWeight: "bold",
+              },
+            },
+          };
+        });
+
+        // If a date is selected, make it more prominent
+        if (selectedDate) {
+          marked[selectedDate] = {
+            customStyles: {
+              container: {
+                backgroundColor: colors.primary,
+                borderRadius: 8,
+              },
+              text: {
+                color: "#ffffff",
+                fontWeight: "bold",
+              },
+            },
+          };
+        }
+
+        setMarkedDates(marked);
+      } catch (error) {
+        console.error("Error fetching food logs for calendar:", error);
+      }
+    };
+
+    fetchFoodLogsForCalendar();
+  }, [selectedDate, colors.primary, colors.text, isDark]);
 
   // Fetch nutrition data
   useEffect(() => {
@@ -405,7 +489,7 @@ export default function Statistics() {
             Statistic Overview
           </Text>
 
-          {/* Calendar Section */}
+          {/* Calendar Section with History Highlighting */}
           <View
             style={{ marginBottom: 24, borderRadius: 8, overflow: "hidden" }}
           >
@@ -417,24 +501,76 @@ export default function Statistics() {
                 marginBottom: 8,
               }}
             >
-              Streak Tracker
+              Food Logs Tracker
             </Text>
-            <Calendar
-              onDayPress={(day) => setSelectedDate(day.dateString)}
-              markedDates={{
-                [selectedDate]: {
-                  selected: true,
-                  selectedColor: colors.primary,
-                },
-              }}
-              theme={{
+            <View
+              style={{
                 backgroundColor: colors.surface,
-                calendarBackground: colors.surface,
-                dayTextColor: colors.text,
-                monthTextColor: colors.text,
-                arrowColor: colors.primary,
+                borderRadius: 12,
+                padding: 8,
               }}
-            />
+            >
+              <Calendar
+                onDayPress={(day) => setSelectedDate(day.dateString)}
+                markedDates={markedDates}
+                markingType="custom"
+                theme={{
+                  backgroundColor: colors.surface,
+                  calendarBackground: colors.surface,
+                  dayTextColor: colors.text,
+                  monthTextColor: colors.text,
+                  textDisabledColor: isDark ? "#4B5563" : "#D1D5DB",
+                  arrowColor: colors.primary,
+                  todayTextColor: colors.primary,
+                  textDayFontWeight: "500",
+                  textMonthFontWeight: "bold",
+                  textDayHeaderFontWeight: "600",
+                }}
+              />
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  marginTop: 12,
+                  paddingTop: 12,
+                  borderTopWidth: 1,
+                  borderTopColor: isDark
+                    ? "rgba(255,255,255,0.1)"
+                    : "rgba(0,0,0,0.1)",
+                }}
+              >
+                <View
+                  style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: 8,
+                    backgroundColor: colors.primary + "70",
+                    marginRight: 8,
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <Text
+                    style={{
+                      color: colors.text,
+                      fontWeight: "bold",
+                      fontSize: 12,
+                    }}
+                  >
+                    Date
+                  </Text>
+                </View>
+                <Text
+                  style={{
+                    color: labelColor,
+                    fontSize: 12,
+                  }}
+                >
+                  Days with Food logs
+                </Text>
+              </View>
+            </View>
           </View>
 
           {/* Weight Progress Section */}
