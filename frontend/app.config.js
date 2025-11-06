@@ -2,7 +2,7 @@ module.exports = {
   expo: {
     name: "SnapNutrient",
     slug: "snapnutrient",
-    icon: "./assets/images/icon.png",
+    icon: "./assets/images/snp_box.png",
     version: "1.0.0",
     userInterfaceStyle: "automatic",
     android: {
@@ -16,7 +16,7 @@ module.exports = {
         "android.permission.WRITE_EXTERNAL_STORAGE",
       ],
       adaptiveIcon: {
-        foregroundImage: "./assets/images/adaptive-icon.png",
+        foregroundImage: "./assets/images/snp_transparent.png",
         backgroundColor: "#ffffff",
       },
     },
