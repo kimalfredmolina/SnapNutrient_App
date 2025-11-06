@@ -197,7 +197,6 @@ export default function HistoryFoodLogCard() {
     if (isDish) {
       const computed = computeDishMacros(
         name,
-        Math.max(0, weight || 0) / 100,
         Object.keys(editedIngredients).length ? editedIngredients : undefined
       );
       if (computed) {

@@ -4,7 +4,6 @@ import { dishMacros as dishLevelMacros, dishMacro } from "./dish-level-macros";
 
 export function computeDishMacros(
   dish: string,
-  grams = 1,
   editedIngredients?: Record<string, number> // ✅ add this param
 ): { carbs: number; protein: number; fats: number; calories: number } | null {
   const ingredients = dishLevelMacros[dish];
@@ -17,6 +16,7 @@ export function computeDishMacros(
     const macros = ingredientMacros[ingredient as dishMacro];
     if (!macros || !weight) continue;
 
+    // ingredientMacros are per gram, so multiply by weight in grams
     totals.carbs += macros.carbs * weight;
     totals.protein += macros.protein * weight;
     totals.fats += macros.fats * weight;
@@ -24,9 +24,9 @@ export function computeDishMacros(
   }
 
   return {
-    carbs: +(totals.carbs * grams).toFixed(1),
-    protein: +(totals.protein * grams).toFixed(1),
-    fats: +(totals.fats * grams).toFixed(1),
-    calories: +(totals.calories * grams).toFixed(1),
+    carbs: +totals.carbs.toFixed(1),
+    protein: +totals.protein.toFixed(1),
+    fats: +totals.fats.toFixed(1),
+    calories: +totals.calories.toFixed(1),
   };
 }

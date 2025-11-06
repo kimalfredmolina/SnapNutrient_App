@@ -22,6 +22,75 @@ import { computeDishMacros } from "../macros/compute_dish";
 import { logFoodForUser } from "../macros/foodLogs";
 import { getAuth } from "firebase/auth";
 import { useFocusEffect } from "@react-navigation/native";
+import Svg, { Circle } from "react-native-svg";
+import { ref as dbRef, onValue, off } from "firebase/database";
+import { db } from "../../config/firebase";
+
+const SIZE = 64;
+const STROKE_WIDTH = 6;
+const RADIUS = (SIZE - STROKE_WIDTH) / 2;
+const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
+
+const calculatePercentage = (consumed: number, total: number): number => {
+  if (total <= 0) return 0;
+  const percentage = (consumed / total) * 100;
+  return Math.min(Math.round(percentage), 100);
+};
+
+const MacroCircle = ({
+  label,
+  value,
+  total,
+  color,
+  unit = "g",
+}: {
+  label: string;
+  value: number;
+  total: number;
+  color: string;
+  unit?: string;
+}) => {
+  const { colors } = useTheme();
+  const percentage = calculatePercentage(value, total);
+  const offset = CIRCUMFERENCE - (CIRCUMFERENCE * percentage) / 100;
+
+  return (
+    <View className="items-center">
+      <View style={{ width: SIZE, height: SIZE }}>
+        <Svg width={SIZE} height={SIZE}>
+          <Circle
+            cx={SIZE / 2}
+            cy={SIZE / 2}
+            r={RADIUS}
+            stroke={colors.bgray}
+            strokeWidth={STROKE_WIDTH}
+            fill="none"
+          />
+          <Circle
+            cx={SIZE / 2}
+            cy={SIZE / 2}
+            r={RADIUS}
+            stroke={color}
+            strokeWidth={STROKE_WIDTH}
+            strokeDasharray={CIRCUMFERENCE}
+            strokeDashoffset={offset}
+            strokeLinecap="round"
+            fill="none"
+          />
+        </Svg>
+        <View className="absolute inset-0 justify-center items-center">
+          <Text className="text-xs font-black" style={{ color: colors.text }}>
+            {value.toFixed(0)}
+            {unit}
+          </Text>
+        </View>
+      </View>
+      <Text className="text-xs font-bold mt-2" style={{ color: colors.text }}>
+        {label}
+      </Text>
+    </View>
+  );
+};
 
 export default function Scan() {
   const cameraRef = useRef<CameraView>(null);
@@ -33,31 +102,174 @@ export default function Scan() {
   const router = useRouter();
   const [state, setState] = useState<"preview" | "result">("preview");
   const [predictions, setPredictions] = useState<any[]>([]);
+
   const dishname = predictions.length > 0 ? predictions[0].class : null;
   const ingredients = dishMacros[dishname];
   const [editMode, setEditMode] = useState(false);
   const [editedIngredients, setEditedIngredients] = useState<
     Record<string, number>
   >({});
-
   const [weight, setweight] = useState<number>(100);
   const detected = predictions.length > 0 ? predictions[0].class : null;
 
-  const [isLogging, setIsLogging] = useState(false);
+  // Track the base ingredient weights from dishMacros
+  const [baseIngredients, setBaseIngredients] = useState<
+    Record<string, number>
+  >({});
 
+  const [isLogging, setIsLogging] = useState(false);
+  const [macroGoals, setMacroGoals] = useState({
+    calories: 2000,
+    protein: 150,
+    fat: 65,
+    carbs: 250,
+  });
+
+  const [dailyConsumed, setDailyConsumed] = useState({
+    calories: 0,
+    protein: 0,
+    fat: 0,
+    carbs: 0,
+  });
+
+  // Compute macros using actual ingredient weights (no extra scaling)
   const macros =
-    detected && computeDishMacros(detected, weight / 100, editedIngredients)
-      ? computeDishMacros(detected, weight / 100, editedIngredients)
+    detected && computeDishMacros(detected, editedIngredients)
+      ? computeDishMacros(detected, editedIngredients)
       : detected && ingredientMacros[detected]
         ? {
-            carbs: +(ingredientMacros[detected].carbs * weight).toFixed(1),
-            protein: +(ingredientMacros[detected].protein * weight).toFixed(1),
-            fats: +(ingredientMacros[detected].fats * weight).toFixed(1),
-            calories: +(ingredientMacros[detected].calories * weight).toFixed(
-              1
-            ),
+            carbs: +(ingredientMacros[detected].carbs * 100).toFixed(1),
+            protein: +(ingredientMacros[detected].protein * 100).toFixed(1),
+            fats: +(ingredientMacros[detected].fats * 100).toFixed(1),
+            calories: +(ingredientMacros[detected].calories * 100).toFixed(1),
           }
         : null;
+
+  // Fetch user's daily macro goals
+  useEffect(() => {
+    const auth = getAuth();
+    const userId = auth.currentUser?.uid;
+    if (!userId) return;
+
+    const macroRef = dbRef(db, `users/${userId}/macroGoals`);
+
+    onValue(macroRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        setMacroGoals(data);
+        console.log("Loaded macro goals:", data);
+      }
+    });
+
+    return () => {
+      off(macroRef);
+    };
+  }, []);
+
+  // Fetch today's consumed macros
+  useEffect(() => {
+    const auth = getAuth();
+    const userId = auth.currentUser?.uid;
+    if (!userId) return;
+
+    const foodLogsRef = dbRef(db, `foodLogs/${userId}`);
+
+    const isSameDay = (d1: Date, d2: Date) => {
+      return (
+        d1.getFullYear() === d2.getFullYear() &&
+        d1.getMonth() === d2.getMonth() &&
+        d1.getDate() === d2.getDate()
+      );
+    };
+
+    onValue(foodLogsRef, (snapshot) => {
+      const logs = snapshot.val();
+      if (!logs) {
+        setDailyConsumed({ calories: 0, protein: 0, fat: 0, carbs: 0 });
+        return;
+      }
+
+      const today = new Date();
+      let consumed = { calories: 0, protein: 0, fat: 0, carbs: 0 };
+
+      Object.values(logs).forEach((log: any) => {
+        const logDate = new Date(log.createdAt);
+        if (isSameDay(today, logDate)) {
+          consumed.calories += Number(log.calories) || 0;
+          consumed.protein += Number(log.protein) || 0;
+          consumed.fat += Number(log.fats) || 0;
+          consumed.carbs += Number(log.carbs) || 0;
+        }
+      });
+
+      setDailyConsumed(consumed);
+    });
+
+    return () => {
+      off(foodLogsRef);
+    };
+  }, []);
+
+  // Calculate recommendation: how many more grams to fill the limiting macro
+  const getRecommendation = () => {
+    if (!macros) return null;
+
+    const remaining = {
+      calories: macroGoals.calories - dailyConsumed.calories,
+      protein: macroGoals.protein - dailyConsumed.protein,
+      fat: macroGoals.fat - dailyConsumed.fat,
+      carbs: macroGoals.carbs - dailyConsumed.carbs,
+    };
+
+    // Calculate how many grams needed to fill each macro
+    const gramsToFill = {
+      calories:
+        macros.calories > 0
+          ? (remaining.calories / macros.calories) * weight
+          : Infinity,
+      protein:
+        macros.protein > 0
+          ? (remaining.protein / macros.protein) * weight
+          : Infinity,
+      fat: macros.fats > 0 ? (remaining.fat / macros.fats) * weight : Infinity,
+      carbs:
+        macros.carbs > 0 ? (remaining.carbs / macros.carbs) * weight : Infinity,
+    };
+
+    // Find the macro that fills first (smallest positive grams needed)
+    let limitingMacro = "calories";
+    let minGrams = gramsToFill.calories;
+
+    if (gramsToFill.protein > 0 && gramsToFill.protein < minGrams) {
+      limitingMacro = "protein";
+      minGrams = gramsToFill.protein;
+    }
+    if (gramsToFill.fat > 0 && gramsToFill.fat < minGrams) {
+      limitingMacro = "fat";
+      minGrams = gramsToFill.fat;
+    }
+    if (gramsToFill.carbs > 0 && gramsToFill.carbs < minGrams) {
+      limitingMacro = "carbs";
+      minGrams = gramsToFill.carbs;
+    }
+
+    if (minGrams <= 0) {
+      return {
+        grams: 0,
+        macro: limitingMacro,
+        message: `You've reached your daily ${limitingMacro} goal!`,
+      };
+    }
+
+    return {
+      grams: Math.round(minGrams),
+      macro: limitingMacro,
+      message: `You can eat ~${Math.round(minGrams)}g more to fill your ${limitingMacro} goal first.`,
+    };
+  };
+
+  const recommendation = getRecommendation();
+
   const takePhoto = async () => {
     if (cameraRef.current) {
       try {
@@ -86,6 +298,60 @@ export default function Scan() {
     }
   };
 
+  // When a dish is detected, sum ingredient grams and set as initial Weight
+  useEffect(() => {
+    if (!detected) return;
+    const recipe = dishMacros[detected as keyof typeof dishMacros];
+    if (!recipe) return;
+
+    const total = Object.values(recipe as Record<string, number>).reduce(
+      (sum, g) => sum + g,
+      0
+    );
+    setBaseIngredients(recipe as Record<string, number>);
+    setEditedIngredients(recipe as Record<string, number>); // init to base
+    setweight(total);
+  }, [detected]);
+
+  // When Weight changes, scale all ingredients proportionally (min 1g unless Weight=0)
+  const handleWeightChange = (newWeight: number) => {
+    setweight(newWeight);
+
+    if (!detected || Object.keys(baseIngredients).length === 0) return;
+
+    const baseTotal = Object.values(baseIngredients).reduce((s, g) => s + g, 0);
+    if (baseTotal === 0) return;
+
+    const scaleFactor = newWeight / baseTotal;
+
+    const scaled: Record<string, number> = {};
+    Object.entries(baseIngredients).forEach(([ing, baseGrams]) => {
+      let newVal = baseGrams * scaleFactor;
+
+      // Min 1g unless Weight=0
+      if (newWeight === 0) {
+        newVal = 0;
+      } else if (newVal < 1 && newVal > 0) {
+        newVal = 1;
+      }
+
+      scaled[ing] = Math.round(newVal * 10) / 10; // 1 decimal
+    });
+
+    setEditedIngredients(scaled);
+  };
+
+  // // Compute macros when ingredients or weight change
+  // useEffect(() => {
+  //   if (!detected) return;
+
+  //   const newMacros = computeDishMacros(detected, weight, editedIngredients);
+  //   if (newMacros) {
+  //     // Only update macros if the computation was successful
+  //     setMacros(newMacros);
+  //   }
+  // }, [editedIngredients, weight]);
+
   useFocusEffect(
     React.useCallback(() => {
       setCapturedPhoto(null);
@@ -93,6 +359,7 @@ export default function Scan() {
       setState("preview");
       setEditMode(false);
       setEditedIngredients({});
+      setBaseIngredients({});
       setweight(100);
       setIsLogging(false);
     }, [])
@@ -524,103 +791,112 @@ export default function Scan() {
               )}
 
               {macros ? (
-                <View className="p-1 mb-1">
+                <View
+                  className="rounded-2xl p-6 mb-5"
+                  style={{
+                    backgroundColor: colors.surface,
+                    shadowColor: colors.text === "#FFFFFF" ? "#fff" : "#000",
+                    shadowOffset: { width: 0, height: 1 },
+                    shadowOpacity: 1,
+                    shadowRadius: 5,
+                    elevation: 5,
+                  }}
+                >
                   <Text
-                    className="text-xl font-bold text-left mb-2 ml-4"
+                    className="text-xl font-bold mb-4"
                     style={{ color: colors.text }}
                   >
-                    Macros
+                    Nutrition Facts
                   </Text>
 
-                  <View className="flex-row flex-wrap justify-between">
-                    {/* Calories */}
-                    <View
-                      className="w-[48%] rounded-xl p-3 mb-3 flex-row items-center"
-                      style={{
-                        backgroundColor: colors.background,
-                        borderColor: colors.text + "40",
-                        borderWidth: 1,
-                      }}
-                    >
-                      <Ionicons name="flame" size={20} color="#ef4444" />
-                      <Text
-                        className="text-base ml-2"
-                        style={{ color: colors.text }}
-                      >
-                        Calories:{" "}
-                        <Text className="font-semibold text-red-500">
-                          {macros?.calories} kcal
-                        </Text>
-                      </Text>
-                    </View>
-
-                    {/* Fat */}
-                    <View
-                      className="w-[48%] rounded-xl p-3 mb-3 flex-row items-center"
-                      style={{
-                        backgroundColor: colors.background,
-                        borderColor: colors.text + "40",
-                        borderWidth: 1,
-                      }}
-                    >
-                      <Ionicons name="cube-outline" size={20} color="#f97316" />
-                      <Text
-                        className="text-base ml-2"
-                        style={{ color: colors.text }}
-                      >
-                        Fat:{" "}
-                        <Text className="font-semibold text-red-500">
-                          {macros?.fats} g
-                        </Text>
-                      </Text>
-                    </View>
-
-                    {/* Protein */}
-                    <View
-                      className="w-[48%] rounded-xl p-3 mb-3 flex-row items-center"
-                      style={{
-                        backgroundColor: colors.background,
-                        borderColor: colors.text + "40",
-                        borderWidth: 1,
-                      }}
-                    >
-                      <Ionicons
-                        name="restaurant-outline"
-                        size={20}
-                        color="#10b981"
-                      />
-                      <Text
-                        className="text-base ml-2"
-                        style={{ color: colors.text }}
-                      >
-                        Protein:{" "}
-                        <Text className="font-semibold text-red-500">
-                          {macros?.protein} g
-                        </Text>
-                      </Text>
-                    </View>
-
-                    {/* Carbs */}
-                    <View
-                      className="w-[48%] rounded-xl p-3 mb-3 flex-row items-center"
-                      style={{
-                        backgroundColor: colors.background,
-                        borderColor: colors.text + "40",
-                        borderWidth: 1,
-                      }}
-                    >
-                      <Ionicons name="leaf-outline" size={20} color="#3b82f6" />
-                      <Text
-                        className="text-base ml-2"
-                        style={{ color: colors.text }}
-                      >
-                        Carbs:{" "}
-                        <Text className="font-semibold text-red-500">
-                          {macros?.carbs} g
-                        </Text>
-                      </Text>
-                    </View>
+                  <View className="flex-row justify-between">
+                    <MacroCircle
+                      label="Calories"
+                      value={macros.calories}
+                      total={macroGoals.calories}
+                      color="#EF4444"
+                      unit="cal"
+                    />
+                    <MacroCircle
+                      label="Protein"
+                      value={macros.protein}
+                      total={macroGoals.protein}
+                      color="#10B981"
+                    />
+                    <MacroCircle
+                      label="Fat"
+                      value={macros.fats}
+                      total={macroGoals.fat}
+                      color="#F97316"
+                    />
+                    <MacroCircle
+                      label="Carbs"
+                      value={macros.carbs}
+                      total={macroGoals.carbs}
+                      color="#3B82F6"
+                    />
                   </View>
+
+                  {/* Daily Progress */}
+                  <View
+                    className="mt-4 pt-4 border-t"
+                    style={{ borderTopColor: colors.text + "20" }}
+                  >
+                    <Text
+                      className="text-sm font-semibold mb-2"
+                      style={{ color: colors.text }}
+                    >
+                      📊 Today's Progress
+                    </Text>
+                    <Text
+                      className="text-xs mb-1"
+                      style={{ color: colors.text, opacity: 0.8 }}
+                    >
+                      Calories: {dailyConsumed.calories.toFixed(0)} /{" "}
+                      {macroGoals.calories} cal
+                    </Text>
+                    <Text
+                      className="text-xs mb-1"
+                      style={{ color: colors.text, opacity: 0.8 }}
+                    >
+                      Protein: {dailyConsumed.protein.toFixed(0)} /{" "}
+                      {macroGoals.protein} g
+                    </Text>
+                    <Text
+                      className="text-xs mb-1"
+                      style={{ color: colors.text, opacity: 0.8 }}
+                    >
+                      Fat: {dailyConsumed.fat.toFixed(0)} / {macroGoals.fat} g
+                    </Text>
+                    <Text
+                      className="text-xs"
+                      style={{ color: colors.text, opacity: 0.8 }}
+                    >
+                      Carbs: {dailyConsumed.carbs.toFixed(0)} /{" "}
+                      {macroGoals.carbs} g
+                    </Text>
+                  </View>
+
+                  {/* Recommendation */}
+                  {recommendation && (
+                    <View
+                      className="mt-4 p-3 rounded-lg"
+                      style={{ backgroundColor: colors.primary + "20" }}
+                    >
+                      <Text
+                        className="text-sm font-semibold"
+                        style={{ color: colors.primary }}
+                      >
+                        💡 Recommendation
+                      </Text>
+                      <Text
+                        className="text-xs mt-1"
+                        style={{ color: colors.text }}
+                      >
+                        {recommendation.message}
+                      </Text>
+                    </View>
+                  )}
                 </View>
               ) : (
                 <Text className="text-center" style={{ color: colors.text }}>
@@ -633,11 +909,8 @@ export default function Scan() {
                   className="rounded-xl p-5 mb-5 max-h-[200px]"
                   style={{ backgroundColor: colors.surface }}
                 >
-                  {/* Edit Button */}
                   <TouchableOpacity
                     onPress={() => {
-                      if (editMode)
-                        console.log("Recomputing with:", editedIngredients);
                       setEditMode(!editMode);
                     }}
                     className="self-end mb-2.5"
@@ -659,17 +932,15 @@ export default function Scan() {
 
                   <ScrollView nestedScrollEnabled className="pr-1">
                     {Object.entries(ingredients).map(
-                      ([ingredient, weight], index) => {
+                      ([ingredient, defaultWeight], index) => {
                         const currentValue =
-                          editedIngredients[ingredient] ?? weight;
+                          editedIngredients[ingredient] ?? defaultWeight;
 
                         return editMode ? (
-                          // EDIT MODE → Show TextInput
                           <View
                             key={`${ingredient}-${index}`}
                             className="flex-row items-center mb-1.5"
                           >
-                            {/* Ingredient Name */}
                             <Text
                               className="flex-1 text-[15px]"
                               style={{ color: colors.text }}
@@ -681,11 +952,27 @@ export default function Scan() {
                               value={String(currentValue)}
                               keyboardType="numeric"
                               onChangeText={(text) => {
-                                const newWeight = Number(text) || 0;
-                                setEditedIngredients((prev) => ({
-                                  ...prev,
-                                  [ingredient]: newWeight,
-                                }));
+                                const newWeight = Math.max(
+                                  0,
+                                  Number(text) || 0
+                                );
+                                setEditedIngredients((prev) => {
+                                  const updated = {
+                                    ...prev,
+                                    [ingredient]: newWeight,
+                                  };
+
+                                  // Recalc total Weight from all edited ingredients
+                                  const newTotal = Object.values(
+                                    updated
+                                  ).reduce((sum, g) => sum + g, 0);
+                                  setweight(newTotal);
+
+                                  // Update base so future scaling uses edited values
+                                  setBaseIngredients(updated);
+
+                                  return updated;
+                                });
                               }}
                               className="border rounded-md px-2 text-center w-[60px]"
                               style={{
@@ -726,7 +1013,9 @@ export default function Scan() {
               </Text>
               <TextInput
                 value={String(weight)}
-                onChangeText={(text) => setweight(Number(text) || 0)}
+                onChangeText={(text) =>
+                  handleWeightChange(Math.max(0, Number(text) || 0))
+                }
                 keyboardType="numeric"
                 style={{
                   borderWidth: 1,
