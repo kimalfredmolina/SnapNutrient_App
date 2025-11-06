@@ -6,6 +6,7 @@ import {
   View,
   Image,
   Modal,
+  RefreshControl,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../../../contexts/ThemeContext";
@@ -167,31 +168,65 @@ export default function HistoryDetail() {
   const params = useLocalSearchParams();
   const [foodLogs, setFoodLogs] = useState<FoodLog[]>([]);
 
-  useEffect(() => {
-    if (!params.logs) return;
-    try {
-      const parsed: FoodLog[] = JSON.parse(params.logs as string);
+  // useEffect(() => {
+  //   if (!params.logs) return;
+  //   try {
+  //     const parsed: FoodLog[] = JSON.parse(params.logs as string);
 
-      // Determine selectedDate again (reuse your getSelectedDate logic)
+  //     // Determine selectedDate again (reuse your getSelectedDate logic)
+  //     const selDate = getSelectedDate();
+  //     // keep only logs that match the selected date (compare date only)
+  //     const filtered = parsed.filter((log) => {
+  //       const d = new Date(log.createdAt);
+  //       return d.toDateString() === selDate.toDateString();
+  //     });
+
+  //     // Ensure each log has a logId
+  //     const logsWithIds = filtered.map((log, index) => ({
+  //       ...log,
+  //       logId: log.logId || `log_${Date.now()}_${index}`,
+  //     }));
+
+  //     setFoodLogs(logsWithIds);
+  //   } catch (err) {
+  //     console.error("Failed to parse logs param:", err);
+  //     setFoodLogs([]);
+  //   }
+  // }, [params.logs, params.timestamp, params.date]);
+
+  useEffect(() => {
+    const fetchLogsForDate = async () => {
+      const userId = auth.currentUser?.uid;
+      if (!userId) {
+        setFoodLogs([]);
+        return;
+      }
+
+      const foodLogsRef = ref(db, `foodLogs/${userId}`);
+      const snapshot = await get(foodLogsRef);
+
+      if (!snapshot.exists()) {
+        setFoodLogs([]);
+        return;
+      }
+
+      const logs = snapshot.val();
       const selDate = getSelectedDate();
-      // keep only logs that match the selected date (compare date only)
-      const filtered = parsed.filter((log) => {
+
+      const filtered: FoodLog[] = [];
+      Object.entries(logs).forEach(([key, value]: [string, any]) => {
+        const log = value as FoodLog;
         const d = new Date(log.createdAt);
-        return d.toDateString() === selDate.toDateString();
+        if (d.toDateString() === selDate.toDateString()) {
+          filtered.push({ ...log, logId: key }); // ✅ Use real Firebase key
+        }
       });
 
-      // Ensure each log has a logId
-      const logsWithIds = filtered.map((log, index) => ({
-        ...log,
-        logId: log.logId || `log_${Date.now()}_${index}`,
-      }));
+      setFoodLogs(filtered);
+    };
 
-      setFoodLogs(logsWithIds);
-    } catch (err) {
-      console.error("Failed to parse logs param:", err);
-      setFoodLogs([]);
-    }
-  }, [params.logs, params.timestamp, params.date]);
+    fetchLogsForDate();
+  }, [params.timestamp, params.date]);
 
   const [targets, setTargets] = useState({
     calories: 0,

@@ -7,10 +7,11 @@ import {
   Image,
   Alert,
   ScrollView,
+  RefreshControl,
 } from "react-native";
 import { CameraView, type CameraType, useCameraPermissions } from "expo-camera";
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import { useRouter, usePathname } from "expo-router";
 import { useTheme } from "../../contexts/ThemeContext";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as ImagePicker from "expo-image-picker";
@@ -194,13 +195,39 @@ export default function Scan() {
     setIsLogging(true);
 
     try {
+      const name = predictions[0]?.class || "Unknown";
+
+      // If this is a known dish, persist base ingredient grams with user edits applied.
+      // Do NOT scale by Weight here to avoid double-scaling in History.
+      const isDish = !!dishMacros[name as keyof typeof dishMacros];
+      const ingredientPayload =
+        isDish && dishMacros[name as keyof typeof dishMacros]
+          ? Object.entries(
+              dishMacros[name as keyof typeof dishMacros] as Record<
+                string,
+                number
+              >
+            ).reduce(
+              (acc, [ing, defaultGrams]) => {
+                acc[ing] =
+                  editedIngredients[ing] !== undefined
+                    ? editedIngredients[ing]
+                    : defaultGrams;
+                return acc;
+              },
+              {} as Record<string, number>
+            )
+          : undefined;
+
       await logFoodForUser(user.uid, {
-        foodName: predictions[0]?.class || "Unknown",
+        foodName: name,
         weight,
         carbs: macros.carbs,
         protein: macros.protein,
         fats: macros.fats,
         calories: macros.calories,
+        // Only attach for dishes
+        ...(ingredientPayload ? { ingredients: ingredientPayload } : {}),
       });
 
       Alert.alert("Success", "Food logged successfully!", [
