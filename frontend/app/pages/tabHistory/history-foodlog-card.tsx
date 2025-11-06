@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useFocusEffect } from "@react-navigation/native";
 import {
   View,
   Text,
@@ -8,6 +9,7 @@ import {
   TextInput,
   Alert,
   ActivityIndicator,
+  RefreshControl,
 } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -36,13 +38,28 @@ export default function HistoryFoodLogCard() {
   const { colors } = useTheme();
   const params = useLocalSearchParams();
 
+  // Always go back to History list
+  const HISTORY_ROUTE = "/pages/history";
+  const goToHistory = () => router.replace(HISTORY_ROUTE);
+
   const [foodLog, setFoodLog] = useState<FoodLogData | null>(null);
   const [loading, setLoading] = useState(true);
   const [editMode, setEditMode] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
+    // Force a remount of this page (fresh fetch runs again)
+    router.replace({
+      pathname: "/pages/tabHistory/history-foodlog-card",
+      params: { ...params, _ts: Date.now().toString() },
+    });
+    setRefreshing(false);
+  }, [router, params]);
 
   // Editable states
-  const [weight, setWeight] = useState<number>(100);
+  const [weight, setWeight] = useState<number>(Number(params.weight) || 100);
   const [editedMacros, setEditedMacros] = useState({
     calories: 0,
     protein: 0,
@@ -51,7 +68,12 @@ export default function HistoryFoodLogCard() {
   });
   const [editedIngredients, setEditedIngredients] = useState<{
     [key: string]: number;
-  }>({});
+  }>({
+    // Default ingredient weights (grams)
+    // These can be overridden by the user in edit mode
+    Ingredient_1: 100,
+    Ingredient_2: 100,
+  });
 
   // Fetch food log data from database
   useEffect(() => {
@@ -63,31 +85,32 @@ export default function HistoryFoodLogCard() {
           return;
         }
 
-        // Create food log from passed data
-        if (params.foodName) {
-          const logData: FoodLogData = {
-            foodName: params.foodName as string,
-            calories: Number(params.calories) || 0,
-            protein: Number(params.protein) || 0,
-            fats: Number(params.fats) || 0,
-            carbs: Number(params.carbs) || 0,
-            weight: 100,
-            createdAt: (params.createdAt as string) || new Date().toISOString(),
-            logId: params.logId as string,
-          };
-
-          setFoodLog(logData);
-          setEditedMacros({
-            calories: logData.calories,
-            protein: logData.protein,
-            fats: logData.fats,
-            carbs: logData.carbs,
-          });
-          setLoading(false);
+        const logId = params.logId as string;
+        if (!logId) {
+          Alert.alert("Error", "Missing log ID");
           return;
         }
 
-        Alert.alert("Error", "Missing food data");
+        const logRef = ref(db, `foodLogs/${userId}/${logId}`);
+        const snapshot = await get(logRef);
+
+        if (!snapshot.exists()) {
+          Alert.alert("Error", "Food log not found");
+          return;
+        }
+
+        const data = snapshot.val() as FoodLogData;
+
+        setFoodLog(data);
+        setWeight(data.weight || 100); // ✅ use database weight
+        setEditedMacros({
+          calories: data.calories,
+          protein: data.protein,
+          fats: data.fats,
+          carbs: data.carbs,
+        });
+        setEditedIngredients(data.ingredients || {});
+        setLoading(false);
       } catch (error) {
         console.error("Error fetching food log:", error);
         Alert.alert("Error", "Failed to load food log");
@@ -110,7 +133,8 @@ export default function HistoryFoodLogCard() {
         return;
       }
 
-      const logRef = ref(db, `foodLogs/${userId}/${foodLog.logId}`);
+      const logId = params.logId as string; // ✅ Use params.logId, not foodLog.logId
+      const logRef = ref(db, `foodLogs/${userId}/${logId}`);
 
       await update(logRef, {
         weight: weight,
@@ -157,6 +181,60 @@ export default function HistoryFoodLogCard() {
       year: "numeric",
     });
   };
+
+  // Derived classification from saved food name
+  const name = (foodLog?.foodName || "").trim();
+  const isDish = !!dishMacros[name as keyof typeof dishMacros];
+  const isIngredient =
+    !!ingredientMacros[name as keyof typeof ingredientMacros];
+  const autoCalc = isDish || isIngredient;
+
+  // Recompute macros when weight or ingredient weights change (same logic as scan)
+  useEffect(() => {
+    if (!name) return;
+
+    // Dish path: base recipe scaled by weight/100, with optional ingredient overrides
+    if (isDish) {
+      const computed = computeDishMacros(
+        name,
+        Math.max(0, weight || 0) / 100,
+        Object.keys(editedIngredients).length ? editedIngredients : undefined
+      );
+      if (computed) {
+        setEditedMacros({
+          calories: Number(computed.calories.toFixed(1)),
+          protein: Number(computed.protein.toFixed(1)),
+          fats: Number(computed.fats.toFixed(1)),
+          carbs: Number(computed.carbs.toFixed(1)),
+        });
+      }
+      return;
+    }
+
+    // Single-ingredient path: per-gram values * grams
+    if (isIngredient) {
+      const m = ingredientMacros[name as keyof typeof ingredientMacros];
+      const w = Math.max(0, weight || 0);
+      setEditedMacros({
+        calories: Number((m.calories * w).toFixed(1)),
+        protein: Number((m.protein * w).toFixed(1)),
+        fats: Number((m.fats * w).toFixed(1)),
+        carbs: Number((m.carbs * w).toFixed(1)),
+      });
+      return;
+    }
+    // Unknown item: keep manual values
+  }, [name, isDish, isIngredient, weight, editedIngredients]);
+
+  // When entering edit mode for a known dish and no stored ingredients, preload defaults
+  useEffect(() => {
+    if (editMode && isDish && Object.keys(editedIngredients).length === 0) {
+      const defaults = dishMacros[name as keyof typeof dishMacros] as
+        | { [key: string]: number }
+        | undefined;
+      if (defaults) setEditedIngredients(defaults);
+    }
+  }, [editMode, isDish, name]);
 
   if (loading) {
     return (
@@ -210,16 +288,24 @@ export default function HistoryFoodLogCard() {
           borderBottomColor: colors.surface,
         }}
       >
-        <TouchableOpacity onPress={() => router.back()} className="mr-4">
+        <TouchableOpacity onPress={goToHistory} className="mr-4">
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
-
         <Text style={{ color: colors.text, fontSize: 18, fontWeight: "600" }}>
           Edit Food Log Details
         </Text>
       </View>
 
-      <ScrollView>
+      <ScrollView
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={colors.primary}
+            colors={[colors.primary]}
+          />
+        }
+      >
         <View style={{ flex: 1, padding: 16 }}>
           <Image
             source={require("../../../assets/images/icon.png")}
@@ -308,6 +394,8 @@ export default function HistoryFoodLogCard() {
                       }))
                     }
                     keyboardType="numeric"
+                    editable={editMode && !autoCalc}
+                    selectTextOnFocus={editMode && !autoCalc}
                     style={{
                       borderWidth: 1,
                       borderColor: colors.primary,
@@ -315,6 +403,7 @@ export default function HistoryFoodLogCard() {
                       padding: 8,
                       color: colors.text,
                       fontSize: 16,
+                      opacity: autoCalc ? 0.6 : 1,
                     }}
                   />
                 ) : (
@@ -359,6 +448,8 @@ export default function HistoryFoodLogCard() {
                       }))
                     }
                     keyboardType="numeric"
+                    editable={editMode && !autoCalc}
+                    selectTextOnFocus={editMode && !autoCalc}
                     style={{
                       borderWidth: 1,
                       borderColor: colors.primary,
@@ -366,6 +457,7 @@ export default function HistoryFoodLogCard() {
                       padding: 8,
                       color: colors.text,
                       fontSize: 16,
+                      opacity: autoCalc ? 0.6 : 1,
                     }}
                   />
                 ) : (
@@ -406,6 +498,8 @@ export default function HistoryFoodLogCard() {
                       }))
                     }
                     keyboardType="numeric"
+                    editable={editMode && !autoCalc}
+                    selectTextOnFocus={editMode && !autoCalc}
                     style={{
                       borderWidth: 1,
                       borderColor: colors.primary,
@@ -413,6 +507,7 @@ export default function HistoryFoodLogCard() {
                       padding: 8,
                       color: colors.text,
                       fontSize: 16,
+                      opacity: autoCalc ? 0.6 : 1,
                     }}
                   />
                 ) : (
@@ -453,6 +548,8 @@ export default function HistoryFoodLogCard() {
                       }))
                     }
                     keyboardType="numeric"
+                    editable={editMode && !autoCalc}
+                    selectTextOnFocus={editMode && !autoCalc}
                     style={{
                       borderWidth: 1,
                       borderColor: colors.primary,
@@ -460,6 +557,7 @@ export default function HistoryFoodLogCard() {
                       padding: 8,
                       color: colors.text,
                       fontSize: 16,
+                      opacity: autoCalc ? 0.6 : 1,
                     }}
                   />
                 ) : (
@@ -636,7 +734,7 @@ export default function HistoryFoodLogCard() {
               </>
             ) : (
               <TouchableOpacity
-                onPress={() => router.back()}
+                onPress={goToHistory}
                 style={{
                   flex: 1,
                   backgroundColor: colors.primary,

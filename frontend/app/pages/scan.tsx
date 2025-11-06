@@ -7,10 +7,11 @@ import {
   Image,
   Alert,
   ScrollView,
+  RefreshControl,
 } from "react-native";
 import { CameraView, type CameraType, useCameraPermissions } from "expo-camera";
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import { useRouter, usePathname } from "expo-router";
 import { useTheme } from "../../contexts/ThemeContext";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as ImagePicker from "expo-image-picker";
@@ -181,13 +182,39 @@ export default function Scan() {
     setIsLogging(true);
 
     try {
+      const name = predictions[0]?.class || "Unknown";
+
+      // If this is a known dish, persist base ingredient grams with user edits applied.
+      // Do NOT scale by Weight here to avoid double-scaling in History.
+      const isDish = !!dishMacros[name as keyof typeof dishMacros];
+      const ingredientPayload =
+        isDish && dishMacros[name as keyof typeof dishMacros]
+          ? Object.entries(
+              dishMacros[name as keyof typeof dishMacros] as Record<
+                string,
+                number
+              >
+            ).reduce(
+              (acc, [ing, defaultGrams]) => {
+                acc[ing] =
+                  editedIngredients[ing] !== undefined
+                    ? editedIngredients[ing]
+                    : defaultGrams;
+                return acc;
+              },
+              {} as Record<string, number>
+            )
+          : undefined;
+
       await logFoodForUser(user.uid, {
-        foodName: predictions[0]?.class || "Unknown",
+        foodName: name,
         weight,
         carbs: macros.carbs,
         protein: macros.protein,
         fats: macros.fats,
         calories: macros.calories,
+        // Only attach for dishes
+        ...(ingredientPayload ? { ingredients: ingredientPayload } : {}),
       });
 
       Alert.alert("Success", "Food logged successfully!", [
@@ -205,7 +232,8 @@ export default function Scan() {
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
         <View
-          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+        >
           <Text style={{ color: colors.text, fontSize: 16 }}>
             Loading camera...
           </Text>
@@ -218,7 +246,8 @@ export default function Scan() {
     return (
       <SafeAreaView
         className="flex-1"
-        style={{ backgroundColor: colors.background }}>
+        style={{ backgroundColor: colors.background }}
+      >
         <View className="flex-1 justify-center items-center p-5">
           <Ionicons
             name="camera-outline"
@@ -229,13 +258,15 @@ export default function Scan() {
 
           <Text
             className="text-lg font-semibold text-center mb-5"
-            style={{ color: colors.text }}>
+            style={{ color: colors.text }}
+          >
             Camera Permission Required
           </Text>
 
           <Text
             className="text-sm text-center mb-8"
-            style={{ color: colors.text, opacity: 0.7 }}>
+            style={{ color: colors.text, opacity: 0.7 }}
+          >
             We need camera access to scan and analyze your food items
           </Text>
 
@@ -243,7 +274,8 @@ export default function Scan() {
           <TouchableOpacity
             onPress={requestPermission}
             className="rounded-xl px-8 py-4 mb-4"
-            style={{ backgroundColor: colors.primary }}>
+            style={{ backgroundColor: colors.primary }}
+          >
             <Text className="text-white text-base font-semibold">
               Grant Camera Permission
             </Text>
@@ -253,7 +285,8 @@ export default function Scan() {
           <TouchableOpacity onPress={() => router.back()} className="px-8 py-4">
             <Text
               className="text-base"
-              style={{ color: colors.text, opacity: 0.7 }}>
+              style={{ color: colors.text, opacity: 0.7 }}
+            >
               Go Back
             </Text>
           </TouchableOpacity>
@@ -369,16 +402,19 @@ export default function Scan() {
       return (
         <SafeAreaView
           className="flex-1"
-          style={{ backgroundColor: colors.background }}>
+          style={{ backgroundColor: colors.background }}
+        >
           <View
             className="flex-row items-center px-4 py-4 border-b"
-            style={{ borderBottomColor: colors.surface }}>
+            style={{ borderBottomColor: colors.surface }}
+          >
             <TouchableOpacity onPress={retakePhoto} className="mr-4">
               <Ionicons name="arrow-back" size={24} color={colors.text} />
             </TouchableOpacity>
             <Text
               className="text-lg font-semibold"
-              style={{ color: colors.text }}>
+              style={{ color: colors.text }}
+            >
               Photo Preview
             </Text>
           </View>
@@ -392,10 +428,12 @@ export default function Scan() {
 
             <View
               className="rounded-xl p-5 mb-5"
-              style={{ backgroundColor: colors.surface }}>
+              style={{ backgroundColor: colors.surface }}
+            >
               <Text
                 className="text-lg font-semibold text-center"
-                style={{ color: colors.text }}>
+                style={{ color: colors.text }}
+              >
                 🚀 Ready to be analyzed by AI
               </Text>
             </View>
@@ -404,10 +442,12 @@ export default function Scan() {
               <TouchableOpacity
                 onPress={retakePhoto}
                 className="flex-1 rounded-xl p-4 items-center"
-                style={{ backgroundColor: colors.surface }}>
+                style={{ backgroundColor: colors.surface }}
+              >
                 <Text
                   className="text-base font-semibold"
-                  style={{ color: colors.text }}>
+                  style={{ color: colors.text }}
+                >
                   Retake Photo
                 </Text>
               </TouchableOpacity>
@@ -415,7 +455,8 @@ export default function Scan() {
               <TouchableOpacity
                 onPress={processWithAI}
                 className="flex-1 rounded-xl p-4 items-center"
-                style={{ backgroundColor: colors.primary }}>
+                style={{ backgroundColor: colors.primary }}
+              >
                 <Text className="text-base font-semibold text-white">
                   Process with AI
                 </Text>
@@ -436,12 +477,14 @@ export default function Scan() {
               padding: 16,
               borderBottomWidth: 1,
               borderBottomColor: colors.surface,
-            }}>
+            }}
+          >
             <TouchableOpacity onPress={retakePhoto} style={{ marginRight: 16 }}>
               <Ionicons name="arrow-back" size={24} color={colors.text} />
             </TouchableOpacity>
             <Text
-              style={{ color: colors.text, fontSize: 18, fontWeight: "600" }}>
+              style={{ color: colors.text, fontSize: 18, fontWeight: "600" }}
+            >
               Result
             </Text>
           </View>
@@ -461,7 +504,8 @@ export default function Scan() {
               {predictions.length > 0 && (
                 <Text
                   className="text-lg font-semibold text-center mb-2"
-                  style={{ color: colors.text }}>
+                  style={{ color: colors.text }}
+                >
                   🍽️ Food: {predictions[0].class.replace(/_/g, " ")}
                 </Text>
               )}
@@ -470,7 +514,8 @@ export default function Scan() {
                 <View className="p-1 mb-1">
                   <Text
                     className="text-xl font-bold text-left mb-2 ml-4"
-                    style={{ color: colors.text }}>
+                    style={{ color: colors.text }}
+                  >
                     Macros
                   </Text>
 
@@ -482,11 +527,13 @@ export default function Scan() {
                         backgroundColor: colors.background,
                         borderColor: colors.text + "40",
                         borderWidth: 1,
-                      }}>
+                      }}
+                    >
                       <Ionicons name="flame" size={20} color="#ef4444" />
                       <Text
                         className="text-base ml-2"
-                        style={{ color: colors.text }}>
+                        style={{ color: colors.text }}
+                      >
                         Calories:{" "}
                         <Text className="font-semibold text-red-500">
                           {macros?.calories} kcal
@@ -501,11 +548,13 @@ export default function Scan() {
                         backgroundColor: colors.background,
                         borderColor: colors.text + "40",
                         borderWidth: 1,
-                      }}>
+                      }}
+                    >
                       <Ionicons name="cube-outline" size={20} color="#f97316" />
                       <Text
                         className="text-base ml-2"
-                        style={{ color: colors.text }}>
+                        style={{ color: colors.text }}
+                      >
                         Fat:{" "}
                         <Text className="font-semibold text-red-500">
                           {macros?.fats} g
@@ -520,7 +569,8 @@ export default function Scan() {
                         backgroundColor: colors.background,
                         borderColor: colors.text + "40",
                         borderWidth: 1,
-                      }}>
+                      }}
+                    >
                       <Ionicons
                         name="restaurant-outline"
                         size={20}
@@ -528,7 +578,8 @@ export default function Scan() {
                       />
                       <Text
                         className="text-base ml-2"
-                        style={{ color: colors.text }}>
+                        style={{ color: colors.text }}
+                      >
                         Protein:{" "}
                         <Text className="font-semibold text-red-500">
                           {macros?.protein} g
@@ -543,11 +594,13 @@ export default function Scan() {
                         backgroundColor: colors.background,
                         borderColor: colors.text + "40",
                         borderWidth: 1,
-                      }}>
+                      }}
+                    >
                       <Ionicons name="leaf-outline" size={20} color="#3b82f6" />
                       <Text
                         className="text-base ml-2"
-                        style={{ color: colors.text }}>
+                        style={{ color: colors.text }}
+                      >
                         Carbs:{" "}
                         <Text className="font-semibold text-red-500">
                           {macros?.carbs} g
@@ -565,7 +618,8 @@ export default function Scan() {
               {ingredients ? (
                 <View
                   className="rounded-xl p-5 mb-5 max-h-[200px]"
-                  style={{ backgroundColor: colors.surface }}>
+                  style={{ backgroundColor: colors.surface }}
+                >
                   {/* Edit Button */}
                   <TouchableOpacity
                     onPress={() => {
@@ -573,17 +627,20 @@ export default function Scan() {
                         console.log("Recomputing with:", editedIngredients);
                       setEditMode(!editMode);
                     }}
-                    className="self-end mb-2.5">
+                    className="self-end mb-2.5"
+                  >
                     <Text
                       className="font-bold"
-                      style={{ color: colors.primary }}>
+                      style={{ color: colors.primary }}
+                    >
                       {editMode ? "Done" : "Edit"}
                     </Text>
                   </TouchableOpacity>
 
                   <Text
                     className="text-base font-semibold mb-3"
-                    style={{ color: colors.text }}>
+                    style={{ color: colors.text }}
+                  >
                     🥘 Ingredients
                   </Text>
 
@@ -597,11 +654,13 @@ export default function Scan() {
                           // EDIT MODE → Show TextInput
                           <View
                             key={`${ingredient}-${index}`}
-                            className="flex-row items-center mb-1.5">
+                            className="flex-row items-center mb-1.5"
+                          >
                             {/* Ingredient Name */}
                             <Text
                               className="flex-1 text-[15px]"
-                              style={{ color: colors.text }}>
+                              style={{ color: colors.text }}
+                            >
                               {ingredient.replace(/_/g, " ")}
                             </Text>
 
@@ -623,7 +682,8 @@ export default function Scan() {
                             />
                             <Text
                               className="ml-1"
-                              style={{ color: colors.text }}>
+                              style={{ color: colors.text }}
+                            >
                               g
                             </Text>
                           </View>
@@ -631,7 +691,8 @@ export default function Scan() {
                           <Text
                             key={`${ingredient}-${index}`}
                             className="text-[15px] mb-1.5"
-                            style={{ color: colors.text }}>
+                            style={{ color: colors.text }}
+                          >
                             {ingredient.replace(/_/g, " ")} – {currentValue} g
                           </Text>
                         );
@@ -646,7 +707,8 @@ export default function Scan() {
               )}
 
               <Text
-                style={{ color: colors.text, fontSize: 16, marginBottom: 12 }}>
+                style={{ color: colors.text, fontSize: 16, marginBottom: 12 }}
+              >
                 Weight (grams):
               </Text>
               <TextInput
@@ -672,13 +734,15 @@ export default function Scan() {
                     padding: 16,
                     borderRadius: 12,
                     alignItems: "center",
-                  }}>
+                  }}
+                >
                   <Text
                     style={{
                       color: colors.text,
                       fontSize: 16,
                       fontWeight: "600",
-                    }}>
+                    }}
+                  >
                     Retake Photo
                   </Text>
                 </TouchableOpacity>
@@ -692,9 +756,11 @@ export default function Scan() {
                     padding: 16,
                     borderRadius: 12,
                     alignItems: "center",
-                  }}>
+                  }}
+                >
                   <Text
-                    style={{ color: "white", fontSize: 16, fontWeight: "600" }}>
+                    style={{ color: "white", fontSize: 16, fontWeight: "600" }}
+                  >
                     {isLogging ? "Logging..." : "Log Food"}
                   </Text>
                 </TouchableOpacity>
@@ -712,9 +778,11 @@ export default function Scan() {
         ref={cameraRef}
         style={{ flex: 1 }}
         facing={facing}
-        flash={isFlashOn ? "on" : "off"}>
+        flash={isFlashOn ? "on" : "off"}
+      >
         <SafeAreaView
-          style={{ position: "absolute", top: 0, left: 0, right: 0 }}>
+          style={{ position: "absolute", top: 0, left: 0, right: 0 }}
+        >
           <View
             style={{
               flexDirection: "row",
@@ -722,14 +790,16 @@ export default function Scan() {
               alignItems: "center",
               paddingHorizontal: 20,
               paddingVertical: 16,
-            }}>
+            }}
+          >
             <TouchableOpacity
               onPress={() => router.back()}
               style={{
                 backgroundColor: "rgba(0,0,0,0.6)",
                 padding: 12,
                 borderRadius: 25,
-              }}>
+              }}
+            >
               <Ionicons name="close" size={24} color="white" />
             </TouchableOpacity>
 
@@ -739,7 +809,8 @@ export default function Scan() {
                 paddingHorizontal: 16,
                 paddingVertical: 8,
                 borderRadius: 20,
-              }}>
+              }}
+            >
               <Text style={{ color: "white", fontSize: 16, fontWeight: "600" }}>
                 Food Scanner
               </Text>
@@ -751,7 +822,8 @@ export default function Scan() {
                 backgroundColor: "rgba(0,0,0,0.6)",
                 padding: 12,
                 borderRadius: 25,
-              }}>
+              }}
+            >
               <Ionicons
                 name={isFlashOn ? "flash" : "flash-off"}
                 size={24}
@@ -768,7 +840,8 @@ export default function Scan() {
             left: "50%",
             borderColor: colors.primary,
             transform: [{ translateX: -120 }, { translateY: -120 }],
-          }}>
+          }}
+        >
           <View
             className="absolute w-[30px] h-[30px] border-t-[6px] border-l-[6px] rounded-tl-[20px]"
             style={{ top: -3, left: -3, borderColor: colors.primary }}
@@ -793,7 +866,8 @@ export default function Scan() {
             top: "50%",
             left: "50%",
             transform: [{ translateX: -100 }, { translateY: -180 }],
-          }}>
+          }}
+        >
           <Text className="text-white text-sm font-medium text-center">
             Point camera at food
           </Text>
@@ -810,7 +884,8 @@ export default function Scan() {
             right: 0,
             paddingBottom: 50,
             paddingHorizontal: 30,
-          }}>
+          }}
+        >
           <View className="flex-row justify-between items-center">
             {/* Gallery Button */}
             <TouchableOpacity
@@ -819,7 +894,8 @@ export default function Scan() {
               style={{
                 backgroundColor: "rgba(255,255,255,0.2)",
                 borderColor: "rgba(255,255,255,0.3)",
-              }}>
+              }}
+            >
               <Ionicons name="images" size={24} color="white" />
             </TouchableOpacity>
 
@@ -834,7 +910,8 @@ export default function Scan() {
                 shadowOffset: { width: 0, height: 2 },
                 shadowOpacity: 0.3,
                 shadowRadius: 4,
-              }}>
+              }}
+            >
               <View
                 className="w-[60px] h-[60px] rounded-full"
                 style={{ backgroundColor: colors.primary }}
@@ -848,7 +925,8 @@ export default function Scan() {
               style={{
                 backgroundColor: "rgba(255,255,255,0.2)",
                 borderColor: "rgba(255,255,255,0.3)",
-              }}>
+              }}
+            >
               <Ionicons name="camera-reverse" size={24} color="white" />
             </TouchableOpacity>
           </View>
@@ -860,7 +938,8 @@ export default function Scan() {
               textAlign: "center",
               marginTop: 16,
               opacity: 0.8,
-            }}>
+            }}
+          >
             Tap the capture button to take a photo
           </Text>
         </View>
