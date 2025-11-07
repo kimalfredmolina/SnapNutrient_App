@@ -1,32 +1,70 @@
 // compute_dish.ts
-import { ingredientMacros } from "./ingredient-level-macros";
-import { dishMacros as dishLevelMacros, dishMacro } from "./dish-level-macros";
+import { doc, getDoc } from "firebase/firestore";
+import { FIRESTORE_DB } from "../../config/firebase";
 
-export function computeDishMacros(
+// In-memory cache to avoid re-fetching the same ingredients
+const ingredientCache = new Map<string, any>();
+
+export async function computeDishMacros(
   dish: string,
-  editedIngredients?: Record<string, number> // ✅ add this param
-): { carbs: number; protein: number; fats: number; calories: number } | null {
-  const ingredients = dishLevelMacros[dish];
-  if (!ingredients) return null;
-
+  editedIngredients?: Record<string, number>
+): Promise<{
+  carbs: number;
+  protein: number;
+  fats: number;
+  calories: number;
+} | null> {
   const totals = { carbs: 0, protein: 0, fats: 0, calories: 0 };
 
-  for (const [ingredient, defaultWeight] of Object.entries(ingredients)) {
-    const weight = editedIngredients?.[ingredient] ?? defaultWeight;
-    const macros = ingredientMacros[ingredient as dishMacro];
-    if (!macros || !weight) continue;
+  if (!editedIngredients) return null;
 
-    // ingredientMacros are per gram, so multiply by weight in grams
-    totals.carbs += macros.carbs * weight;
-    totals.protein += macros.protein * weight;
-    totals.fats += macros.fats * weight;
-    totals.calories += macros.calories * weight;
+  try {
+    // Loop through each ingredient
+    for (const [ingredientName, weight] of Object.entries(editedIngredients)) {
+      if (!weight || weight === 0) continue;
+
+      // ✅ Check cache first
+      let macros = ingredientCache.get(ingredientName);
+
+      if (!macros) {
+        // Only fetch from Firestore if not cached
+        console.log(`📥 Fetching ingredient from Firestore: ${ingredientName}`);
+        const ingDoc = await getDoc(
+          doc(FIRESTORE_DB, "ingredients", ingredientName)
+        );
+
+        if (!ingDoc.exists()) {
+          console.warn(
+            `⚠️ Ingredient not found in Firestore: ${ingredientName}`
+          );
+          continue;
+        }
+
+        macros = ingDoc.data();
+
+        // ✅ Store in cache for future use
+        ingredientCache.set(ingredientName, macros);
+        console.log(`💾 Cached: ${ingredientName}`);
+      } else {
+        console.log(`⚡ Using cached data for: ${ingredientName}`);
+      }
+
+      // Add to totals (macros per gram × weight in grams)
+      totals.carbs += (macros.carbs || 0) * weight;
+      totals.protein += (macros.protein || 0) * weight;
+      totals.fats += (macros.fats || 0) * weight;
+      totals.calories += (macros.calories || 0) * weight;
+    }
+
+    // Return rounded totals
+    return {
+      carbs: +totals.carbs.toFixed(1),
+      protein: +totals.protein.toFixed(1),
+      fats: +totals.fats.toFixed(1),
+      calories: +totals.calories.toFixed(1),
+    };
+  } catch (error) {
+    console.error("❌ Error computing macros from Firestore:", error);
+    return null;
   }
-
-  return {
-    carbs: +totals.carbs.toFixed(1),
-    protein: +totals.protein.toFixed(1),
-    fats: +totals.fats.toFixed(1),
-    calories: +totals.calories.toFixed(1),
-  };
 }

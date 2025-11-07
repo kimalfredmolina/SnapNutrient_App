@@ -16,8 +16,8 @@ import { useTheme } from "../../contexts/ThemeContext";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as ImagePicker from "expo-image-picker";
 import CONFIG from "../../server";
-import { ingredientMacros } from "../macros/ingredient-level-macros";
-import { dishMacros } from "../macros/dish-level-macros";
+// import { ingredientMacros } from "../macros/ingredient-level-macros";
+// import { dishMacros } from "../macros/dish-level-macros";
 import { computeDishMacros } from "../macros/compute_dish";
 import { logFoodForUser } from "../macros/foodLogs";
 import { getAuth } from "firebase/auth";
@@ -25,6 +25,8 @@ import { useFocusEffect } from "@react-navigation/native";
 import Svg, { Circle } from "react-native-svg";
 import { ref as dbRef, onValue, off } from "firebase/database";
 import { db } from "../../config/firebase";
+import { doc, getDoc } from "firebase/firestore";
+import { FIRESTORE_DB } from "../../config/firebase";
 
 const SIZE = 64;
 const STROKE_WIDTH = 6;
@@ -104,7 +106,7 @@ export default function Scan() {
   const [predictions, setPredictions] = useState<any[]>([]);
 
   const dishname = predictions.length > 0 ? predictions[0].class : null;
-  const ingredients = dishMacros[dishname];
+  // const ingredients = dishMacros[dishname];
   const [editMode, setEditMode] = useState(false);
   const [editedIngredients, setEditedIngredients] = useState<
     Record<string, number>
@@ -132,18 +134,39 @@ export default function Scan() {
     carbs: 0,
   });
 
-  // Compute macros using actual ingredient weights (no extra scaling)
-  const macros =
-    detected && computeDishMacros(detected, editedIngredients)
-      ? computeDishMacros(detected, editedIngredients)
-      : detected && ingredientMacros[detected]
-        ? {
-            carbs: +(ingredientMacros[detected].carbs * 100).toFixed(1),
-            protein: +(ingredientMacros[detected].protein * 100).toFixed(1),
-            fats: +(ingredientMacros[detected].fats * 100).toFixed(1),
-            calories: +(ingredientMacros[detected].calories * 100).toFixed(1),
-          }
-        : null;
+  // State for macros (computed asynchronously from Firestore)
+  const [macros, setMacros] = useState<{
+    carbs: number;
+    protein: number;
+    fats: number;
+    calories: number;
+  } | null>(null);
+
+  // Compute macros when ingredients change
+  useEffect(() => {
+    if (!detected || !editedIngredients) {
+      setMacros(null);
+      return;
+    }
+
+    // Import the function at the top if not already
+    const { computeDishMacros } = require("../macros/compute_dish");
+
+    computeDishMacros(detected, editedIngredients).then(
+      (
+        result: {
+          carbs: number;
+          protein: number;
+          fats: number;
+          calories: number;
+        } | null
+      ) => {
+        if (result) {
+          setMacros(result);
+        }
+      }
+    );
+  }, [detected, editedIngredients]);
 
   // Fetch user's daily macro goals
   useEffect(() => {
@@ -298,20 +321,20 @@ export default function Scan() {
     }
   };
 
-  // When a dish is detected, sum ingredient grams and set as initial Weight
-  useEffect(() => {
-    if (!detected) return;
-    const recipe = dishMacros[detected as keyof typeof dishMacros];
-    if (!recipe) return;
+  // // When a dish is detected, sum ingredient grams and set as initial Weight
+  // useEffect(() => {
+  //   if (!detected) return;
+  //   const recipe = dishMacros[detected as keyof typeof dishMacros];
+  //   if (!recipe) return;
 
-    const total = Object.values(recipe as Record<string, number>).reduce(
-      (sum, g) => sum + g,
-      0
-    );
-    setBaseIngredients(recipe as Record<string, number>);
-    setEditedIngredients(recipe as Record<string, number>); // init to base
-    setweight(total);
-  }, [detected]);
+  //   const total = Object.values(recipe as Record<string, number>).reduce(
+  //     (sum, g) => sum + g,
+  //     0
+  //   );
+  //   setBaseIngredients(recipe as Record<string, number>);
+  //   setEditedIngredients(recipe as Record<string, number>); // init to base
+  //   setweight(total);
+  // }, [detected]);
 
   // When Weight changes, scale all ingredients proportionally (min 1g unless Weight=0)
   const handleWeightChange = (newWeight: number) => {
@@ -421,7 +444,13 @@ export default function Scan() {
       // }
 
       if (data.predictions?.length > 0) {
-        setPredictions(data.predictions); // save the AI output
+        setPredictions(data.predictions);
+
+        const className = data.predictions[0].class;
+
+        // Fetch dish data from Firestore
+        await fetchDishFromFirestore(className);
+
         setState("result");
       } else {
         setPredictions([]); // no results
@@ -466,24 +495,29 @@ export default function Scan() {
 
       // If this is a known dish, persist base ingredient grams with user edits applied.
       // Do NOT scale by Weight here to avoid double-scaling in History.
-      const isDish = !!dishMacros[name as keyof typeof dishMacros];
+      // const isDish = !!dishMacros[name as keyof typeof dishMacros];
+      // const ingredientPayload =
+      //   isDish && dishMacros[name as keyof typeof dishMacros]
+      //     ? Object.entries(
+      //         dishMacros[name as keyof typeof dishMacros] as Record<
+      //           string,
+      //           number
+      //         >
+      //       ).reduce(
+      //         (acc, [ing, defaultGrams]) => {
+      //           acc[ing] =
+      //             editedIngredients[ing] !== undefined
+      //               ? editedIngredients[ing]
+      //               : defaultGrams;
+      //           return acc;
+      //         },
+      //         {} as Record<string, number>
+      //       )
+      //     : undefined;
+      // Use edited ingredients if available (user may have adjusted them)
       const ingredientPayload =
-        isDish && dishMacros[name as keyof typeof dishMacros]
-          ? Object.entries(
-              dishMacros[name as keyof typeof dishMacros] as Record<
-                string,
-                number
-              >
-            ).reduce(
-              (acc, [ing, defaultGrams]) => {
-                acc[ing] =
-                  editedIngredients[ing] !== undefined
-                    ? editedIngredients[ing]
-                    : defaultGrams;
-                return acc;
-              },
-              {} as Record<string, number>
-            )
+        Object.keys(editedIngredients).length > 0
+          ? editedIngredients
           : undefined;
 
       await logFoodForUser(user.uid, {
@@ -505,6 +539,42 @@ export default function Scan() {
       Alert.alert("Error", "Failed to log food. Please try again.");
     } finally {
       setIsLogging(false);
+    }
+  };
+
+  // Add this function after your useState declarations
+  const fetchDishFromFirestore = async (className: string) => {
+    try {
+      console.log(` Fetching dish: ${className}`);
+
+      // Get dish ingredients from Firestore
+      const dishDoc = await getDoc(doc(FIRESTORE_DB, "dishes", className));
+
+      if (!dishDoc.exists()) {
+        Alert.alert("Not Found", "This dish is not in our database yet.");
+        return;
+      }
+
+      const ingredientWeights = dishDoc.data().ingredients as Record<
+        string,
+        number
+      >;
+
+      // Calculate total weight
+      const totalWeight = Object.values(ingredientWeights).reduce(
+        (sum, g) => sum + g,
+        0
+      );
+
+      // Set the ingredients and weight
+      setBaseIngredients(ingredientWeights);
+      setEditedIngredients(ingredientWeights);
+      setweight(totalWeight);
+
+      console.log(` Loaded ${className}:`, ingredientWeights);
+    } catch (error) {
+      console.error(" Firestore fetch error:", error);
+      Alert.alert("Error", "Failed to load dish data from database.");
     }
   };
 
@@ -904,7 +974,7 @@ export default function Scan() {
                 </Text>
               )}
 
-              {ingredients ? (
+              {Object.keys(editedIngredients).length > 0 ? (
                 <View
                   className="rounded-xl p-5 mb-5 max-h-[200px]"
                   style={{ backgroundColor: colors.surface }}
@@ -931,11 +1001,9 @@ export default function Scan() {
                   </Text>
 
                   <ScrollView nestedScrollEnabled className="pr-1">
-                    {Object.entries(ingredients).map(
-                      ([ingredient, defaultWeight], index) => {
-                        const currentValue =
-                          editedIngredients[ingredient] ?? defaultWeight;
-
+                    {Object.entries(editedIngredients).map(
+                      ([ingredient, weight], index) => {
+                        const currentValue = weight;
                         return editMode ? (
                           <View
                             key={`${ingredient}-${index}`}

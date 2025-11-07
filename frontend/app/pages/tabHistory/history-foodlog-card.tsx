@@ -18,8 +18,10 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { db, auth } from "../../../config/firebase";
 import { ref, get, update } from "firebase/database";
 import { computeDishMacros } from "../../macros/compute_dish";
-import { dishMacros } from "../../macros/dish-level-macros";
+// import { dishMacros } from "../../macros/dish-level-macros";
 import { ingredientMacros } from "../../macros/ingredient-level-macros";
+import { FIRESTORE_DB } from "../../../config/firebase";
+import { doc, getDoc } from "firebase/firestore";
 
 interface FoodLogData {
   calories: number;
@@ -184,56 +186,66 @@ export default function HistoryFoodLogCard() {
 
   // Derived classification from saved food name
   const name = (foodLog?.foodName || "").trim();
-  const isDish = !!dishMacros[name as keyof typeof dishMacros];
-  const isIngredient =
-    !!ingredientMacros[name as keyof typeof ingredientMacros];
-  const autoCalc = isDish || isIngredient;
+  // Note: isDish and isIngredient are now checked inside useEffect
+  const autoCalc = true; // Always auto-calc from Firestore if available
 
-  // Recompute macros when weight or ingredient weights change (same logic as scan)
+  // Recompute macros when weight or ingredient weights change
   useEffect(() => {
     if (!name) return;
 
-    // Dish path: base recipe scaled by weight/100, with optional ingredient overrides
-    if (isDish) {
-      const computed = computeDishMacros(
-        name,
-        Object.keys(editedIngredients).length ? editedIngredients : undefined
-      );
-      if (computed) {
-        setEditedMacros({
-          calories: Number(computed.calories.toFixed(1)),
-          protein: Number(computed.protein.toFixed(1)),
-          fats: Number(computed.fats.toFixed(1)),
-          carbs: Number(computed.carbs.toFixed(1)),
-        });
-      }
-      return;
-    }
+    const fetchAndComputeMacros = async () => {
+      // Check if it's a dish in Firestore
+      const dishDoc = await getDoc(doc(FIRESTORE_DB, "dishes", name));
+      const isDish = dishDoc.exists();
 
-    // Single-ingredient path: per-gram values * grams
-    if (isIngredient) {
-      const m = ingredientMacros[name as keyof typeof ingredientMacros];
-      const w = Math.max(0, weight || 0);
-      setEditedMacros({
-        calories: Number((m.calories * w).toFixed(1)),
-        protein: Number((m.protein * w).toFixed(1)),
-        fats: Number((m.fats * w).toFixed(1)),
-        carbs: Number((m.carbs * w).toFixed(1)),
-      });
-      return;
-    }
-    // Unknown item: keep manual values
-  }, [name, isDish, isIngredient, weight, editedIngredients]);
+      if (isDish) {
+        // Fetch dish macros from Firestore
+        const computed = await computeDishMacros(
+          name,
+          Object.keys(editedIngredients).length ? editedIngredients : undefined
+        );
+        if (computed) {
+          setEditedMacros({
+            calories: Number(computed.calories.toFixed(1)),
+            protein: Number(computed.protein.toFixed(1)),
+            fats: Number(computed.fats.toFixed(1)),
+            carbs: Number(computed.carbs.toFixed(1)),
+          });
+        }
+        return;
+      }
+
+      // Check if it's a single ingredient in Firestore
+      const ingDoc = await getDoc(doc(FIRESTORE_DB, "ingredients", name));
+      const isIngredient = ingDoc.exists();
+
+      if (isIngredient) {
+        const m = ingDoc.data();
+        const w = Math.max(0, weight || 0);
+        setEditedMacros({
+          calories: Number((m.calories * w).toFixed(1)),
+          protein: Number((m.protein * w).toFixed(1)),
+          fats: Number((m.fats * w).toFixed(1)),
+          carbs: Number((m.carbs * w).toFixed(1)),
+        });
+        return;
+      }
+
+      // Unknown item: keep manual values from database
+    };
+
+    fetchAndComputeMacros();
+  }, [name, weight, editedIngredients]);
 
   // When entering edit mode for a known dish and no stored ingredients, preload defaults
-  useEffect(() => {
-    if (editMode && isDish && Object.keys(editedIngredients).length === 0) {
-      const defaults = dishMacros[name as keyof typeof dishMacros] as
-        | { [key: string]: number }
-        | undefined;
-      if (defaults) setEditedIngredients(defaults);
-    }
-  }, [editMode, isDish, name]);
+  // useEffect(() => {
+  //   if (editMode && isDish && Object.keys(editedIngredients).length === 0) {
+  //     const defaults = dishMacros[name as keyof typeof dishMacros] as
+  //       | { [key: string]: number }
+  //       | undefined;
+  //     if (defaults) setEditedIngredients(defaults);
+  //   }
+  // }, [editMode, isDish, name]);
 
   if (loading) {
     return (
