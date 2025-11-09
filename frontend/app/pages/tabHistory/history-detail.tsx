@@ -34,7 +34,7 @@ interface FoodLog {
 }
 
 import { dishMacros } from "../../macros/dish-level-macros";
-import { computeDishMacros } from "../../macros/compute_dish";
+import { computeDishMacrosSync } from "../../macros/compute_dish";
 
 const calculatePercentage = (consumed: number, total: number): number => {
   if (total <= 0) return 0;
@@ -657,7 +657,10 @@ export default function HistoryDetail() {
             // Calculate macros for each dish using computeDishMacros
             const dishesWithMacros = Object.keys(dishMacros)
               .map((dishName) => {
-                const macros = computeDishMacros(dishName);
+                const ingredients = dishMacros[dishName];
+                if (!ingredients) return null;
+                
+                const macros = computeDishMacrosSync(dishName, 1, ingredients);
                 if (!macros) return null;
 
                 return {
