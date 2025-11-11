@@ -285,8 +285,8 @@ export default function HistoryDetail() {
     });
   };
 
+  // Navigate to food details page
   const navigateToFoodDetails = (food: FoodLog) => {
-    // Navigate with all the food data as params
     router.push({
       pathname: "/pages/tabHistory/history-foodlog-card",
       params: {
@@ -297,6 +297,9 @@ export default function HistoryDetail() {
         fats: food.fats.toString(),
         carbs: food.carbs.toString(),
         createdAt: food.createdAt,
+        day: params.day,
+        date: params.date,
+        timestamp: params.timestamp,
       },
     });
   };
