@@ -8,6 +8,7 @@ import {
   Alert,
   ScrollView,
   RefreshControl,
+  ActivityIndicator,
 } from "react-native";
 import { CameraView, type CameraType, useCameraPermissions } from "expo-camera";
 import { Ionicons } from "@expo/vector-icons";
@@ -102,7 +103,9 @@ export default function Scan() {
   const [facing, setFacing] = useState<CameraType>("back");
   const { colors } = useTheme();
   const router = useRouter();
-  const [state, setState] = useState<"preview" | "result">("preview");
+  const [state, setState] = useState<"preview" | "loading" | "result">(
+    "preview"
+  );
   const [predictions, setPredictions] = useState<any[]>([]);
 
   const dishname = predictions.length > 0 ? predictions[0].class : null;
@@ -233,65 +236,130 @@ export default function Scan() {
     };
   }, []);
 
-  // Calculate recommendation: how many more grams to fill the limiting macro
-  const getRecommendation = () => {
-    if (!macros) return null;
+  // Calculate smart recommendations for all 3 macros
+  const getRecommendations = () => {
+    if (!macros || weight === 0) return null;
 
+    // IMPORTANT: macros are for TOTAL weight, convert to per 100g
+    const macrosPer100g = {
+      calories: (macros.calories / weight) * 100,
+      protein: (macros.protein / weight) * 100,
+      carbs: (macros.carbs / weight) * 100,
+      fats: (macros.fats / weight) * 100,
+    };
+
+    // Calculate remaining goals for today
     const remaining = {
-      calories: macroGoals.calories - dailyConsumed.calories,
-      protein: macroGoals.protein - dailyConsumed.protein,
-      fat: macroGoals.fat - dailyConsumed.fat,
-      carbs: macroGoals.carbs - dailyConsumed.carbs,
+      calories: Math.max(0, macroGoals.calories - dailyConsumed.calories),
+      protein: Math.max(0, macroGoals.protein - dailyConsumed.protein),
+      fat: Math.max(0, macroGoals.fat - dailyConsumed.fat),
+      carbs: Math.max(0, macroGoals.carbs - dailyConsumed.carbs),
     };
 
-    // Calculate how many grams needed to fill each macro
-    const gramsToFill = {
-      calories:
-        macros.calories > 0
-          ? (remaining.calories / macros.calories) * weight
-          : Infinity,
+    // Calculate what CURRENT portion provides
+    const currentPortionProvides = {
+      protein: macros.protein,
+      carbs: macros.carbs,
+      fats: macros.fats,
+    };
+
+    // Calculate TOTAL grams of THIS food needed to fill REMAINING gap
+    const totalGramsToFillGap = {
       protein:
-        macros.protein > 0
-          ? (remaining.protein / macros.protein) * weight
-          : Infinity,
-      fat: macros.fats > 0 ? (remaining.fat / macros.fats) * weight : Infinity,
+        macrosPer100g.protein > 0 && remaining.protein > 0
+          ? (remaining.protein / macrosPer100g.protein) * 100
+          : 0,
       carbs:
-        macros.carbs > 0 ? (remaining.carbs / macros.carbs) * weight : Infinity,
+        macrosPer100g.carbs > 0 && remaining.carbs > 0
+          ? (remaining.carbs / macrosPer100g.carbs) * 100
+          : 0,
+      fat:
+        macrosPer100g.fats > 0 && remaining.fat > 0
+          ? (remaining.fat / macrosPer100g.fats) * 100
+          : 0,
     };
 
-    // Find the macro that fills first (smallest positive grams needed)
-    let limitingMacro = "calories";
-    let minGrams = gramsToFill.calories;
+    // Calculate additional grams needed (total to fill gap - current weight)
+    const additionalGrams = {
+      protein: Math.max(0, totalGramsToFillGap.protein - weight),
+      carbs: Math.max(0, totalGramsToFillGap.carbs - weight),
+      fat: Math.max(0, totalGramsToFillGap.fat - weight),
+    };
 
-    if (gramsToFill.protein > 0 && gramsToFill.protein < minGrams) {
-      limitingMacro = "protein";
-      minGrams = gramsToFill.protein;
+    // Determine dominant macro (highest percentage)
+    const total =
+      macrosPer100g.protein + macrosPer100g.carbs + macrosPer100g.fats;
+    const percentages = {
+      protein: (macrosPer100g.protein / total) * 100,
+      carbs: (macrosPer100g.carbs / total) * 100,
+      fat: (macrosPer100g.fats / total) * 100,
+    };
+
+    let dominant: "protein" | "carbs" | "fat" = "protein";
+    let maxPercent = percentages.protein;
+
+    if (percentages.carbs > maxPercent) {
+      dominant = "carbs";
+      maxPercent = percentages.carbs;
     }
-    if (gramsToFill.fat > 0 && gramsToFill.fat < minGrams) {
-      limitingMacro = "fat";
-      minGrams = gramsToFill.fat;
-    }
-    if (gramsToFill.carbs > 0 && gramsToFill.carbs < minGrams) {
-      limitingMacro = "carbs";
-      minGrams = gramsToFill.carbs;
+    if (percentages.fat > maxPercent) {
+      dominant = "fat";
+      maxPercent = percentages.fat;
     }
 
-    if (minGrams <= 0) {
-      return {
-        grams: 0,
-        macro: limitingMacro,
-        message: `You've reached your daily ${limitingMacro} goal!`,
-      };
-    }
+    // Helper to determine if recommendation is realistic
+    const getRecommendationStatus = (grams: number) => {
+      if (grams === 0) return "met";
+      if (grams <= 500) return "realistic";
+      if (grams <= 1000) return "high";
+      return "unrealistic";
+    };
+
+    // Debug logging
+    console.log("=== RECOMMENDATION DEBUG ===");
+    console.log("Current weight:", weight);
+    console.log("Macros (total for current weight):", macros);
+    console.log("Macros per 100g:", macrosPer100g);
+    console.log("Remaining goals:", remaining);
+    console.log("Current portion provides:", currentPortionProvides);
+    console.log("Total grams to fill gap:", totalGramsToFillGap);
+    console.log("Additional needed:", additionalGrams);
+    console.log("============================");
 
     return {
-      grams: Math.round(minGrams),
-      macro: limitingMacro,
-      message: `You can eat ~${Math.round(minGrams)}g more to fill your ${limitingMacro} goal first.`,
+      protein: {
+        remaining: remaining.protein,
+        totalNeeded: Math.round(totalGramsToFillGap.protein),
+        additionalNeeded: Math.round(additionalGrams.protein),
+        isDominant: dominant === "protein",
+        goalMet:
+          remaining.protein === 0 ||
+          currentPortionProvides.protein >= remaining.protein,
+        status: getRecommendationStatus(totalGramsToFillGap.protein),
+      },
+      carbs: {
+        remaining: remaining.carbs,
+        totalNeeded: Math.round(totalGramsToFillGap.carbs),
+        additionalNeeded: Math.round(additionalGrams.carbs),
+        isDominant: dominant === "carbs",
+        goalMet:
+          remaining.carbs === 0 ||
+          currentPortionProvides.carbs >= remaining.carbs,
+        status: getRecommendationStatus(totalGramsToFillGap.carbs),
+      },
+      fat: {
+        remaining: remaining.fat,
+        totalNeeded: Math.round(totalGramsToFillGap.fat),
+        additionalNeeded: Math.round(additionalGrams.fat),
+        isDominant: dominant === "fat",
+        goalMet:
+          remaining.fat === 0 || currentPortionProvides.fats >= remaining.fat,
+        status: getRecommendationStatus(totalGramsToFillGap.fat),
+      },
     };
   };
 
-  const recommendation = getRecommendation();
+  const recommendations = getRecommendations();
 
   const takePhoto = async () => {
     if (cameraRef.current) {
@@ -404,6 +472,8 @@ export default function Scan() {
 
   const processWithAI = async () => {
     if (!capturedPhoto) return;
+
+    setState("loading");
 
     try {
       const formData = new FormData();
@@ -817,6 +887,35 @@ export default function Scan() {
       );
     }
 
+    if (state === "loading") {
+      return (
+        <SafeAreaView
+          className="flex-1 justify-center items-center"
+          style={{ backgroundColor: colors.background }}
+        >
+          <View className="items-center">
+            <View
+              className="w-24 h-24 rounded-full justify-center items-center mb-6"
+              style={{ backgroundColor: colors.primary + "20" }}
+            >
+              <ActivityIndicator size="large" color={colors.primary} />
+            </View>
+
+            <Text
+              className="text-2xl font-bold mb-2"
+              style={{ color: colors.text }}
+            >
+              Analyzing your food...
+            </Text>
+
+            <Text className="text-sm opacity-70" style={{ color: colors.text }}>
+              Our AI is working its magic ✨
+            </Text>
+          </View>
+        </SafeAreaView>
+      );
+    }
+
     if (state === "result") {
       return (
         <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
@@ -907,7 +1006,7 @@ export default function Scan() {
                     />
                   </View>
 
-                  {/* Daily Progress */}
+                  {/* Daily Progress
                   <View
                     className="mt-4 pt-4 border-t"
                     style={{ borderTopColor: colors.text + "20" }}
@@ -945,26 +1044,292 @@ export default function Scan() {
                       Carbs: {dailyConsumed.carbs.toFixed(0)} /{" "}
                       {macroGoals.carbs} g
                     </Text>
-                  </View>
+                  </View> */}
 
                   {/* Recommendation */}
-                  {recommendation && (
+                  {recommendations && (
                     <View
-                      className="mt-4 p-3 rounded-lg"
-                      style={{ backgroundColor: colors.primary + "20" }}
+                      className="rounded-2xl p-5 mt-6 mb-5"
+                      style={{
+                        backgroundColor: colors.surface,
+                        shadowColor:
+                          colors.text === "#FFFFFF" ? "#fff" : "#000",
+                        shadowOffset: { width: 0, height: 1 },
+                        shadowOpacity: 1,
+                        shadowRadius: 5,
+                        elevation: 5,
+                      }}
                     >
                       <Text
-                        className="text-sm font-semibold"
-                        style={{ color: colors.primary }}
-                      >
-                        💡 Recommendation
-                      </Text>
-                      <Text
-                        className="text-xs mt-1"
+                        className="text-lg font-bold mb-4"
                         style={{ color: colors.text }}
                       >
-                        {recommendation.message}
+                        📊 Smart Recommendations
                       </Text>
+
+                      {/* Protein Recommendation */}
+                      <View
+                        className="mb-4 p-4 rounded-xl"
+                        style={{
+                          backgroundColor: recommendations.protein.isDominant
+                            ? "#10B98120"
+                            : colors.background,
+                          borderWidth: recommendations.protein.isDominant
+                            ? 2
+                            : 1,
+                          borderColor: recommendations.protein.isDominant
+                            ? "#10B981"
+                            : colors.text + "20",
+                        }}
+                      >
+                        <View className="flex-row items-center justify-between mb-2">
+                          <Text
+                            className="text-base font-bold"
+                            style={{ color: "#10B981" }}
+                          >
+                            💪 PROTEIN
+                            {recommendations.protein.isDominant && " ⭐"}
+                          </Text>
+                          {recommendations.protein.goalMet && (
+                            <Text className="text-sm font-semibold text-green-500">
+                              ✅ Goal Met!
+                            </Text>
+                          )}
+                        </View>
+
+                        <Text
+                          className="text-xs mb-2"
+                          style={{ color: colors.text, opacity: 0.8 }}
+                        >
+                          Daily Goal: {macroGoals.protein}g | Consumed:{" "}
+                          {dailyConsumed.protein.toFixed(0)}g | Remaining:{" "}
+                          {recommendations.protein.remaining.toFixed(0)}g
+                        </Text>
+
+                        {!recommendations.protein.goalMet && (
+                          <View
+                            className="p-2 rounded-lg"
+                            style={{
+                              backgroundColor:
+                                recommendations.protein.status === "unrealistic"
+                                  ? "#EF444420"
+                                  : "#10B98110",
+                            }}
+                          >
+                            {recommendations.protein.status === "realistic" && (
+                              <Text
+                                className="text-sm font-semibold"
+                                style={{ color: "#10B981" }}
+                              >
+                                You need{" "}
+                                {recommendations.protein.additionalNeeded}g more
+                                for a total of{" "}
+                                {recommendations.protein.totalNeeded}g of this
+                                food to reach your protein goal
+                              </Text>
+                            )}
+                            {recommendations.protein.status === "high" && (
+                              <Text
+                                className="text-sm font-semibold"
+                                style={{ color: "#F97316" }}
+                              >
+                                You need{" "}
+                                {recommendations.protein.additionalNeeded}g more
+                                for a total of{" "}
+                                {recommendations.protein.totalNeeded}g ⚠️{"\n"}
+                                (That's a large portion - consider splitting
+                                across meals)
+                              </Text>
+                            )}
+                            {recommendations.protein.status ===
+                              "unrealistic" && (
+                              <Text
+                                className="text-sm font-semibold"
+                                style={{ color: "#EF4444" }}
+                              >
+                                ⚠️ This food is very low in protein{"\n"}Would
+                                need {recommendations.protein.totalNeeded}g
+                                total (unrealistic!){"\n"}
+                                Consider protein-rich foods instead
+                              </Text>
+                            )}
+                          </View>
+                        )}
+                      </View>
+
+                      {/* Carbs Recommendation */}
+                      <View
+                        className="mb-4 p-4 rounded-xl"
+                        style={{
+                          backgroundColor: recommendations.carbs.isDominant
+                            ? "#3B82F620"
+                            : colors.background,
+                          borderWidth: recommendations.carbs.isDominant ? 2 : 1,
+                          borderColor: recommendations.carbs.isDominant
+                            ? "#3B82F6"
+                            : colors.text + "20",
+                        }}
+                      >
+                        <View className="flex-row items-center justify-between mb-2">
+                          <Text
+                            className="text-base font-bold"
+                            style={{ color: "#3B82F6" }}
+                          >
+                            🍚 CARBS
+                            {recommendations.carbs.isDominant && " ⭐"}
+                          </Text>
+                          {recommendations.carbs.goalMet && (
+                            <Text className="text-sm font-semibold text-green-500">
+                              ✅ Goal Met!
+                            </Text>
+                          )}
+                        </View>
+
+                        <Text
+                          className="text-xs mb-2"
+                          style={{ color: colors.text, opacity: 0.8 }}
+                        >
+                          Daily Goal: {macroGoals.carbs}g | Consumed:{" "}
+                          {dailyConsumed.carbs.toFixed(0)}g | Remaining:{" "}
+                          {recommendations.carbs.remaining.toFixed(0)}g
+                        </Text>
+
+                        {!recommendations.carbs.goalMet && (
+                          <View
+                            className="p-2 rounded-lg"
+                            style={{
+                              backgroundColor:
+                                recommendations.carbs.status === "unrealistic"
+                                  ? "#EF444420"
+                                  : "#3B82F610",
+                            }}
+                          >
+                            {recommendations.carbs.status === "realistic" && (
+                              <Text
+                                className="text-sm font-semibold"
+                                style={{ color: "#3B82F6" }}
+                              >
+                                You need{" "}
+                                {recommendations.carbs.additionalNeeded}g more
+                                for a total of{" "}
+                                {recommendations.carbs.totalNeeded}g of this
+                                food to reach your carb goal
+                              </Text>
+                            )}
+                            {recommendations.carbs.status === "high" && (
+                              <Text
+                                className="text-sm font-semibold"
+                                style={{ color: "#F97316" }}
+                              >
+                                You need{" "}
+                                {recommendations.carbs.additionalNeeded}g more
+                                for a total of{" "}
+                                {recommendations.carbs.totalNeeded}g ⚠️{"\n"}
+                                (That's a large portion - consider splitting
+                                across meals)
+                              </Text>
+                            )}
+                            {recommendations.carbs.status === "unrealistic" && (
+                              <Text
+                                className="text-sm font-semibold"
+                                style={{ color: "#EF4444" }}
+                              >
+                                ⚠️ This food is very low in carbs{"\n"}Would
+                                need {recommendations.carbs.totalNeeded}g total
+                                (unrealistic!){"\n"}
+                                Consider carb-rich foods like rice, bread, or
+                                pasta
+                              </Text>
+                            )}
+                          </View>
+                        )}
+                      </View>
+
+                      {/* Fat Recommendation */}
+                      <View
+                        className="p-4 rounded-xl"
+                        style={{
+                          backgroundColor: recommendations.fat.isDominant
+                            ? "#F9731620"
+                            : colors.background,
+                          borderWidth: recommendations.fat.isDominant ? 2 : 1,
+                          borderColor: recommendations.fat.isDominant
+                            ? "#F97316"
+                            : colors.text + "20",
+                        }}
+                      >
+                        <View className="flex-row items-center justify-between mb-2">
+                          <Text
+                            className="text-base font-bold"
+                            style={{ color: "#F97316" }}
+                          >
+                            🥑 FAT
+                            {recommendations.fat.isDominant && " ⭐"}
+                          </Text>
+                          {recommendations.fat.goalMet && (
+                            <Text className="text-sm font-semibold text-green-500">
+                              ✅ Goal Met!
+                            </Text>
+                          )}
+                        </View>
+
+                        <Text
+                          className="text-xs mb-2"
+                          style={{ color: colors.text, opacity: 0.8 }}
+                        >
+                          Daily Goal: {macroGoals.fat}g | Consumed:{" "}
+                          {dailyConsumed.fat.toFixed(0)}g | Remaining:{" "}
+                          {recommendations.fat.remaining.toFixed(0)}g
+                        </Text>
+
+                        {!recommendations.fat.goalMet && (
+                          <View
+                            className="p-2 rounded-lg"
+                            style={{
+                              backgroundColor:
+                                recommendations.fat.status === "unrealistic"
+                                  ? "#EF444420"
+                                  : "#F9731610",
+                            }}
+                          >
+                            {recommendations.fat.status === "realistic" && (
+                              <Text
+                                className="text-sm font-semibold"
+                                style={{ color: "#F97316" }}
+                              >
+                                You need {recommendations.fat.additionalNeeded}g
+                                more for a total of{" "}
+                                {recommendations.fat.totalNeeded}g of this food
+                                to reach your fat goal
+                              </Text>
+                            )}
+                            {recommendations.fat.status === "high" && (
+                              <Text
+                                className="text-sm font-semibold"
+                                style={{ color: "#F97316" }}
+                              >
+                                You need {recommendations.fat.additionalNeeded}g
+                                more for a total of{" "}
+                                {recommendations.fat.totalNeeded}g ⚠️{"\n"}
+                                (That's a large portion - consider splitting
+                                across meals)
+                              </Text>
+                            )}
+                            {recommendations.fat.status === "unrealistic" && (
+                              <Text
+                                className="text-sm font-semibold"
+                                style={{ color: "#EF4444" }}
+                              >
+                                ⚠️ This food is very low in fat{"\n"}Would need{" "}
+                                {recommendations.fat.totalNeeded}g total
+                                (unrealistic!){"\n"}
+                                Consider healthy fats like avocado, nuts, or
+                                olive oil
+                              </Text>
+                            )}
+                          </View>
+                        )}
+                      </View>
                     </View>
                   )}
                 </View>

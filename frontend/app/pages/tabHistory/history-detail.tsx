@@ -234,6 +234,60 @@ export default function HistoryDetail() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedFood, setSelectedFood] = useState<FoodLog | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+
+    try {
+      // Re-fetch food logs
+      const userId = auth.currentUser?.uid;
+      if (!userId) {
+        setFoodLogs([]);
+        return;
+      }
+
+      const foodLogsRef = ref(db, `foodLogs/${userId}`);
+      const snapshot = await get(foodLogsRef);
+
+      if (!snapshot.exists()) {
+        setFoodLogs([]);
+        return;
+      }
+
+      const logs = snapshot.val();
+      const selDate = getSelectedDate();
+
+      const filtered: FoodLog[] = [];
+      Object.entries(logs).forEach(([key, value]: [string, any]) => {
+        const log = value as FoodLog;
+        const d = new Date(log.createdAt);
+        if (d.toDateString() === selDate.toDateString()) {
+          filtered.push({ ...log, logId: key });
+        }
+      });
+
+      setFoodLogs(filtered);
+
+      // Re-fetch macro goals
+      const macroRef = ref(db, `users/${userId}/macroGoals`);
+      const macroSnapshot = await get(macroRef);
+      const macroData = macroSnapshot.val();
+
+      if (macroData) {
+        setTargets({
+          calories: macroData.calories,
+          protein: macroData.protein,
+          carbs: macroData.carbs,
+          fat: macroData.fat,
+        });
+      }
+    } catch (error) {
+      console.error("Error refreshing data:", error);
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   // Parse the date from params - use timestamp if available, fallback to date string
   const getSelectedDate = () => {
@@ -426,6 +480,14 @@ export default function HistoryDetail() {
           paddingTop: 16,
           paddingBottom: 100,
         }}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={[colors.primary]} // Android
+            tintColor={colors.primary} // iOS
+          />
+        }
       >
         {/* Date Header */}
         <View className="items-center mb-6">
