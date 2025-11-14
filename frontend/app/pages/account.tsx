@@ -278,7 +278,7 @@ export default function Account() {
               className="text-xs"
               style={{ color: isDark ? "#71717A" : "#6B7280" }}
             >
-              SnapNutrients v1.0.0
+              Snap Nutrient v1.1.2
             </Text>
             <Text
               className="text-xs"
