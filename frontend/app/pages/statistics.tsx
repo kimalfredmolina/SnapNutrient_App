@@ -616,58 +616,60 @@ export default function Statistics() {
             </View>
 
             {/* Line Chart */}
-            <View
-              style={{
-                padding: 16,
-                borderRadius: 16,
-                backgroundColor: colors.surface,
-                marginBottom: 4,
-              }}
-            >
-              {chartData.datasets[0].data.length === 0 ? (
-                <View style={{ paddingVertical: 40, alignItems: "center" }}>
-                  <Text style={{ color: colors.text }}>
-                    No weight data yet.
-                  </Text>
-                </View>
-              ) : (
-                <LineChart
-                  data={{
-                    labels: filteredWeightData.map((w) => {
-                      const date = new Date(w.date);
-                      return `${date.getDate()}`;
-                    }),
-                    datasets: [
-                      {
-                        data: filteredWeightData.map((w) => w.weight),
-                        color: (opacity = 1) =>
-                          `rgba(${hexToRgb(colors.primary)}, ${opacity})`,
-                        strokeWidth: 3,
-                      },
-                    ],
-                  }}
-                  width={screenWidth - 90}
-                  height={280}
-                  chartConfig={chartConfigLine}
-                  bezier
-                  fromZero={false}
-                  withDots
-                  withInnerLines
-                  withOuterLines
-                  withVerticalLines
-                  withHorizontalLines
-                  segments={5}
-                  formatYLabel={(y) => `${Math.round(parseFloat(y))}kg`}
-                  yLabelsOffset={30}
-                  xLabelsOffset={-5}
-                  getDotColor={() => colors.primary}
-                  style={{ borderRadius: 16 }}
-                  onDataPointClick={({ index }) =>
-                    handleWeightPointPress(index)
-                  }
-                />
-              )}
-            </View>
+            <ScrollView horizontal showsHorizontalScrollIndicator={true}>
+              <View
+                style={{
+                  padding: 16,
+                  borderRadius: 16,
+                  backgroundColor: colors.surface,
+                  marginBottom: 4,
+                }}
+              >
+                {chartData.datasets[0].data.length === 0 ? (
+                  <View style={{ paddingVertical: 40, alignItems: "center", width: screenWidth - 90 }}>
+                    <Text style={{ color: colors.text }}>
+                      No weight data yet.
+                    </Text>
+                  </View>
+                ) : (
+                  <LineChart
+                    data={{
+                      labels: filteredWeightData.map((w) => {
+                        const date = new Date(w.date);
+                        return `${date.getDate()}`;
+                      }),
+                      datasets: [
+                        {
+                          data: filteredWeightData.map((w) => w.weight),
+                          color: (opacity = 1) =>
+                            `rgba(${hexToRgb(colors.primary)}, ${opacity})`,
+                          strokeWidth: 3,
+                        },
+                      ],
+                    }}
+                    width={Math.max(screenWidth - 90, filteredWeightData.length * 35)}
+                    height={280}
+                    chartConfig={chartConfigLine}
+                    bezier
+                    fromZero={false}
+                    withDots
+                    withInnerLines
+                    withOuterLines
+                    withVerticalLines
+                    withHorizontalLines
+                    segments={5}
+                    formatYLabel={(y) => `${Math.round(parseFloat(y))}kg`}
+                    yLabelsOffset={30}
+                    xLabelsOffset={-5}
+                    getDotColor={() => colors.primary}
+                    style={{ borderRadius: 16 }}
+                    onDataPointClick={({ index }) =>
+                      handleWeightPointPress(index)
+                    }
+                  />
+                )}
+              </View>
+            </ScrollView>
           </View>
 
           {/* Nutrition Section */}
