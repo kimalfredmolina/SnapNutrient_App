@@ -9,7 +9,7 @@ import {
 import { useTheme } from "../../contexts/ThemeContext";
 import { useRouter } from "expo-router";
 import { getAuth } from "firebase/auth";
-import { getDatabase, ref, query, get, remove } from "firebase/database";
+import { getDatabase, ref, query, onValue, remove, off } from "firebase/database";
 
 // Define types for food log and history item
 interface FoodLog {
@@ -57,29 +57,28 @@ export default function History() {
   // Store original log IDs mapping
   const logIdsMapRef = React.useRef<{ [isoDate: string]: string[] }>({});
 
-  // Fetch food logs and group them by date
+  // Set up real-time listener for food logs
   React.useEffect(() => {
-    fetchFoodLogs();
-  }, []);
+    const auth = getAuth();
+    const userId = auth.currentUser?.uid;
+    
+    if (!userId) {
+      console.log("No user ID found");
+      return;
+    }
 
-  const fetchFoodLogs = async () => {
-    try {
-      const auth = getAuth();
-      const userId = auth.currentUser?.uid;
-      if (!userId) {
-        console.log("No user ID found");
-        return;
-      }
+    const db = getDatabase();
+    const foodLogsRef = ref(db, `foodLogs/${userId}`);
+    const foodLogsQuery = query(foodLogsRef);
 
-      const db = getDatabase();
-      const foodLogsRef = ref(db, `foodLogs/${userId}`);
-      const foodLogsQuery = query(foodLogsRef);
-
-      const snapshot = await get(foodLogsQuery);
-      console.log("Firebase response:", snapshot.val());
-
+    // Set up real-time listener
+    const unsubscribe = onValue(foodLogsQuery, (snapshot) => {
+      console.log("Real-time update received");
+      
       if (!snapshot.exists()) {
         console.log("No data available");
+        setHistoryData([]);
+        logIdsMapRef.current = {};
         return;
       }
 
@@ -155,10 +154,18 @@ export default function History() {
       });
 
       setHistoryData(historyArray);
-    } catch (error) {
-      console.error("Error fetching food logs:", error);
-    }
-  };
+    }, (error) => {
+      console.error("Error in real-time listener:", error);
+    });
+
+    // Cleanup listener on unmount
+    return () => {
+      if (userId) {
+        const foodLogsRef = ref(db, `foodLogs/${userId}`);
+        off(foodLogsRef, 'value', unsubscribe);
+      }
+    };
+  }, []);
 
   const handleDeleteDay = async () => {
     if (!selectedItem) {
@@ -185,10 +192,6 @@ export default function History() {
 
       console.log("Selected date:", selectedItem.date);
       console.log("Log timestamps:", logTimestamps);
-      console.log(
-        "Available log IDs in ref:",
-        Object.keys(logIdsMapRef.current)
-      );
 
       // Find all matching log IDs for the selected date
       const logIds: string[] = [];
@@ -215,9 +218,6 @@ export default function History() {
 
       await Promise.all(deletePromises);
       console.log("Successfully deleted all logs");
-
-      // Refresh the data
-      await fetchFoodLogs();
 
       // Close modal and reset selection
       setShowDeleteModal(false);

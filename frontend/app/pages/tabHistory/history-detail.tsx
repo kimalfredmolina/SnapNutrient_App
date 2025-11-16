@@ -33,6 +33,9 @@ interface FoodLog {
   logId?: string;
 }
 
+import { dishMacros } from "../../macros/dish-level-macros";
+import { computeDishMacrosSync } from "../../macros/compute_dish";
+
 const calculatePercentage = (consumed: number, total: number): number => {
   if (total <= 0) return 0;
   const percentage = (consumed / total) * 100;
@@ -96,7 +99,7 @@ const MacroCircle = ({
       </Text>
       {/* Consumed percentage */}
       <Text className="text-xs" style={{ color }}>
-        {Number(value).toFixed(2)}
+        {Number(value).toFixed(1)}
         {unit} ({percentage}%)
       </Text>
     </View>
@@ -232,7 +235,9 @@ export default function HistoryDetail() {
     fat: 0,
   });
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
   const [selectedFood, setSelectedFood] = useState<FoodLog | null>(null);
+  const [servingSize, setServingSize] = useState("1");
   const [isDeleting, setIsDeleting] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -334,8 +339,8 @@ export default function HistoryDetail() {
     });
   };
 
+  // Navigate to food details page
   const navigateToFoodDetails = (food: FoodLog) => {
-    // Navigate with all the food data as params
     router.push({
       pathname: "/pages/tabHistory/history-foodlog-card",
       params: {
@@ -346,6 +351,9 @@ export default function HistoryDetail() {
         fats: food.fats.toString(),
         carbs: food.carbs.toString(),
         createdAt: food.createdAt,
+        day: params.day,
+        date: params.date,
+        timestamp: params.timestamp,
       },
     });
   };
@@ -578,27 +586,372 @@ export default function HistoryDetail() {
 
         {/* Summary Card */}
         <View
-          className="rounded-2xl p-6 mb-6"
+          className="rounded-2xl p-5 mb-6"
           style={{
-            backgroundColor: colors.secondary + "20",
-            borderColor: colors.secondary + "30",
+            backgroundColor: colors.secondary + "15",
+            borderColor: colors.secondary + "25",
             borderWidth: 1,
           }}
         >
           <Text
-            className="text-lg font-bold mb-3"
+            className="text-xl font-bold mb-4"
             style={{ color: colors.text }}
           >
             Daily Summary
           </Text>
-          <Text style={{ color: colors.text, lineHeight: 22 }}>
-            You've consumed {currentTotals.calories.toFixed(1)} calories this
-            day. Your protein intake is
-            {currentTotals.protein >= targets.protein
-              ? " excellent"
-              : " below target"}
-            . Consider adding more protein-rich foods if needed.
-          </Text>
+
+          {/* Calories Progress with Visual Bar */}
+          <View className="mb-5">
+            <View className="flex-row justify-between items-baseline mb-2">
+              <Text
+                className="text-base font-semibold"
+                style={{ color: colors.text }}
+              >
+                Calories Consumed
+              </Text>
+              <Text className="text-sm" style={{ color: colors.text + "CC" }}>
+                {currentTotals.calories.toFixed(0)} / {targets.calories} cal
+              </Text>
+            </View>
+            <View
+              className="h-2 rounded-full overflow-hidden"
+              style={{ backgroundColor: colors.secondary + "30" }}
+            >
+              <View
+                className="h-full rounded-full"
+                style={{
+                  width: `${Math.min(
+                    100,
+                    (currentTotals.calories / targets.calories) * 100
+                  )}%`,
+                  backgroundColor: colors.primary,
+                }}
+              />
+            </View>
+            <Text
+              className="text-xs mt-1"
+              style={{ color: colors.text + "AA" }}
+            >
+              {((currentTotals.calories / targets.calories) * 100).toFixed(1)}%
+              of daily goal
+            </Text>
+          </View>
+
+          {/* Macros Grid */}
+          <View className="mb-5">
+            <Text
+              className="text-base font-semibold mb-3"
+              style={{ color: colors.text }}
+            >
+              Macronutrients Remaining
+            </Text>
+            <View className="flex-row flex-wrap -mx-1">
+              {[
+                {
+                  label: "Protein",
+                  value: Math.max(
+                    0,
+                    targets.protein - currentTotals.protein
+                  ).toFixed(1),
+                  unit: "g",
+                  icon: (
+                    <Ionicons
+                      name="restaurant-outline"
+                      size={20}
+                      color="#10b981"
+                    />
+                  ),
+                },
+                {
+                  label: "Carbs",
+                  value: Math.max(
+                    0,
+                    targets.carbs - currentTotals.carbs
+                  ).toFixed(1),
+                  unit: "g",
+                  icon: (
+                    <Ionicons name="leaf-outline" size={20} color="#3b82f6" />
+                  ),
+                },
+                {
+                  label: "Fat",
+                  value: Math.max(0, targets.fat - currentTotals.fat).toFixed(
+                    1
+                  ),
+                  unit: "g",
+                  icon: (
+                    <Ionicons name="cube-outline" size={20} color="#f97316" />
+                  ),
+                },
+              ].map((macro, index) => (
+                <View key={index} className="w-1/3 px-1 mb-2">
+                  <View
+                    className="rounded-xl p-3"
+                    style={{ backgroundColor: colors.secondary + "25" }}
+                  >
+                    <Text className="text-lg mb-1">{macro.icon}</Text>
+                    <Text
+                      className="text-xs mb-1"
+                      style={{ color: colors.text + "CC" }}
+                    >
+                      {macro.label}
+                    </Text>
+                    <Text
+                      className="text-base font-bold"
+                      style={{ color: colors.text }}
+                    >
+                      {macro.value}
+                      {macro.unit}
+                    </Text>
+                  </View>
+                </View>
+              ))}
+            </View>
+          </View>
+
+          {/* Dynamic Meal Suggestions */}
+          {(() => {
+            type MacroType = "protein" | "carbs" | "fat";
+
+            const remainingMacros = {
+              protein: Math.max(0, targets.protein - currentTotals.protein),
+              carbs: Math.max(0, targets.carbs - currentTotals.carbs),
+              fat: Math.max(0, targets.fat - currentTotals.fat),
+            };
+
+            // Calculate macros for each dish using computeDishMacros
+            const dishesWithMacros = Object.keys(dishMacros)
+              .map((dishName) => {
+                const ingredients = dishMacros[dishName];
+                if (!ingredients) return null;
+                
+                const macros = computeDishMacrosSync(dishName, 1, ingredients);
+                if (!macros) return null;
+
+                return {
+                  name: dishName,
+                  protein: macros.protein,
+                  carbs: macros.carbs,
+                  fats: macros.fats,
+                  calories: macros.calories,
+                  score: {
+                    protein:
+                      remainingMacros.protein > 0
+                        ? macros.protein / remainingMacros.protein
+                        : 0,
+                    carbs:
+                      remainingMacros.carbs > 0
+                        ? macros.carbs / remainingMacros.carbs
+                        : 0,
+                    fat:
+                      remainingMacros.fat > 0
+                        ? macros.fats / remainingMacros.fat
+                        : 0,
+                  },
+                };
+              })
+              .filter(
+                (dish): dish is NonNullable<typeof dish> => dish !== null
+              );
+
+            // Determine which macro needs the most attention
+            const macroNeeds = [
+              {
+                type: "protein" as MacroType,
+                needed: remainingMacros.protein,
+                threshold: 5,
+                icon: (
+                  <Ionicons
+                    name="restaurant-outline"
+                    size={20}
+                    color="#10b981"
+                  />
+                ),
+                color: "#FF6B6B",
+              },
+              {
+                type: "carbs" as MacroType,
+                needed: remainingMacros.carbs,
+                threshold: 10,
+                icon: (
+                  <Ionicons name="leaf-outline" size={20} color="#3b82f6" />
+                ),
+                color: "#4ECDC4",
+              },
+              {
+                type: "fat" as MacroType,
+                needed: remainingMacros.fat,
+                threshold: 5,
+                icon: (
+                  <Ionicons name="cube-outline" size={20} color="#f97316" />
+                ),
+                color: "#95E1D3",
+              },
+            ].filter((macro) => macro.needed > macro.threshold);
+
+            // Sort dishes by how well they meet each macro need
+            const suggestions = macroNeeds
+              .map((macro) => {
+                const getMacroValue = (
+                  dish: (typeof dishesWithMacros)[0],
+                  type: MacroType
+                ) => {
+                  switch (type) {
+                    case "protein":
+                      return dish.protein;
+                    case "carbs":
+                      return dish.carbs;
+                    case "fat":
+                      return dish.fats;
+                  }
+                };
+
+                const sortedDishes = dishesWithMacros
+                  .filter((dish) => getMacroValue(dish, macro.type) > 0)
+                  .sort(
+                    (a, b) =>
+                      (b.score[macro.type] || 0) - (a.score[macro.type] || 0)
+                  )
+                  .slice(0, 3);
+
+                return {
+                  type: macro.type,
+                  dishes: sortedDishes,
+                  icon: macro.icon,
+                  color: macro.color,
+                };
+              })
+              .filter((suggestion) => suggestion.dishes.length > 0);
+
+            if (suggestions.length === 0) {
+              return (
+                <View
+                  className="rounded-xl p-4"
+                  style={{ backgroundColor: colors.primary + "15" }}
+                >
+                  <Text
+                    className="text-center font-semibold"
+                    style={{ color: colors.primary }}
+                  >
+                    🎉 Great job! You're close to your daily goals!
+                  </Text>
+                </View>
+              );
+            }
+
+            return (
+              <View>
+                <Text
+                  className="text-base font-semibold mb-3"
+                  style={{ color: colors.text }}
+                >
+                  💡 Suggested Meals
+                </Text>
+                {suggestions.map((suggestion, idx) => (
+                  <View key={idx} className="mb-3">
+                    <View className="flex-row items-center mb-2">
+                      <Text className="text-base mr-2">{suggestion.icon}</Text>
+                      <Text
+                        className="text-sm font-semibold"
+                        style={{ color: colors.text }}
+                      >
+                        For more {suggestion.type}:
+                      </Text>
+                    </View>
+                    {suggestion.dishes.map((dish, dishIdx) => (
+                      <TouchableOpacity
+                        key={dishIdx}
+                        className="rounded-lg p-3 mb-2"
+                        style={{
+                          backgroundColor: colors.secondary + "20",
+                          borderLeftWidth: 3,
+                          borderLeftColor: suggestion.color,
+                        }}
+                        onPress={() => {
+                          // Create a new FoodLog object for the selected dish
+                          setSelectedFood({
+                            foodName: dish.name,
+                            calories: dish.calories,
+                            protein: dish.protein,
+                            carbs: dish.carbs,
+                            fats: dish.fats,
+                            createdAt: new Date().toISOString(),
+                          });
+                          setServingSize("1");
+                          setShowAddModal(true);
+                        }}
+                      >
+                        <Text
+                          className="font-semibold mb-1"
+                          style={{ color: colors.text }}
+                        >
+                          {dish.name}
+                        </Text>
+                        <Text
+                          className="text-xs"
+                          style={{ color: colors.text + "AA" }}
+                        >
+                          {suggestion.type === "protein" &&
+                            `${dish.protein.toFixed(1)}g protein`}
+                          {suggestion.type === "carbs" &&
+                            `${dish.carbs.toFixed(1)}g carbs`}
+                          {suggestion.type === "fat" &&
+                            `${dish.fats.toFixed(1)}g fat`}
+                          {" • "}
+                          {dish.calories.toFixed(0)} cal
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                ))}
+              </View>
+            );
+          })()}
+
+          {/* Ingredients Section */}
+          {foodLogs.length > 0 && (
+            <View
+              className="mt-4 pt-4"
+              style={{
+                borderTopWidth: 1,
+                borderTopColor: colors.secondary + "30",
+              }}
+            >
+              <Text
+                className="text-base font-semibold mb-3"
+                style={{ color: colors.text }}
+              >
+                🥘 Ingredients for this day
+              </Text>
+              {foodLogs.map((log, index) => (
+                <View key={index} className="mb-3">
+                  <Text
+                    className="font-semibold mb-1"
+                    style={{ color: colors.text }}
+                  >
+                    {log.foodName}
+                  </Text>
+                  <Text
+                    className="text-xs"
+                    style={{ color: colors.text + "AA", lineHeight: 18 }}
+                  >
+                    {dishMacros[log.foodName]
+                      ? Object.keys(dishMacros[log.foodName])
+                          .filter(
+                            (key) =>
+                              key !== "calories" &&
+                              key !== "protein" &&
+                              key !== "carbs" &&
+                              key !== "fat"
+                          )
+                          .slice(0, 5)
+                          .join(", ")
+                      : "Ingredients not available"}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          )}
         </View>
       </ScrollView>
 

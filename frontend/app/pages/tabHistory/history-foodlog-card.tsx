@@ -39,23 +39,32 @@ export default function HistoryFoodLogCard() {
   const router = useRouter();
   const { colors } = useTheme();
   const params = useLocalSearchParams();
-
-  // Always go back to History list
-  const HISTORY_ROUTE = "/pages/history";
-  const goToHistory = () => router.replace(HISTORY_ROUTE);
-
   const [foodLog, setFoodLog] = useState<FoodLogData | null>(null);
   const [loading, setLoading] = useState(true);
   const [editMode, setEditMode] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
+  // Go back to history-detail page
+  const goBack = () => {
+    router.push({
+      pathname: "/pages/tabHistory/history-detail",
+      params: {
+        day: params.day,
+        date: params.date,
+        timestamp: params.timestamp,
+      },
+    });
+  };
+
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
-    // Force a remount of this page (fresh fetch runs again)
     router.replace({
-      pathname: "/pages/tabHistory/history-foodlog-card",
-      params: { ...params, _ts: Date.now().toString() },
+      pathname: "/pages/tabHistory/history-food-log-card",
+      params: { 
+        ...params, 
+        _ts: Date.now().toString() 
+      },
     });
     setRefreshing(false);
   }, [router, params]);
@@ -299,7 +308,7 @@ export default function HistoryFoodLogCard() {
           borderBottomColor: colors.surface,
         }}
       >
-        <TouchableOpacity onPress={goToHistory} className="mr-4">
+        <TouchableOpacity onPress={goBack} className="mr-4">
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={{ color: colors.text, fontSize: 18, fontWeight: "600" }}>
@@ -745,7 +754,7 @@ export default function HistoryFoodLogCard() {
               </>
             ) : (
               <TouchableOpacity
-                onPress={goToHistory}
+                onPress={goBack}
                 style={{
                   flex: 1,
                   backgroundColor: colors.primary,

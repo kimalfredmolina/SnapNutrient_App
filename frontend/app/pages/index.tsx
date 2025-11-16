@@ -99,7 +99,7 @@ const MacroCircle = ({
       </Text>
       {/* Consumed percentage */}
       <Text className="text-xs" style={{ color }}>
-        {Number(value).toFixed(2)}
+        {Number(value).toFixed(1)}
         {unit} ({percentage}%)
       </Text>
     </View>
@@ -255,6 +255,7 @@ export default function HomePage() {
   const [weekDates, setWeekDates] = useState(getWeekDates());
   const [foodLogs, setFoodLogs] = useState<any[]>([]);
   const [streak, setStreak] = useState(0);
+  const [recentFoodLogs, setRecentFoodLogs] = useState<any[]>([]);
 
   // For debugging who's currently authenticated/signin by UID
   useEffect(() => {
@@ -377,6 +378,28 @@ export default function HomePage() {
       });
   };
 
+  useEffect(() => {
+    // Update recentFoodLogs whenever foodLogs changes
+    if (foodLogs && foodLogs.length > 0) {
+      // Sort by createdAt (most recent first) and take only 3
+      const sortedLogs = [...foodLogs]
+        .sort(
+          (a, b) =>
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        )
+        .slice(0, 3)
+        .map((log, index) => ({
+          ...log,
+          logId: log.logId || `log_${index}_${Date.now()}`, // Ensure each has a logId
+        }));
+
+      setRecentFoodLogs(sortedLogs);
+      console.log("Recent food logs updated:", sortedLogs);
+    } else {
+      setRecentFoodLogs([]);
+    }
+  }, [foodLogs]);
+
   // Fetch food logs and calculate streak
   useEffect(() => {
     const userId = auth.currentUser?.uid;
@@ -384,11 +407,28 @@ export default function HomePage() {
 
     const foodLogsRef = ref(db, `foodLogs/${userId}`);
 
+    // Function to process and sort food logs
+    const processLogs = (logs: any) => {
+      if (!logs) return [];
+      return Object.entries(logs)
+        .map(([key, value]: [string, any]) => ({
+          ...value,
+          logId: key,
+          createdAt: value.createdAt || new Date().toISOString(),
+        }))
+        .sort(
+          (a, b) =>
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        )
+        .slice(0, 3); // Only 3 recent food logs will show here
+    };
+
     onValue(foodLogsRef, (snapshot) => {
-      const logs = snapshot.val();
-      if (logs) {
+      const data = snapshot.val();
+      console.log("Food logs from Firebase:", data);
+      if (data) {
         // Convert object to array and sort by date
-        const logsArray = Object.values(logs).sort(
+        const logsArray = Object.values(data).sort(
           (a: any, b: any) =>
             new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
         );
@@ -614,21 +654,50 @@ export default function HomePage() {
           </View>
         </View>
 
-        {/* Recent Scan Foods */}
+        {/* Recent Food Logs */}
         <View className="mb-6">
-          <Text
-            className="text-base font-bold mb-4"
-            style={{ color: colors.text }}
-          >
-            Recent Scan Foods
-          </Text>
-          <FoodItem
-            name="Banana (Latundan)"
-            calories="105 cal (Sweet)"
-            onPress={() => {}}
-          />
-          <FoodItem name="Yogurt" calories="150 cal" onPress={() => {}} />
-          <FoodItem name="Honey" calories="64 cal (Sweet)" onPress={() => {}} />
+          <View className="flex-row justify-between items-center mb-4">
+            <Text
+              className="text-base font-bold"
+              style={{ color: colors.text }}
+            >
+              Recent Food Logs (
+              {foodLogs.length > 0
+                ? `${Math.min(foodLogs.length, 3)} items`
+                : "No logs"}
+              )
+            </Text>
+            <TouchableOpacity onPress={() => router.push("/pages/history")}>
+              <Text style={{ color: colors.primary }}>View All</Text>
+            </TouchableOpacity>
+          </View>
+
+          {recentFoodLogs.length === 0 ? (
+            <Text
+              className="text-center text-sm"
+              style={{ color: colors.text + "99" }}
+            >
+              No recent food logs
+            </Text>
+          ) : (
+            recentFoodLogs.map((food, index) => (
+              <FoodItem
+                key={food.logId || index}
+                name={food.foodName}
+                calories={`${food.calories} cal`}
+                onPress={() => {
+                  // Navigate to history detail with this log
+                  router.push({
+                    pathname: "/pages/tabHistory/history-detail",
+                    params: {
+                      logs: JSON.stringify([food]),
+                      date: new Date(food.createdAt).toISOString(),
+                    },
+                  });
+                }}
+              />
+            ))
+          )}
         </View>
 
         {/* Today's Nutrition */}
