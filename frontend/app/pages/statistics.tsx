@@ -511,6 +511,7 @@ export default function Statistics() {
               }}
             >
               <Calendar
+                key={isDark ? 'dark-calendar' : 'light-calendar'}
                 onDayPress={(day) => setSelectedDate(day.dateString)}
                 markedDates={markedDates}
                 markingType="custom"

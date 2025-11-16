@@ -55,7 +55,7 @@ export default function Settings() {
               className="ml-4 text-base flex-1"
               style={{ color: colors.text }}
             >
-              Edit Profile
+              View Profile
             </Text>
             <Ionicons
               name="chevron-forward"

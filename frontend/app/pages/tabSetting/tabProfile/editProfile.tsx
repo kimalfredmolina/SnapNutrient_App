@@ -6,7 +6,6 @@ import {
   ScrollView,
   TextInput,
   Image,
-  Alert,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -16,15 +15,13 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { getDatabase, ref, onValue, off } from "firebase/database";
 import { auth } from "../../../../config/firebase";
 
-export default function EditProfile() {
+export default function ViewProfile() {
   const router = useRouter();
   const { colors } = useTheme();
   const { user } = useAuth();
 
   const [name, setName] = useState(user?.name ?? "");
   const [email, setEmail] = useState(user?.email ?? "");
-  const [phone] = useState("");
-  const [bio] = useState("Health enthusiast and nutrition tracker");
 
   // Health info (fetched from Firebase)
   const [height, setHeight] = useState("");
@@ -87,22 +84,6 @@ export default function EditProfile() {
     };
   }, [user]);
 
-  const handleSave = () => {
-    Alert.alert(
-      "Profile Updated",
-      "Your profile has been successfully updated!",
-      [{ text: "OK", onPress: () => router.back() }]
-    );
-  };
-
-  const handleChangePhoto = () => {
-    Alert.alert("Change Photo", "Choose an option", [
-      { text: "Camera", onPress: () => console.log("Camera selected") },
-      { text: "Gallery", onPress: () => console.log("Gallery selected") },
-      { text: "Cancel", style: "cancel" },
-    ]);
-  };
-
   return (
     <SafeAreaView
       style={{
@@ -128,16 +109,8 @@ export default function EditProfile() {
           className="text-xl font-bold flex-1"
           style={{ color: colors.text }}
         >
-          Edit Profile
+          Profile
         </Text>
-        <TouchableOpacity onPress={handleSave}>
-          <Text
-            className="text-base font-semibold"
-            style={{ color: colors.primary }}
-          >
-            Save
-          </Text>
-        </TouchableOpacity>
       </View>
 
       <ScrollView
@@ -146,32 +119,15 @@ export default function EditProfile() {
       >
         {/* Profile Photo */}
         <View className="items-center mb-8">
-          <View className="relative">
-            <Image
-              source={
-                user?.photoURL
-                  ? { uri: user.photoURL }
-                  : require("../../../../assets/images/icon.png")
-              }
-              className="w-24 h-24 rounded-full"
-              style={{ borderWidth: 3, borderColor: colors.primary }}
-            />
-            <TouchableOpacity
-              onPress={handleChangePhoto}
-              className="absolute -bottom-2 -right-2 w-8 h-8 rounded-full items-center justify-center"
-              style={{ backgroundColor: colors.primary }}
-            >
-              <Ionicons name="camera" size={16} color="white" />
-            </TouchableOpacity>
-          </View>
-          <TouchableOpacity onPress={handleChangePhoto} className="mt-3">
-            <Text
-              className="text-base font-medium"
-              style={{ color: colors.primary }}
-            >
-              Change Photo
-            </Text>
-          </TouchableOpacity>
+          <Image
+            source={
+              user?.photoURL
+                ? { uri: user.photoURL }
+                : require("../../../../assets/images/icon.png")
+            }
+            className="w-24 h-24 rounded-full"
+            style={{ borderWidth: 3, borderColor: colors.primary }}
+          />
         </View>
 
         {/* Personal Information */}

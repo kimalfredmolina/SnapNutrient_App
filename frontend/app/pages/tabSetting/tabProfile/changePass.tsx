@@ -4,6 +4,12 @@ import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../../../../contexts/ThemeContext";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { auth } from "../../../../config/firebase";
+import { 
+  updatePassword, 
+  reauthenticateWithCredential, 
+  EmailAuthProvider 
+} from "firebase/auth";
 
 const PasswordInput = memo(
   ({
@@ -29,7 +35,6 @@ const PasswordInput = memo(
       </Text>
       <View className="relative">
         <TextInput
-          key={showPassword ? "text" : "password"} 
           value={value}
           onChangeText={onChangeText}
           placeholder={placeholder}
@@ -42,7 +47,11 @@ const PasswordInput = memo(
             color: colors.text,
           }}
         />
-        <TouchableOpacity onPress={toggleShowPassword} className="absolute right-4 top-3">
+        <TouchableOpacity 
+          onPress={toggleShowPassword} 
+          className="absolute right-4 top-3"
+          activeOpacity={0.7}
+        >
           <Ionicons name={showPassword ? "eye-off" : "eye"} size={20} color={colors.text + "80"} />
         </TouchableOpacity>
       </View>
@@ -60,6 +69,7 @@ export default function ChangePassword() {
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const hasMinLength = newPassword.length >= 8;
   const hasUppercase = /[A-Z]/.test(newPassword);
@@ -67,7 +77,7 @@ export default function ChangePassword() {
   const hasNumber = /\d/.test(newPassword);
   const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(newPassword);
 
-  const handleChangePassword = () => {
+  const handleChangePassword = async () => {
     if (!currentPassword || !newPassword || !confirmPassword) {
       Alert.alert("Error", "Please fill in all fields");
       return;
@@ -83,9 +93,54 @@ export default function ChangePassword() {
       return;
     }
 
-    Alert.alert("Password Changed", "Your password has been successfully updated!", [
-      { text: "OK", onPress: () => router.push("..\\settings") },
-    ]);
+    setIsLoading(true);
+
+    try {
+      const user = auth.currentUser;
+      
+      if (!user || !user.email) {
+        Alert.alert("Error", "No user is currently signed in");
+        setIsLoading(false);
+        return;
+      }
+
+      // Create credential with current password
+      const credential = EmailAuthProvider.credential(
+        user.email,
+        currentPassword
+      );
+
+      // Reauthenticate user
+      await reauthenticateWithCredential(user, credential);
+
+      // Update password
+      await updatePassword(user, newPassword);
+
+      Alert.alert(
+        "Password Changed",
+        "Your password has been successfully updated!",
+        [{ text: "OK", onPress: () => router.push("..\\settings") }]
+      );
+    } catch (error: any) {
+      let errorMessage = "Failed to change password.";
+      
+      if (error.code === "auth/wrong-password") {
+        errorMessage = "Current password is incorrect.";
+      } else if (error.code === "auth/weak-password") {
+        errorMessage = "The new password is too weak.";
+      } else if (error.code === "auth/requires-recent-login") {
+        errorMessage = "Please sign out and sign in again before changing your password.";
+      } else if (error.code === "auth/invalid-credential") {
+        errorMessage = "Current password is incorrect.";
+      } else if (error.code === "auth/too-many-requests") {
+        errorMessage = "Too many failed attempts. Please try again later.";
+      }
+      
+      Alert.alert("Error", errorMessage);
+      console.error("Password change error:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -185,15 +240,23 @@ export default function ChangePassword() {
           onPress={handleChangePassword}
           className="rounded-lg py-4 mb-4"
           style={{
-            backgroundColor: currentPassword && newPassword && confirmPassword ? colors.primary : colors.text + "40",
+            backgroundColor: 
+              currentPassword && newPassword && confirmPassword && !isLoading
+                ? colors.primary 
+                : colors.text + "40",
           }}
-          disabled={!currentPassword || !newPassword || !confirmPassword}
+          disabled={!currentPassword || !newPassword || !confirmPassword || isLoading}
         >
-          <Text className="text-center text-lg font-semibold text-white">Change Password</Text>
+          <Text className="text-center text-lg font-semibold text-white">
+            {isLoading ? "Changing Password..." : "Change Password"}
+          </Text>
         </TouchableOpacity>
 
         {/* Forgot Password */}
-        <TouchableOpacity className="items-center py-4">
+        <TouchableOpacity 
+          className="items-center py-4"
+          onPress={() => router.push("/(auth)/forgotpassword")}
+        >
           <Text className="text-base" style={{ color: colors.primary }}>
             Forgot your current password?
           </Text>
