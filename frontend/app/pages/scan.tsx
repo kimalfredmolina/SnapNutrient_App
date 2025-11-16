@@ -21,6 +21,7 @@ import CONFIG from "../../server";
 // import { dishMacros } from "../macros/dish-level-macros";
 import { computeDishMacros } from "../macros/compute_dish";
 import { logFoodForUser } from "../macros/foodLogs";
+import { computeRecommendations } from "../macros/compute_reccomend";
 import { getAuth } from "firebase/auth";
 import { useFocusEffect } from "@react-navigation/native";
 import Svg, { Circle } from "react-native-svg";
@@ -236,130 +237,10 @@ export default function Scan() {
     };
   }, []);
 
-  // Calculate smart recommendations for all 3 macros
-  const getRecommendations = () => {
-    if (!macros || weight === 0) return null;
-
-    // IMPORTANT: macros are for TOTAL weight, convert to per 100g
-    const macrosPer100g = {
-      calories: (macros.calories / weight) * 100,
-      protein: (macros.protein / weight) * 100,
-      carbs: (macros.carbs / weight) * 100,
-      fats: (macros.fats / weight) * 100,
-    };
-
-    // Calculate remaining goals for today
-    const remaining = {
-      calories: Math.max(0, macroGoals.calories - dailyConsumed.calories),
-      protein: Math.max(0, macroGoals.protein - dailyConsumed.protein),
-      fat: Math.max(0, macroGoals.fat - dailyConsumed.fat),
-      carbs: Math.max(0, macroGoals.carbs - dailyConsumed.carbs),
-    };
-
-    // Calculate what CURRENT portion provides
-    const currentPortionProvides = {
-      protein: macros.protein,
-      carbs: macros.carbs,
-      fats: macros.fats,
-    };
-
-    // Calculate TOTAL grams of THIS food needed to fill REMAINING gap
-    const totalGramsToFillGap = {
-      protein:
-        macrosPer100g.protein > 0 && remaining.protein > 0
-          ? (remaining.protein / macrosPer100g.protein) * 100
-          : 0,
-      carbs:
-        macrosPer100g.carbs > 0 && remaining.carbs > 0
-          ? (remaining.carbs / macrosPer100g.carbs) * 100
-          : 0,
-      fat:
-        macrosPer100g.fats > 0 && remaining.fat > 0
-          ? (remaining.fat / macrosPer100g.fats) * 100
-          : 0,
-    };
-
-    // Calculate additional grams needed (total to fill gap - current weight)
-    const additionalGrams = {
-      protein: Math.max(0, totalGramsToFillGap.protein - weight),
-      carbs: Math.max(0, totalGramsToFillGap.carbs - weight),
-      fat: Math.max(0, totalGramsToFillGap.fat - weight),
-    };
-
-    // Determine dominant macro (highest percentage)
-    const total =
-      macrosPer100g.protein + macrosPer100g.carbs + macrosPer100g.fats;
-    const percentages = {
-      protein: (macrosPer100g.protein / total) * 100,
-      carbs: (macrosPer100g.carbs / total) * 100,
-      fat: (macrosPer100g.fats / total) * 100,
-    };
-
-    let dominant: "protein" | "carbs" | "fat" = "protein";
-    let maxPercent = percentages.protein;
-
-    if (percentages.carbs > maxPercent) {
-      dominant = "carbs";
-      maxPercent = percentages.carbs;
-    }
-    if (percentages.fat > maxPercent) {
-      dominant = "fat";
-      maxPercent = percentages.fat;
-    }
-
-    // Helper to determine if recommendation is realistic
-    const getRecommendationStatus = (grams: number) => {
-      if (grams === 0) return "met";
-      if (grams <= 500) return "realistic";
-      if (grams <= 1000) return "high";
-      return "unrealistic";
-    };
-
-    // Debug logging
-    console.log("=== RECOMMENDATION DEBUG ===");
-    console.log("Current weight:", weight);
-    console.log("Macros (total for current weight):", macros);
-    console.log("Macros per 100g:", macrosPer100g);
-    console.log("Remaining goals:", remaining);
-    console.log("Current portion provides:", currentPortionProvides);
-    console.log("Total grams to fill gap:", totalGramsToFillGap);
-    console.log("Additional needed:", additionalGrams);
-    console.log("============================");
-
-    return {
-      protein: {
-        remaining: remaining.protein,
-        totalNeeded: Math.round(totalGramsToFillGap.protein),
-        additionalNeeded: Math.round(additionalGrams.protein),
-        isDominant: dominant === "protein",
-        goalMet:
-          remaining.protein === 0 ||
-          currentPortionProvides.protein >= remaining.protein,
-        status: getRecommendationStatus(totalGramsToFillGap.protein),
-      },
-      carbs: {
-        remaining: remaining.carbs,
-        totalNeeded: Math.round(totalGramsToFillGap.carbs),
-        additionalNeeded: Math.round(additionalGrams.carbs),
-        isDominant: dominant === "carbs",
-        goalMet:
-          remaining.carbs === 0 ||
-          currentPortionProvides.carbs >= remaining.carbs,
-        status: getRecommendationStatus(totalGramsToFillGap.carbs),
-      },
-      fat: {
-        remaining: remaining.fat,
-        totalNeeded: Math.round(totalGramsToFillGap.fat),
-        additionalNeeded: Math.round(additionalGrams.fat),
-        isDominant: dominant === "fat",
-        goalMet:
-          remaining.fat === 0 || currentPortionProvides.fats >= remaining.fat,
-        status: getRecommendationStatus(totalGramsToFillGap.fat),
-      },
-    };
-  };
-
-  const recommendations = getRecommendations();
+  // Calculate smart recommendations using the compute_reccomend module
+  const recommendations = macros
+    ? computeRecommendations(macros, weight, macroGoals, dailyConsumed)
+    : null;
 
   const takePhoto = async () => {
     if (cameraRef.current) {

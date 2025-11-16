@@ -28,7 +28,6 @@ export async function computeDishMacros(
 
       if (!macros) {
         // Only fetch from Firestore if not cached
-        console.log(`📥 Fetching ingredient from Firestore: ${ingredientName}`);
         const ingDoc = await getDoc(
           doc(FIRESTORE_DB, "ingredients", ingredientName)
         );
@@ -44,9 +43,7 @@ export async function computeDishMacros(
 
         // ✅ Store in cache for future use
         ingredientCache.set(ingredientName, macros);
-        console.log(`💾 Cached: ${ingredientName}`);
       } else {
-        console.log(`⚡ Using cached data for: ${ingredientName}`);
       }
 
       // Add to totals (macros per gram × weight in grams)
