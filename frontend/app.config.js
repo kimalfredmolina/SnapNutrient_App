@@ -1,9 +1,9 @@
 module.exports = {
   expo: {
-    name: "SnapNutrient",
+    name: "Snap Nutrient",
     slug: "snapnutrient",
-    icon: "./assets/images/logo_transparent.png",
-    version: "1.0.0",
+    icon: "./assets/images/snap_logo_foreground.png",
+    version: "1.1.2",
     userInterfaceStyle: "automatic",
     android: {
       package: "com.snapnutrient.app",
@@ -16,7 +16,7 @@ module.exports = {
         "android.permission.WRITE_EXTERNAL_STORAGE",
       ],
       adaptiveIcon: {
-        foregroundImage: "./assets/images/logo_whitebg.jpg",
+        foregroundImage: "./assets/images/snap_logo_foreground.png",
         backgroundColor: "#ffffff",
       },
     },
