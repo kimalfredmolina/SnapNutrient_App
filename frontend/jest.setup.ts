@@ -4,12 +4,88 @@ import '@testing-library/jest-native/extend-expect';
 // Set EXPO_OS environment variable
 process.env.EXPO_OS = 'web';
 
+// ✅ Mock Firebase BEFORE anything else
+jest.mock('./config/firebase', () => {
+  const mockUnsubscribe = jest.fn();
+  return {
+    auth: {
+      signOut: jest.fn(() => Promise.resolve()),
+      onAuthStateChanged: jest.fn((callback) => {
+        callback({ uid: 'test-user', email: 'test@example.com' });
+        return mockUnsubscribe;
+      }),
+    },
+    db: {},
+    FIRESTORE_DB: {},
+  };
+});
+
+jest.mock('firebase/app', () => ({
+  initializeApp: jest.fn(),
+  getApp: jest.fn(),
+}));
+
+jest.mock('firebase/auth', () => {
+  const mockUnsubscribe = jest.fn();
+  return {
+    getAuth: jest.fn(() => ({
+      signOut: jest.fn(() => Promise.resolve()),
+      onAuthStateChanged: jest.fn((callback) => {
+        callback({ uid: 'test-user', email: 'test@example.com' });
+        return mockUnsubscribe;
+      }),
+    })),
+    signOut: jest.fn(() => Promise.resolve()),
+    onAuthStateChanged: jest.fn((callback) => {
+      callback({ uid: 'test-user', email: 'test@example.com' });
+      return mockUnsubscribe;
+    }),
+  };
+});
+
+jest.mock('firebase/database', () => {
+  const mockRef = {
+    off: jest.fn(),
+    on: jest.fn(),
+  };
+
+  const mockSnapshot = {
+    val: jest.fn(() => ({})),
+    exists: jest.fn(() => false),
+  };
+
+  return {
+    getDatabase: jest.fn(() => ({})),
+    ref: jest.fn(() => mockRef),
+    set: jest.fn(),
+    get: jest.fn(() => Promise.resolve({ val: () => ({}) })),
+    child: jest.fn(() => mockRef),
+    push: jest.fn(),
+    onValue: jest.fn((_, callback) => {
+      callback(mockSnapshot);
+      return jest.fn();
+    }),
+    query: jest.fn(),
+    orderByChild: jest.fn(),
+    off: jest.fn(),
+    startAt: jest.fn(),
+    endAt: jest.fn(),
+  };
+});
+
+jest.mock('firebase/firestore', () => ({
+  getFirestore: jest.fn(() => ({})),
+  collection: jest.fn(),
+  getDocs: jest.fn(),
+}));
+
 // ✅ Mock AsyncStorage
 jest.mock('@react-native-async-storage/async-storage', () => ({
   setItem: jest.fn(),
   getItem: jest.fn(),
   removeItem: jest.fn(),
   clear: jest.fn(),
+  multiSet: jest.fn(),
 }));
 
 // ✅ Mock Reanimated (avoid Babel plugin warnings)
@@ -32,37 +108,6 @@ jest.mock('expo-auth-session', () => ({
   startAsync: jest.fn(() => Promise.resolve({ type: 'success' })),
 }));
 
-// ✅ Mock Firebase (optional, prevents real Firebase calls during tests)
-jest.mock('firebase/app', () => ({
-  initializeApp: jest.fn(),
-}));
-jest.mock('firebase/auth', () => ({
-  getAuth: jest.fn(),
-}));
-jest.mock('firebase/database', () => {
-  const mockRef = {
-    off: jest.fn(),
-    on: jest.fn(),
-  };
-
-  return {
-    getDatabase: jest.fn(),
-    ref: jest.fn(() => mockRef),
-    set: jest.fn(),
-    get: jest.fn(() => Promise.resolve({ val: () => ({}) })),
-    child: jest.fn(() => mockRef),
-    push: jest.fn(),
-    onValue: jest.fn((_, callback) => {
-      callback({ val: () => ({}) });
-      return jest.fn();
-    }),
-    query: jest.fn(),
-    orderByChild: jest.fn(),
-    off: jest.fn(),
-    startAt: jest.fn(),
-    endAt: jest.fn(),
-  };
-});
 jest.mock('expo-auth-session/providers/google', () => ({
   useAuthRequest: jest.fn(() => [
     {}, // mock request
@@ -70,6 +115,3 @@ jest.mock('expo-auth-session/providers/google', () => ({
     jest.fn(), // mock promptAsync
   ]),
 }));
-
-
-
