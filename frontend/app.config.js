@@ -3,7 +3,7 @@ module.exports = {
     name: "Snap Nutrient",
     slug: "snapnutrient",
     icon: "./assets/images/snap_logo_foreground.png",
-    version: "1.1.2",
+    version: "1.1.3",
     userInterfaceStyle: "automatic",
     android: {
       package: "com.snapnutrient.app",
