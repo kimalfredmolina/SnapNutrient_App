@@ -3,6 +3,7 @@ import { getDatabase, ref, set, push } from "firebase/database";
 export type FoodLog = {
   foodName: string;
   weight: number;
+  weightUnit: "g" | "kg" | "lb" | "oz";
   carbs: number;
   protein: number;
   fats: number;

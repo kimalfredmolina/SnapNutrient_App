@@ -11,11 +11,17 @@
     "ios": { "supportsTablet": true },
     "android": { "edgeToEdgeEnabled": true },
     "web": { "bundler": "metro", "output": "static" },
-    "splash": {
-      "backgroundColor": "#239927"
-    },
+    "splash": { "backgroundColor": "#239927" },
     "plugins": [
-      "expo-router"
+      "expo-router",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "useCleartextTraffic": true
+          }
+        }
+      ]
     ],
     "experiments": { "typedRoutes": true }
   }

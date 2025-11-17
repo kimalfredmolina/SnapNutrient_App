@@ -116,6 +116,18 @@ export default function Scan() {
     Record<string, number>
   >({});
   const [weight, setweight] = useState<number>(100);
+  const [weightUnit, setWeightUnit] = useState<"g" | "kg" | "lb" | "oz">("g");
+
+  // Conversion factors to grams
+  const unitToGrams = {
+    g: 1,
+    kg: 1000,
+    lb: 453.592,
+    oz: 28.3495,
+  };
+
+  // Convert input weight to grams for calculations
+  const getWeightInGrams = () => weight * unitToGrams[weightUnit];
   const detected = predictions.length > 0 ? predictions[0].class : null;
 
   // Track the base ingredient weights from dishMacros
@@ -239,7 +251,12 @@ export default function Scan() {
 
   // Calculate smart recommendations using the compute_reccomend module
   const recommendations = macros
-    ? computeRecommendations(macros, weight, macroGoals, dailyConsumed)
+    ? computeRecommendations(
+        macros,
+        getWeightInGrams(),
+        macroGoals,
+        dailyConsumed
+      )
     : null;
 
   const takePhoto = async () => {
@@ -248,18 +265,9 @@ export default function Scan() {
         const photo = await cameraRef.current.takePictureAsync({
           quality: 0.8,
         });
-
-        // if (photo) {
-        //   setCapturedPhoto(photo.uri);
-        //   console.log("Photo taken:", photo.uri);
-
-        //   Alert.alert("Photo Captured!", "Photo taken successfully.", [
-        //     { text: "Take Another", onPress: () => setCapturedPhoto(null) },
-        //     { text: "OK" },
-        //   ]);
-        // }
         if (photo) {
           setCapturedPhoto(photo.uri);
+          setWeightUnit("g"); // Reset to grams on new scan
           console.log("Photo taken:", photo.uri);
           setState("preview");
         }
@@ -286,30 +294,55 @@ export default function Scan() {
   // }, [detected]);
 
   // When Weight changes, scale all ingredients proportionally (min 1g unless Weight=0)
-  const handleWeightChange = (newWeight: number) => {
+  const handleWeightChange = (
+    newWeight: number,
+    newUnit?: "g" | "kg" | "lb" | "oz"
+  ) => {
+    if (newUnit && newUnit !== weightUnit) {
+      // Convert current weight to grams, then to new unit
+      const weightInGrams = weight * unitToGrams[weightUnit];
+      const convertedWeight = weightInGrams / unitToGrams[newUnit];
+      setWeightUnit(newUnit);
+      setweight(Number(convertedWeight.toFixed(3)));
+      // Also update ingredients scaling based on new grams
+      if (!detected || Object.keys(baseIngredients).length === 0) return;
+      const baseTotal = Object.values(baseIngredients).reduce(
+        (s, g) => s + g,
+        0
+      );
+      if (baseTotal === 0) return;
+      const newWeightGrams = weightInGrams; // keep total grams the same
+      const scaleFactor = newWeightGrams / baseTotal;
+      const scaled: Record<string, number> = {};
+      Object.entries(baseIngredients).forEach(([ing, baseGrams]) => {
+        let newVal = baseGrams * scaleFactor;
+        if (newWeightGrams === 0) {
+          newVal = 0;
+        } else if (newVal < 1 && newVal > 0) {
+          newVal = 1;
+        }
+        scaled[ing] = Math.round(newVal * 10) / 10;
+      });
+      setEditedIngredients(scaled);
+      return;
+    }
     setweight(newWeight);
-
     if (!detected || Object.keys(baseIngredients).length === 0) return;
-
     const baseTotal = Object.values(baseIngredients).reduce((s, g) => s + g, 0);
     if (baseTotal === 0) return;
-
-    const scaleFactor = newWeight / baseTotal;
-
+    // Always convert to grams for scaling
+    const newWeightGrams = newWeight * unitToGrams[newUnit || weightUnit];
+    const scaleFactor = newWeightGrams / baseTotal;
     const scaled: Record<string, number> = {};
     Object.entries(baseIngredients).forEach(([ing, baseGrams]) => {
       let newVal = baseGrams * scaleFactor;
-
-      // Min 1g unless Weight=0
-      if (newWeight === 0) {
+      if (newWeightGrams === 0) {
         newVal = 0;
       } else if (newVal < 1 && newVal > 0) {
         newVal = 1;
       }
-
-      scaled[ing] = Math.round(newVal * 10) / 10; // 1 decimal
+      scaled[ing] = Math.round(newVal * 10) / 10;
     });
-
     setEditedIngredients(scaled);
   };
 
@@ -347,6 +380,7 @@ export default function Scan() {
 
     if (!result.canceled) {
       setCapturedPhoto(result.assets[0].uri);
+      setWeightUnit("g"); // Reset to grams on new scan
       setState("preview"); // <-- important!
     }
   };
@@ -396,15 +430,14 @@ export default function Scan() {
 
       if (data.predictions?.length > 0) {
         setPredictions(data.predictions);
-
+        setWeightUnit("g"); // Reset to grams after AI processing
         const className = data.predictions[0].class;
-
         // Fetch dish data from Firestore
         await fetchDishFromFirestore(className);
-
         setState("result");
       } else {
         setPredictions([]); // no results
+        setWeightUnit("g"); // Reset to grams even if no results
         setState("result");
       }
     } catch (error) {
@@ -443,28 +476,6 @@ export default function Scan() {
 
     try {
       const name = predictions[0]?.class || "Unknown";
-
-      // If this is a known dish, persist base ingredient grams with user edits applied.
-      // Do NOT scale by Weight here to avoid double-scaling in History.
-      // const isDish = !!dishMacros[name as keyof typeof dishMacros];
-      // const ingredientPayload =
-      //   isDish && dishMacros[name as keyof typeof dishMacros]
-      //     ? Object.entries(
-      //         dishMacros[name as keyof typeof dishMacros] as Record<
-      //           string,
-      //           number
-      //         >
-      //       ).reduce(
-      //         (acc, [ing, defaultGrams]) => {
-      //           acc[ing] =
-      //             editedIngredients[ing] !== undefined
-      //               ? editedIngredients[ing]
-      //               : defaultGrams;
-      //           return acc;
-      //         },
-      //         {} as Record<string, number>
-      //       )
-      //     : undefined;
       // Use edited ingredients if available (user may have adjusted them)
       const ingredientPayload =
         Object.keys(editedIngredients).length > 0
@@ -474,6 +485,7 @@ export default function Scan() {
       await logFoodForUser(user.uid, {
         foodName: name,
         weight,
+        weightUnit, // Store the unit (g, kg, lb, oz)
         carbs: macros.carbs,
         protein: macros.protein,
         fats: macros.fats,
@@ -1321,25 +1333,61 @@ export default function Scan() {
               )}
 
               <Text
-                style={{ color: colors.text, fontSize: 16, marginBottom: 12 }}
+                style={{ color: colors.text, fontSize: 16, marginBottom: 8 }}
               >
-                Weight (grams):
+                Weight:
               </Text>
-              <TextInput
-                value={String(weight)}
-                onChangeText={(text) =>
-                  handleWeightChange(Math.max(0, Number(text) || 0))
-                }
-                keyboardType="numeric"
+              <View
                 style={{
-                  borderWidth: 1,
-                  borderColor: colors.primary,
-                  borderRadius: 8,
-                  padding: 8,
-                  color: colors.text,
+                  flexDirection: "row",
+                  alignItems: "center",
                   marginBottom: 20,
                 }}
-              />
+              >
+                <TextInput
+                  value={String(weight)}
+                  onChangeText={(text) =>
+                    handleWeightChange(Math.max(0, Number(text) || 0))
+                  }
+                  keyboardType="numeric"
+                  style={{
+                    borderWidth: 1,
+                    borderColor: colors.primary,
+                    borderRadius: 8,
+                    padding: 8,
+                    color: colors.text,
+                    width: 100,
+                    marginRight: 8,
+                  }}
+                />
+                <View style={{ flexDirection: "row" }}>
+                  {(["g", "kg", "lb", "oz"] as const).map((unit) => (
+                    <TouchableOpacity
+                      key={unit}
+                      onPress={() => handleWeightChange(weight, unit)}
+                      style={{
+                        backgroundColor:
+                          weightUnit === unit ? colors.primary : colors.surface,
+                        borderColor: colors.primary,
+                        borderWidth: 1,
+                        borderRadius: 6,
+                        paddingVertical: 6,
+                        paddingHorizontal: 10,
+                        marginRight: 4,
+                      }}
+                    >
+                      <Text
+                        style={{
+                          color: weightUnit === unit ? "white" : colors.text,
+                          fontWeight: "bold",
+                        }}
+                      >
+                        {unit}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
 
               <View style={{ flexDirection: "row", gap: 12 }}>
                 <TouchableOpacity

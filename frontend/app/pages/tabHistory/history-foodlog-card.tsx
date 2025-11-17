@@ -30,6 +30,7 @@ interface FoodLogData {
   carbs: number;
   foodName: string;
   weight: number;
+  weightUnit?: "g" | "kg" | "lb" | "oz";
   createdAt: string;
   ingredients?: { [key: string]: number };
   logId: string;
@@ -61,9 +62,9 @@ export default function HistoryFoodLogCard() {
     setRefreshing(true);
     router.replace({
       pathname: "/pages/tabHistory/history-food-log-card",
-      params: { 
-        ...params, 
-        _ts: Date.now().toString() 
+      params: {
+        ...params,
+        _ts: Date.now().toString(),
       },
     });
     setRefreshing(false);
@@ -594,7 +595,7 @@ export default function HistoryFoodLogCard() {
 
           {/* Weight Input */}
           <Text style={{ color: colors.text, fontSize: 16, marginBottom: 12 }}>
-            Weight (grams):
+            Weight{foodLog.weightUnit ? ` (${foodLog.weightUnit})` : ""}:
           </Text>
           <TextInput
             value={String(weight)}
