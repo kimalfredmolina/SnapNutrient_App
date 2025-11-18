@@ -16,6 +16,7 @@ import { useTheme } from "../../contexts/ThemeContext";
 import { Redirect, router } from "expo-router";
 import { useAuth } from "../../contexts/AuthContext";
 import MacroCalculatorModal from "./tabIndex/MacroCalculatorModal";
+import MacroGoalAchievementModal from "./tabIndex/MacroGoalAchievmentModal";
 import { MacroGoals } from "../../types/macros";
 import { db, auth } from "../../config/firebase";
 import { ref, onValue, off, set } from "firebase/database";
@@ -256,6 +257,7 @@ export default function HomePage() {
   const [foodLogs, setFoodLogs] = useState<any[]>([]);
   const [streak, setStreak] = useState(0);
   const [recentFoodLogs, setRecentFoodLogs] = useState<any[]>([]);
+  const [showAchievementModal, setShowAchievementModal] = useState(false);
 
   // For debugging who's currently authenticated/signin by UID
   useEffect(() => {
@@ -283,6 +285,39 @@ export default function HomePage() {
       off(macroRef);
     };
   }, []);
+
+  // Check for macro achievements every time daily macros update
+  useEffect(() => {
+    const checkAndShowModal = () => {
+      const userId = auth.currentUser?.uid;
+      // Only show if user has set macro goals (calories > 0)
+      if (!userId || macroGoals.calories === 0) return;
+
+      // Check if any macros are achieved
+      const achievements = {
+        calories:
+          dailyMacros.consumedCalories >= macroGoals.calories &&
+          macroGoals.calories > 0,
+        protein:
+          dailyMacros.consumedProtein >= macroGoals.protein &&
+          macroGoals.protein > 0,
+        carbs:
+          dailyMacros.consumedCarbs >= macroGoals.carbs &&
+          macroGoals.carbs > 0,
+        fat: dailyMacros.consumedFat >= macroGoals.fat && macroGoals.fat > 0,
+      };
+
+      const hasAnyAchievement = Object.values(achievements).some(Boolean);
+
+      if (hasAnyAchievement) {
+        setTimeout(() => {
+          setShowAchievementModal(true);
+        }, 500);
+      }
+    };
+
+    checkAndShowModal();
+  }, [dailyMacros, macroGoals]);
 
   // Fetch today's consumed macros and set up midnight reset
   useEffect(() => {
@@ -739,6 +774,25 @@ export default function HomePage() {
         onClose={() => setIsModalVisible(false)}
         onSave={handleSaveMacros}
         currentMacros={macroGoals}
+      />
+
+      {/* For Daily Macro Goal Achievement Modal Function */}
+      <MacroGoalAchievementModal
+        visible={showAchievementModal}
+        onClose={() => setShowAchievementModal(false)}
+        achievedMacros={{
+          calories:
+            dailyMacros.consumedCalories >= macroGoals.calories &&
+            macroGoals.calories > 0,
+          protein:
+            dailyMacros.consumedProtein >= macroGoals.protein &&
+            macroGoals.protein > 0,
+          carbs:
+            dailyMacros.consumedCarbs >= macroGoals.carbs &&
+            macroGoals.carbs > 0,
+          fat: dailyMacros.consumedFat >= macroGoals.fat && macroGoals.fat > 0,
+        }}
+        colors={colors}
       />
     </SafeAreaView>
   );
