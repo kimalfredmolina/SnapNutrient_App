@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CLIENT_ID</key>
+	<string>439145963067-0je9si4vqsb650b05o8ueeprbdqt55u8.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.439145963067-0je9si4vqsb650b05o8ueeprbdqt55u8</string>
+	<key>ANDROID_CLIENT_ID</key>
+	<string>439145963067-lfb1tu6stn822328vogsje6rat2m6l56.apps.googleusercontent.com</string>
+	<key>API_KEY</key>
+	<string>AIzaSyAlvbJCWBxnWQioq1BllARZPKHTM37_zcw</string>
+	<key>GCM_SENDER_ID</key>
+	<string>439145963067</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.yourcompany.snapnutrient</string>
+	<key>PROJECT_ID</key>
+	<string>snap-nutrient-app</string>
+	<key>STORAGE_BUCKET</key>
+	<string>snap-nutrient-app.firebasestorage.app</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:439145963067:ios:8061d70152fe5245d1861e</string>
+	<key>DATABASE_URL</key>
+	<string>https://snap-nutrient-app-default-rtdb.asia-southeast1.firebasedatabase.app</string>
+</dict>
+</plist>
