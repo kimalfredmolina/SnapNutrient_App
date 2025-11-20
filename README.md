@@ -1,4 +1,4 @@
-# SnapNutrient Version 1.0.0
+# SnapNutrient Version 1.1.4
 
 In today’s fast-paced world, it has become more and more difficult to eat a balanced and nutritious diet. Most people find it difficult to accurately determine the nutritional value of their food and consequently end up with unintentional dietary imbalances that impact general health and well-being. The increasing prevalence of lifestyle diseases like obesity, diabetes, and cardiovascular diseases further highlights the necessity for user-friendly tools that can help make effective dietary choices.
 
@@ -7,6 +7,11 @@ SnapNutrient is an intelligent mobile application developed to address this grow
 The application not only provides accurate data on macronutrients like proteins, carbohydrates, and fats but also integrates seamlessly with health trackers to offer personalized recommendations. Although tailored mainly for Filipino foods, SnapNutrient also accommodates international dishes, hence proving to be versatile for individuals with different dietary cultures and preferences.
 
 This study highlights the development and implementation of SnapNutrient, focusing on the integration of YOLOv8 for food recognition, the design of its user-friendly interface, and its potential impact on promoting healthier dietary habits. By leveraging artificial intelligence, the project aims to contribute to global health efforts, enabling individuals to take proactive control of their nutritional intake and overall well-being.
+
+<div align="center">
+  <img src="https://github.com/user-attachments/assets/3a27deed-1200-4be8-a610-2675ab5dba69" width="300" />
+  <img src="https://github.com/user-attachments/assets/aa15b89e-d049-497f-a063-1907ea605b66" width="300" />
+</div>
 
 ---
 
@@ -73,6 +78,7 @@ npx eas build -p ios --profile production  #For IOS IPA
 
 ## 📚 Documentation
 
+- 📥 Install APK App in Android ([Install APK here](https://t.me/+8TwEgfD5V-RmZDc9))
 - 🛠️ Expo CLI ([View Documentation](https://docs.expo.dev/more/expo-cli/))
 - 🎨 Clean and user-friendly UI ([View Figma Design](https://www.figma.com/design/l02RJEt5eMlpr21sAJeOKg/UI-design?m=auto&t=Uf2Ad1lW1D1D7KCm-1))
 - 📚 Expo Camera ([Expo Camera Documentation](https://docs.expo.dev/versions/latest/sdk/camera/))
