@@ -619,7 +619,7 @@ export default function Statistics() {
             <ScrollView horizontal showsHorizontalScrollIndicator={true}>
               <View
                 style={{
-                  padding: 16,
+                  padding: 24,
                   borderRadius: 16,
                   backgroundColor: colors.surface,
                   marginBottom: 4,

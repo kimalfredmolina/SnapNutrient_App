@@ -537,14 +537,14 @@ export default function HomePage() {
           </Text>
         </View>
 
-        {/* Notification Icon */}
+        {/* Notification Icon
         <TouchableOpacity>
           <Ionicons
             name="notifications-outline"
             size={24}
             color={colors.text}
           />
-        </TouchableOpacity>
+        </TouchableOpacity>*/}
       </View>
 
       <ScrollView

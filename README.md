@@ -47,6 +47,23 @@ npm test
 pytest --cov=.
 ```
 
+## Building an APK (App)
+```bash
+npx expo prebuild
+```
+
+```bash
+npx expo prebuild --clean    #If have changes
+```
+
+```bash
+npx eas build -p android --profile production  #For Android APK
+```
+
+```bash
+npx eas build -p ios --profile production  #For IOS IPA
+```
+
 ## 🌟 Key Features
 
 - 📷 Real-time food recognition using YOLOv8
@@ -205,10 +222,19 @@ ipconfig
 ### Step 5: Add a new file inside the frontend folder and name it "server.ts" and copy paste this code and change your IPv4
 ```typescript
 const CONFIG = {
-  API_BASE_URL: "http://add ur IPv4 here:8000", //Your IPv4 Address in your IPCONFIG
+  API_BASE_URL: "http://add ur IPv4 here:8000", //IPv4 of Model API
 };
 
 export default CONFIG;
+```
+
+## Other requirements to run the Model API
+
+### Add this into this file android/app/src/main/AndroidManifest.xml
+```xml
+add this in end of the application android:name=".MainApplication" block
+
+android:usesCleartextTraffic="true" 
 ```
 
 
@@ -225,7 +251,7 @@ git checkout -b new_branch # To Create ne branch
 ```bash
 git status    # To check the file changes
 git pull      # To get the latest git commit
-git pull origin branch_name   # TTo get the latest got commit in speciic branch
+git pull origin branch_name   # To get the latest got commit in speciic branch
 ```
 
 ### Add, Commit, Push

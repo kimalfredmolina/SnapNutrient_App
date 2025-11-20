@@ -53,7 +53,7 @@ export default function About() {
             className="text-base"
             style={{ color: colors.text, opacity: 0.7 }}
           >
-            Version 1.0.0
+            Version 1.1.4
           </Text>
         </View>
 
