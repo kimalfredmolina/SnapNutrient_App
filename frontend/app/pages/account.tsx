@@ -3,11 +3,11 @@ import {
   Text,
   TouchableOpacity,
   Image,
-  ScrollView,
+
   Switch,
 } from "react-native";
 import { useRouter } from "expo-router";
-import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../../contexts/ThemeContext";
 import { useAuth } from "../../contexts/AuthContext";
 import { auth } from "../../config/firebase";
@@ -82,7 +82,7 @@ export default function Account() {
         {/* Menu Options */}
         <View className="gap-y-2 mb-8 ml-4">
           {/* Settings */}
-          <TouchableOpacity
+          <TouchableOpacity            testID="btn-settings"
             className="flex-row items-center py-3"
             onPress={() => router.push("/pages/tabSetting/settings")}
           >
@@ -103,6 +103,7 @@ export default function Account() {
 
           {/* Help */}
           <TouchableOpacity
+            testID="btn-help"
             className="flex-row items-center py-3"
             onPress={() => router.push("/pages/tabSetting/help")}
           >
@@ -112,6 +113,7 @@ export default function Account() {
               color={colors.text}
             />
             <Text
+              testID="btn-help-text"
               className="ml-4 text-base font-medium flex-1"
               style={{ color: colors.text }}
             >
@@ -127,11 +129,13 @@ export default function Account() {
 
           {/* Privacy */}
           <TouchableOpacity
+            testID="btn-privacy"
             className="flex-row items-center py-3"
             onPress={() => router.push("/pages/tabSetting/privacy")}
           >
             <Ionicons name="shield-half-outline" size={24} color={colors.text} />
             <Text
+              testID="btn-privacy-text"
               className="ml-4 text-base font-medium flex-1"
               style={{ color: colors.text }}
             >
@@ -147,11 +151,13 @@ export default function Account() {
 
           {/* Terms & Conditions */}
           <TouchableOpacity
+            testID="btn-terms"
             className="flex-row items-center py-3"
             onPress={() => router.push("/pages/tabSetting/terms")}
           >
             <Ionicons name="document-text-outline" size={24} color={colors.text} />
             <Text
+              testID="btn-terms-text"
               className="ml-4 text-base font-medium flex-1"
               style={{ color: colors.text }}
             >
@@ -167,11 +173,13 @@ export default function Account() {
 
           {/* Contact */}
           <TouchableOpacity
+            testID="btn-contact"
             className="flex-row items-center py-3"
             onPress={() => router.push("/pages/tabSetting/contact")}
           >
             <Ionicons name="mail-outline" size={24} color={colors.text} />
             <Text
+              testID="btn-contact-text"
               className="ml-4 text-base font-medium flex-1"
               style={{ color: colors.text }}
             >
@@ -187,6 +195,7 @@ export default function Account() {
 
           {/* Report */}
           <TouchableOpacity
+            testID="btn-report"
             className="flex-row items-center py-3"
             onPress={() => router.push("/pages/tabSetting/report")}
           >
@@ -196,6 +205,7 @@ export default function Account() {
               color={colors.text}
             />
             <Text
+              testID="btn-report-text"
               className="ml-4 text-base font-medium flex-1"
               style={{ color: colors.text }}
             >
@@ -223,6 +233,7 @@ export default function Account() {
               Appearance
             </Text>
             <Switch
+              testID="theme-switch"
               value={isDark}
               onValueChange={toggleTheme}
               thumbColor={isDark ? "#f4f3f4" : "#f4f3f4"}
@@ -232,6 +243,7 @@ export default function Account() {
 
           {/* About */}
           <TouchableOpacity
+            testID="btn-about"
             className="flex-row items-center py-3"
             onPress={() => router.push("/pages/tabSetting/about")}
           >
@@ -241,6 +253,7 @@ export default function Account() {
               color={colors.text}
             />
             <Text
+              testID="btn-about-text"
               className="ml-4 text-base font-medium flex-1"
               style={{ color: colors.text }}
             >
@@ -261,11 +274,13 @@ export default function Account() {
         {/* Logout */}
         <View className="mt-4 mb-4">
           <TouchableOpacity
+            testID="btn-logout"
             className="rounded-xl py-3 border"
             style={{ borderColor: colors.accent }}
             onPress={handleSignOut}
           >
             <Text
+              testID="btn-logout-text"
               className="text-center text-lg font-semibold"
               style={{ color: colors.accent }}
             >
