@@ -492,7 +492,7 @@ export default function LoginPage() {
             </Text>
           </TouchableOpacity>
 
-          {/* Apple SignIn */}
+          {/* Apple SignIn
           <TouchableOpacity
             disabled={!agreed}
             className="flex-row items-center justify-center rounded-lg py-3 mb-2"
@@ -517,6 +517,7 @@ export default function LoginPage() {
               Continue with Apple
             </Text>
           </TouchableOpacity>
+          */}
 
           {/* Terms & Privacy with Checkbox */}
           <View className="pb-4 mt-4 mx-auto flex-row items-center">
